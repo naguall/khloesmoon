@@ -1,11 +1,11 @@
 {
   "name": "Khloe's Moon",
   "short_name": "Khloe's Moon",
-  "description": "Diario personal, diario de suenos y calendario lunar con informacion astrologica",
+  "description": "Your Cycle, Your Power — Cycle tracking and wellness app",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0a0a1a",
-  "theme_color": "#0a0a1a",
+  "background_color": "#FAF6F0",
+  "theme_color": "#FAF6F0",
   "orientation": "portrait",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },

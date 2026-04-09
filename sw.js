@@ -1,4 +1,4 @@
-const CACHE_NAME = 'khloesmoon-v1';
+const CACHE_NAME = 'khloesmoon-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -24,19 +24,6 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  if (url.hostname.includes('cdn.jsdelivr.net')) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-    return;
-  }
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
