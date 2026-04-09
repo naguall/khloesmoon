@@ -906,6 +906,7 @@
                     <div class="card">
                         <h3 id="about-label">Acerca de</h3>
                         <p style="font-size: 13px; color: var(--secondary);">🌙 Khloe's Moon v2.0<br>Tu ciclo, tu poder</p>
+                        <button class="btn-secondary" onclick="forceUpdate()" style="width: 100%; margin-top: 10px;">🔄 Actualizar app / Clear cache</button>
                         <p style="font-size: 12px; color: var(--secondary); margin-top: 12px;">🔒 Tus datos nunca salen de tu dispositivo</p>
                     </div>
                 </div>
@@ -1935,8 +1936,44 @@
             });
         });
 
+        // Service Worker with auto-update detection
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW:', err));
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                // Check for updates every time the app loads
+                reg.update();
+
+                // When a new SW is found, auto-activate it and reload
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'activated') {
+                            // New version activated - reload to get fresh content
+                            window.location.reload();
+                        }
+                    });
+                });
+            }).catch(err => console.log('SW:', err));
+
+            // When the new SW takes control, reload
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
+            });
+        }
+
+        // Force update function (called from Settings)
+        function forceUpdate() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                    regs.forEach(r => r.unregister());
+                });
+                caches.keys().then(keys => {
+                    Promise.all(keys.map(k => caches.delete(k))).then(() => {
+                        window.location.reload(true);
+                    });
+                });
+            } else {
+                window.location.reload(true);
+            }
         }
     </script>
 </body>
