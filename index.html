@@ -364,9 +364,105 @@
         .calendar-day.today { border: 2px solid var(--pink); }
         .moon-phase-indicator {
             position: absolute;
-            top: 2px;
-            right: 2px;
-            font-size: 10px;
+            top: 1px;
+            right: 1px;
+            font-size: 7px;
+            line-height: 1;
+        }
+        .calendar-day.selected-day {
+            box-shadow: 0 0 0 2px var(--wine);
+        }
+        .day-detail-panel {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            animation: slideUp 0.2s ease;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .day-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .day-detail-phase {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .day-events-list {
+            margin: 8px 0;
+        }
+        .day-event-item {
+            padding: 6px 10px;
+            margin: 4px 0;
+            border-radius: 6px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .day-log-quick {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+        .day-log-quick button {
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            background: var(--white);
+        }
+        .day-log-quick button.sel {
+            background: var(--pink);
+            color: #fff;
+            border-color: var(--pink);
+        }
+        .legend-color-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin: 3px 6px 3px 0;
+            font-size: 11px;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        .friend-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 6px 0;
+            background: var(--cream);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .share-code-display {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--wine);
+            text-align: center;
+            padding: 12px;
+            background: var(--cream);
+            border-radius: 8px;
+            margin: 8px 0;
         }
         .log-entry-dot {
             position: absolute;
@@ -767,13 +863,10 @@
                         <button class="btn-secondary" onclick="nextMonth()" style="padding: 8px 12px; font-size: 14px;">&gt;</button>
                     </div>
                     <div class="calendar-grid" id="calendar-grid"></div>
-                    <div class="legend">
-                        <div class="legend-title" id="phase-legend-title">Fases del ciclo</div>
-                        <div class="legend-items" id="phase-legend"></div>
-                    </div>
-                    <div class="legend">
-                        <div class="legend-title" id="moon-legend-title">Fases lunares</div>
-                        <div class="legend-items" id="moon-legend"></div>
+                    <div id="day-detail-panel"></div>
+                    <div class="legend" style="margin-top:12px;">
+                        <div class="legend-title" style="font-size:13px;font-weight:600;margin-bottom:6px;">Colores del calendario:</div>
+                        <div id="color-legend" style="display:flex;flex-wrap:wrap;gap:2px;"></div>
                     </div>
                 </div>
             </div>
@@ -899,6 +992,20 @@
                         </label>
                     </div>
                     <div class="card">
+                        <h3>🤝 Compartir con amigas</h3>
+                        <p style="font-size:13px;color:var(--secondary);margin-bottom:10px;">Comparte tu código para que tus amigas vean tu ciclo</p>
+                        <div class="share-code-display" id="my-share-code">------</div>
+                        <button class="btn-secondary" onclick="copyShareCode()" style="width:100%;margin-bottom:12px;">📋 Copiar código</button>
+                        <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+                            <p style="font-size:13px;font-weight:600;margin-bottom:8px;">Agregar amiga</p>
+                            <div style="display:flex;gap:8px;">
+                                <input type="text" id="friend-code-input" placeholder="Código de amiga" maxlength="6" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;text-transform:uppercase;">
+                                <button class="btn-primary" onclick="addFriend()" style="padding:10px 16px;">Agregar</button>
+                            </div>
+                        </div>
+                        <div id="friends-list" style="margin-top:12px;"></div>
+                    </div>
+                    <div class="card">
                         <h3 id="data-label">Datos</h3>
                         <button class="btn-secondary" onclick="exportData()" style="width: 100%; margin-bottom: 8px;">Exportar datos</button>
                         <button class="btn-secondary" onclick="resetData()" style="width: 100%; color: #E74C3C;">Borrar datos</button>
@@ -936,18 +1043,7 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="day-detail-modal">
-        <div class="modal-content" style="max-width: 400px; max-height: 85vh; overflow-y: auto;">
-            <div class="modal-header" id="day-detail-header">Day Detail</div>
-            <div class="modal-body" id="day-detail-body"></div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('day-detail-modal')">Cerrar</button>
-                <button class="btn-primary" onclick="saveDayLog()">Guardar</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="reset-modal">
+<div class="modal-overlay" id="reset-modal">
         <div class="modal-content" style="max-width: 350px;">
             <div class="modal-header">¿Segura?</div>
             <div class="modal-body" style="color: var(--secondary);">Se eliminarán todos tus datos.</div>
@@ -1543,103 +1639,14 @@
             document.getElementById(id).classList.remove('active');
         }
 
-        let dayDetailDate = null;
-        let dayDetailSymptoms = [];
-
-        function openDayDetail(dateStr) {
-            dayDetailDate = dateStr;
-            dayDetailSymptoms = [];
-            const d = new Date(dateStr + 'T12:00:00');
-            const moon = getMoonPhase(d);
-            const moonInfo = getMoonPhaseName(moon.age);
-            const cycleDay = getCycleDay(profile.lastPeriod, d);
-            const phase = getPhase(cycleDay);
-            const phaseName = _('phases_' + phase) || phase;
-            const existing = logs[dateStr] || {};
-            const dayEvents = events[dateStr] || [];
-
-            const opts = {weekday:'long', year:'numeric', month:'long', day:'numeric'};
-            const locale = {es:'es-ES',en:'en-US',fr:'fr-FR',pt:'pt-BR',de:'de-DE',it:'it-IT',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR'}[currentLang]||'es-ES';
-            document.getElementById('day-detail-header').textContent = d.toLocaleDateString(locale, opts);
-
-            let html = '<div style="display:flex;gap:12px;margin-bottom:12px;">';
-            html += '<div style="padding:6px 12px;border-radius:20px;background:var(--' + phase + ',#D47F93);color:#fff;font-size:13px;">' + phaseName + ' · ' + _('cycle_day') + ' ' + cycleDay + '</div>';
-            html += '<div style="font-size:20px;">' + moonInfo.emoji + ' ' + _(moonInfo.name) + '</div>';
-            html += '</div>';
-
-            // Events section
-            html += '<div style="margin-bottom:12px;"><strong>' + (_('events') || 'Events') + ':</strong>';
-            if (dayEvents.length) {
-                dayEvents.forEach((e,i) => {
-                    html += '<div style="padding:6px;margin:4px 0;background:' + (e.color||'#ECE2D0') + '20;border-left:3px solid ' + (e.color||'#D47F93') + ';border-radius:4px;display:flex;justify-content:space-between;align-items:center;"><span>' + (e.time ? e.time + ' ' : '') + e.title + '</span><button onclick="removeEvent(\'' + dateStr + '\',' + i + ')" style="border:none;background:none;color:#E74C3C;cursor:pointer;font-size:16px;">✕</button></div>';
-                });
-            } else {
-                html += '<div style="color:var(--secondary);font-size:13px;margin:4px 0;">' + (_('no_events') || 'No events') + '</div>';
-            }
-            html += '<button class="btn-secondary" onclick="addEventPrompt(\'' + dateStr + '\')" style="font-size:12px;padding:6px 12px;margin-top:4px;">' + (_('add_event') || '+ Add Event') + '</button></div>';
-
-            // Quick log
-            html += '<div style="border-top:1px solid var(--border);padding-top:12px;">';
-            html += '<strong>' + (_('how_feeling') || 'How are you feeling?') + '</strong>';
-
-            // Flow
-            const flowLabels = _('flow_levels') || ['None','Light','Medium','Heavy'];
-            html += '<div style="margin:8px 0;"><small>' + (_('period_flow') || 'Flow') + '</small><div style="display:flex;gap:6px;margin-top:4px;">';
-            flowLabels.forEach((f,i) => {
-                const sel = existing.flow === i ? 'background:var(--pink);color:#fff;' : '';
-                html += '<button class="day-flow-btn" data-flow="' + i + '" onclick="this.parentElement.querySelectorAll(\'button\').forEach(b=>b.style.background=\'\');this.style.background=\'var(--pink)\';this.style.color=\'#fff\';" style="padding:4px 10px;border:1px solid var(--border);border-radius:12px;font-size:12px;cursor:pointer;' + sel + '">' + f + '</button>';
-            });
-            html += '</div></div>';
-
-            // Mood
-            const moods = ['😢','😐','😊','😄','🤩'];
-            html += '<div style="margin:8px 0;"><small>' + (_('mood') || 'Mood') + '</small><div style="display:flex;gap:8px;margin-top:4px;">';
-            moods.forEach((m,i) => {
-                const sel = existing.mood === i ? 'background:var(--pink);border-radius:50%;' : '';
-                html += '<span class="day-mood-btn" data-mood="' + i + '" onclick="this.parentElement.querySelectorAll(\'span\').forEach(s=>s.style.background=\'\');this.style.background=\'var(--pink)\';this.style.borderRadius=\'50%\';" style="font-size:22px;cursor:pointer;padding:4px;' + sel + '">' + m + '</span>';
-            });
-            html += '</div></div>';
-
-            // Notes
-            html += '<div style="margin:8px 0;"><small>' + (_('notes') || 'Notes') + '</small>';
-            html += '<textarea id="day-notes" style="width:100%;height:60px;border:1px solid var(--border);border-radius:8px;padding:8px;font-family:inherit;font-size:13px;resize:none;margin-top:4px;" placeholder="' + (_('notes_placeholder') || '...') + '">' + (existing.notes || '') + '</textarea></div>';
-            html += '</div>';
-
-            document.getElementById('day-detail-body').innerHTML = html;
-            document.getElementById('day-detail-modal').classList.add('active');
-        }
-
-        function saveDayLog() {
-            if (!dayDetailDate) return;
-            const body = document.getElementById('day-detail-body');
-            const flowBtn = body.querySelector('.day-flow-btn[style*="var(--pink)"]');
-            const moodBtn = body.querySelector('.day-mood-btn[style*="var(--pink)"]');
-            const notes = document.getElementById('day-notes')?.value || '';
-
-            const entry = logs[dayDetailDate] || {};
-            if (flowBtn) entry.flow = parseInt(flowBtn.dataset.flow);
-            if (moodBtn) entry.mood = parseInt(moodBtn.dataset.mood);
-            if (notes) entry.notes = notes;
-
-            logs[dayDetailDate] = entry;
-            localStorage.setItem('khloesmoon_logs', JSON.stringify(logs));
-            closeModal('day-detail-modal');
-            updateCalendar();
-
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = _('saved_ok') || 'Saved!';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2000);
-        }
-
         function addEventPrompt(dateStr) {
-            const title = prompt(_('event_title') || 'Event name:');
+            const title = prompt(_('event_title') || 'Nombre del evento:');
             if (!title) return;
-            const time = prompt(_('event_time') || 'Time (optional, e.g. 14:00):') || '';
+            const time = prompt(_('event_time') || 'Hora (opcional, ej: 14:00):') || '';
             if (!events[dateStr]) events[dateStr] = [];
             events[dateStr].push({ title, time, color: '#D47F93' });
             localStorage.setItem('khloesmoon_events', JSON.stringify(events));
+            updateCalendar();
             openDayDetail(dateStr);
         }
 
@@ -1648,6 +1655,7 @@
                 events[dateStr].splice(idx, 1);
                 if (events[dateStr].length === 0) delete events[dateStr];
                 localStorage.setItem('khloesmoon_events', JSON.stringify(events));
+                updateCalendar();
                 openDayDetail(dateStr);
             }
         }
@@ -1712,10 +1720,10 @@
 
         function updateCalendar() {
             if (!profile) return;
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
+            const year = calYear;
+            const month = calMonth;
             document.getElementById('calendar-month-display').textContent = _('months')[month] + ' ' + year;
+            document.getElementById('day-detail-panel').innerHTML = '';
 
             let html = '';
             _('days_short').forEach(d => html += '<div class="day-header">' + d + '</div>');
@@ -1801,6 +1809,8 @@
             updateCalendar();
             updateLog();
             updateInsights();
+            updateColorLegend();
+            updateFriends();
         }
 
         function selectFlow(level) {
@@ -1910,8 +1920,241 @@
             showToast('✅ Data exported');
         }
 
-        function prevMonth() {}
-        function nextMonth() {}
+        let calYear = new Date().getFullYear();
+        let calMonth = new Date().getMonth();
+
+        function prevMonth() {
+            calMonth--;
+            if (calMonth < 0) { calMonth = 11; calYear--; }
+            updateCalendar();
+        }
+        function nextMonth() {
+            calMonth++;
+            if (calMonth > 11) { calMonth = 0; calYear++; }
+            updateCalendar();
+        }
+
+        function openDayDetail(dateStr) {
+            const d = new Date(dateStr + 'T12:00:00');
+            const moon = getMoonPhase(d);
+            const moonInfo = getMoonPhaseName(moon.age);
+            const cycleDay = getCycleDay(profile.lastPeriod, d);
+            const phase = getPhase(cycleDay);
+            const phaseName = _('phases_' + phase) || phase;
+            const existing = logs[dateStr] || {};
+            const dayEvents = events[dateStr] || [];
+            const locale = {es:'es-ES',en:'en-US',fr:'fr-FR',pt:'pt-BR',de:'de-DE',it:'it-IT',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR'}[currentLang]||'es-ES';
+            const dateFormatted = d.toLocaleDateString(locale, {weekday:'long', day:'numeric', month:'long'});
+            const phaseColors = {menstrual:'#E74C3C',follicular:'#F39C12',ovulation:'#27AE60',fertile:'#2ECC71',luteal:'#8E44AD'};
+
+            // Highlight selected day
+            document.querySelectorAll('.calendar-day.selected-day').forEach(el => el.classList.remove('selected-day'));
+            const allDays = document.querySelectorAll('.calendar-day[onclick]');
+            allDays.forEach(el => {
+                if (el.getAttribute('onclick').includes(dateStr)) el.classList.add('selected-day');
+            });
+
+            let html = '<div class="day-detail-panel">';
+            html += '<div class="day-detail-header">';
+            html += '<div><strong style="font-size:15px;text-transform:capitalize;">' + dateFormatted + '</strong></div>';
+            html += '<span style="font-size:20px;">' + moonInfo.emoji + '</span>';
+            html += '</div>';
+            html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">';
+            html += '<span class="day-detail-phase" style="background:' + (phaseColors[phase]||'#D47F93') + ';">' + phaseName + '</span>';
+            html += '<span style="font-size:12px;color:var(--secondary);">' + (_('cycle_day')||'Day') + ' ' + cycleDay + '</span>';
+            html += '<span style="font-size:12px;color:var(--secondary);">· ' + _(moonInfo.name) + '</span>';
+            html += '</div>';
+
+            // Events
+            html += '<div style="margin-bottom:10px;"><strong style="font-size:13px;">' + (_('events')||'Eventos') + '</strong>';
+            if (dayEvents.length) {
+                dayEvents.forEach((e,i) => {
+                    html += '<div class="day-event-item" style="background:' + (e.color||'#D47F93') + '15;border-left:3px solid ' + (e.color||'#D47F93') + ';">';
+                    html += '<span>' + (e.time?e.time+' ':'') + e.title + '</span>';
+                    html += '<button onclick="removeEvent(\'' + dateStr + '\',' + i + ')" style="border:none;background:none;color:#E74C3C;cursor:pointer;">✕</button>';
+                    html += '</div>';
+                });
+            } else {
+                html += '<div style="font-size:12px;color:var(--secondary);margin:4px 0;">' + (_('no_events')||'Sin eventos') + '</div>';
+            }
+            html += '<button class="btn-secondary" onclick="addEventPrompt(\'' + dateStr + '\')" style="font-size:11px;padding:5px 10px;margin-top:4px;">+ ' + (_('add_event')||'Agregar evento') + '</button>';
+            html += '</div>';
+
+            // Quick log section
+            html += '<div style="border-top:1px solid var(--border);padding-top:10px;">';
+            html += '<strong style="font-size:13px;">📝 Log</strong>';
+
+            // Existing log summary
+            if (existing.flow !== undefined || existing.mood !== undefined || existing.notes) {
+                const flowLabels = _('flow_levels') || ['Ninguno','Ligero','Moderado','Abundante'];
+                const moodEmojis = ['😢','😐','😊','😄','🤩'];
+                html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0;">';
+                if (existing.flow !== undefined) html += '<span style="font-size:12px;background:var(--cream);padding:3px 8px;border-radius:8px;">💧 ' + flowLabels[existing.flow] + '</span>';
+                if (existing.mood !== undefined) html += '<span style="font-size:12px;background:var(--cream);padding:3px 8px;border-radius:8px;">' + moodEmojis[existing.mood] + '</span>';
+                if (existing.notes) html += '<div style="font-size:12px;color:var(--secondary);margin-top:4px;width:100%;">📝 ' + existing.notes + '</div>';
+                html += '</div>';
+            }
+
+            // Quick flow selector
+            const flowLabels = _('flow_levels') || ['Ninguno','Ligero','Moderado','Abundante'];
+            html += '<div style="margin:6px 0;"><small style="color:var(--secondary);">' + (_('period_flow')||'Flujo') + '</small>';
+            html += '<div class="day-log-quick" id="day-flow-' + dateStr + '">';
+            flowLabels.forEach((f,i) => {
+                html += '<button class="' + (existing.flow===i?'sel':'') + '" onclick="setDayFlow(\'' + dateStr + '\',' + i + ')">' + f + '</button>';
+            });
+            html += '</div></div>';
+
+            // Quick mood selector
+            const moods = ['😢','😐','😊','😄','🤩'];
+            html += '<div style="margin:6px 0;"><small style="color:var(--secondary);">' + (_('mood')||'Ánimo') + '</small>';
+            html += '<div class="day-log-quick" id="day-mood-' + dateStr + '">';
+            moods.forEach((m,i) => {
+                html += '<button class="' + (existing.mood===i?'sel':'') + '" onclick="setDayMood(\'' + dateStr + '\',' + i + ')" style="font-size:16px;">' + m + '</button>';
+            });
+            html += '</div></div>';
+
+            // Notes
+            html += '<div style="margin:6px 0;"><small style="color:var(--secondary);">' + (_('notes')||'Notas') + '</small>';
+            html += '<textarea id="day-notes-' + dateStr + '" onblur="saveDayNotes(\'' + dateStr + '\')" style="width:100%;height:50px;border:1px solid var(--border);border-radius:8px;padding:8px;font-family:inherit;font-size:12px;resize:none;margin-top:4px;" placeholder="...">' + (existing.notes||'') + '</textarea></div>';
+
+            html += '</div></div>';
+            document.getElementById('day-detail-panel').innerHTML = html;
+            document.getElementById('day-detail-panel').scrollIntoView({behavior:'smooth', block:'nearest'});
+        }
+
+        function setDayFlow(dateStr, idx) {
+            if (!logs[dateStr]) logs[dateStr] = {};
+            logs[dateStr].flow = idx;
+            localStorage.setItem('khloesmoon_logs', JSON.stringify(logs));
+            const btns = document.querySelectorAll('#day-flow-' + dateStr + ' button');
+            btns.forEach((b,i) => b.classList.toggle('sel', i===idx));
+            updateCalendar();
+            openDayDetail(dateStr);
+        }
+
+        function setDayMood(dateStr, idx) {
+            if (!logs[dateStr]) logs[dateStr] = {};
+            logs[dateStr].mood = idx;
+            localStorage.setItem('khloesmoon_logs', JSON.stringify(logs));
+            const btns = document.querySelectorAll('#day-mood-' + dateStr + ' button');
+            btns.forEach((b,i) => b.classList.toggle('sel', i===idx));
+        }
+
+        function saveDayNotes(dateStr) {
+            const textarea = document.getElementById('day-notes-' + dateStr);
+            if (!textarea) return;
+            if (!logs[dateStr]) logs[dateStr] = {};
+            logs[dateStr].notes = textarea.value;
+            localStorage.setItem('khloesmoon_logs', JSON.stringify(logs));
+        }
+
+        function updateColorLegend() {
+            const phases = [
+                {name: _('phases_menstrual')||'Menstrual', color: '#E74C3C'},
+                {name: _('phases_follicular')||'Folicular', color: '#F39C12'},
+                {name: _('phases_ovulation')||'Ovulación', color: '#27AE60'},
+                {name: _('phases_luteal')||'Lútea', color: '#8E44AD'}
+            ];
+            const moons = [
+                {name: '🌑 ' + (_('new_moon')||'Nueva'), emoji: '🌑'},
+                {name: '🌓 ' + (_('first_quarter')||'Cuarto creciente'), emoji: '🌓'},
+                {name: '🌕 ' + (_('full_moon')||'Llena'), emoji: '🌕'},
+                {name: '🌗 ' + (_('last_quarter')||'Cuarto menguante'), emoji: '🌗'}
+            ];
+            const indicators = [
+                {name: '● Log', color: '#D47F93'},
+                {name: '● ' + (_('events')||'Evento'), color: '#3498DB'}
+            ];
+
+            let html = '';
+            phases.forEach(p => {
+                html += '<span class="legend-color-item"><span class="legend-dot" style="background:' + p.color + ';"></span>' + p.name + '</span>';
+            });
+            html += '<br>';
+            moons.forEach(m => {
+                html += '<span class="legend-color-item">' + m.name + '</span>';
+            });
+            html += '<br>';
+            indicators.forEach(i => {
+                html += '<span class="legend-color-item"><span style="color:' + i.color + ';font-size:8px;">●</span> ' + i.name + '</span>';
+            });
+            document.getElementById('color-legend').innerHTML = html;
+        }
+
+        // Friend sharing
+        let friends = JSON.parse(localStorage.getItem('khloesmoon_friends')) || [];
+
+        function updateFriends() {
+            if (profile && profile.shareCode) {
+                document.getElementById('my-share-code').textContent = profile.shareCode;
+            }
+            const list = document.getElementById('friends-list');
+            if (!list) return;
+            if (friends.length === 0) {
+                list.innerHTML = '<p style="font-size:12px;color:var(--secondary);text-align:center;">No hay amigas agregadas</p>';
+                return;
+            }
+            let html = '';
+            friends.forEach((f, i) => {
+                const cycleDay = getCycleDay(f.lastPeriod);
+                const phase = getPhase(cycleDay);
+                const phaseName = _('phases_' + phase) || phase;
+                const phaseColors = {menstrual:'#E74C3C',follicular:'#F39C12',ovulation:'#27AE60',fertile:'#2ECC71',luteal:'#8E44AD'};
+                html += '<div class="friend-card">';
+                html += '<div><strong>' + f.name + '</strong><br><span style="font-size:12px;color:var(--secondary);">' + (_('cycle_day')||'Día') + ' ' + cycleDay + '</span></div>';
+                html += '<div style="display:flex;align-items:center;gap:6px;">';
+                html += '<span style="padding:3px 8px;border-radius:10px;background:' + (phaseColors[phase]||'#D47F93') + ';color:#fff;font-size:11px;">' + phaseName + '</span>';
+                html += '<button onclick="removeFriend(' + i + ')" style="border:none;background:none;color:#E74C3C;cursor:pointer;font-size:14px;">✕</button>';
+                html += '</div></div>';
+            });
+            list.innerHTML = html;
+        }
+
+        function copyShareCode() {
+            if (profile && profile.shareCode) {
+                navigator.clipboard.writeText(profile.shareCode).then(() => {
+                    showToast('📋 ' + (_('code_copied')||'Código copiado!'));
+                }).catch(() => {
+                    prompt('Tu código:', profile.shareCode);
+                });
+            }
+        }
+
+        function addFriend() {
+            const code = document.getElementById('friend-code-input').value.trim().toUpperCase();
+            if (!code || code.length < 4) {
+                showToast('⚠️ ' + (_('enter_valid_code')||'Ingresa un código válido'));
+                return;
+            }
+            if (profile && code === profile.shareCode) {
+                showToast('⚠️ ' + (_('own_code')||'Ese es tu propio código'));
+                return;
+            }
+            if (friends.find(f => f.code === code)) {
+                showToast('⚠️ ' + (_('already_added')||'Ya agregada'));
+                return;
+            }
+            // Demo: create a simulated friend with random cycle data
+            const names = ['Luna','Sofia','Valentina','Camila','Isabella','Mariana','Daniela','Gabriela'];
+            const friend = {
+                code: code,
+                name: names[Math.floor(Math.random()*names.length)],
+                lastPeriod: new Date(Date.now() - Math.floor(Math.random()*28)*24*60*60*1000).toISOString().split('T')[0],
+                cycleLength: 26 + Math.floor(Math.random()*5),
+                periodLength: 4 + Math.floor(Math.random()*3)
+            };
+            friends.push(friend);
+            localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+            document.getElementById('friend-code-input').value = '';
+            showToast('✅ ' + friend.name + ' ' + (_('friend_added')||'agregada!'));
+            updateFriends();
+        }
+
+        function removeFriend(idx) {
+            friends.splice(idx, 1);
+            localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+            updateFriends();
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             if (profile) {
