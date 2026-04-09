@@ -1,4 +1,4 @@
-const CACHE_NAME = 'khloesmoon-v6';
+const CACHE_NAME = 'khloesmoon-v7';
 const ASSETS = [
   './',
   './index.html',
