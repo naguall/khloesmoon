@@ -12,9 +12,9 @@
 <title>Khloe's Moon</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FAF6F0; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FAF6F0; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; -webkit-tap-highlight-color: transparent; -webkit-overflow-scrolling: touch; }
   .app { flex: 1; display: flex; flex-direction: column; max-width: 500px; width: 100%; margin: 0 auto; background: #FAF6F0; position: relative; height: 100vh; height: 100dvh; }
-  .screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 16px; padding-top: env(safe-area-inset-top, 16px); scroll-behavior: smooth; }
+  .screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 16px; padding-top: env(safe-area-inset-top, 16px); scroll-behavior: smooth; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
   .screen::-webkit-scrollbar { display: none; }
   .screen { -ms-overflow-style: none; scrollbar-width: none; }
   .hidden { display: none !important; }
@@ -207,11 +207,11 @@
   </div>
 
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="home" onclick="switchTab('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
-    <button class="tab-btn" data-tab="calendar" onclick="switchTab('calendar')"><span class="icon">📅</span><span class="label">Calendar</span></button>
-    <button class="tab-btn" data-tab="log" onclick="switchTab('log')"><button class="tab-center" onclick="switchTab('log')">+</button><span class="label">Log</span></button>
-    <button class="tab-btn" data-tab="insights" onclick="switchTab('insights')"><span class="icon">📊</span><span class="label">Insights</span></button>
-    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')"><span class="icon">⚙️</span><span class="label">Settings</span></button>
+    <div class="tab-btn active" data-tab="home" onclick="switchTab('home')"><span class="icon">🏠</span><span class="label">Home</span></div>
+    <div class="tab-btn" data-tab="calendar" onclick="switchTab('calendar')"><span class="icon">📅</span><span class="label">Calendar</span></div>
+    <div class="tab-btn" data-tab="log" onclick="switchTab('log')"><div class="tab-center">+</div><span class="label">Log</span></div>
+    <div class="tab-btn" data-tab="insights" onclick="switchTab('insights')"><span class="icon">📊</span><span class="label">Insights</span></div>
+    <div class="tab-btn" data-tab="settings" onclick="switchTab('settings')"><span class="icon">⚙️</span><span class="label">Settings</span></div>
   </div>
 </div>
 <script>
