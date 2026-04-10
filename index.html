@@ -639,6 +639,13 @@
             font-size: 16px;
             padding: 0 4px;
         }
+        .event-list-item .ev-edit {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 4px;
+        }
         .add-event-btn {
             width: 100%;
             padding: 10px;
@@ -1194,7 +1201,7 @@
                 <div class="settings-group">
                     <button class="settings-btn" onclick="forceUpdate()" id="force-update-btn">Force Update</button>
                     <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-top: 6px;">
-                        <span id="version-label">Version</span>: <span id="app-version">v16</span>
+                        <span id="version-label">Version</span>: <span id="app-version">v17</span>
                     </div>
                 </div>
 
@@ -1349,6 +1356,8 @@
                 notif_2880: '2 días antes',
                 cancel: 'Cancelar',
                 delete: 'Eliminar',
+                edit: 'Editar',
+                edit_event: 'Editar evento',
                 confirm_delete_event: '¿Eliminar este evento?',
                 notifications_enabled: 'Notificaciones activadas',
                 notifications_denied: 'Notificaciones denegadas por el navegador',
@@ -1515,6 +1524,8 @@
                 notif_2880: '2 days before',
                 cancel: 'Cancel',
                 delete: 'Delete',
+                edit: 'Edit',
+                edit_event: 'Edit event',
                 confirm_delete_event: 'Delete this event?',
                 notifications_enabled: 'Notifications enabled',
                 notifications_denied: 'Notifications denied by browser',
@@ -2680,7 +2691,7 @@
             const cycleLength = profile.cycleLength || 28;
             document.getElementById('cycle-day-num').textContent = cycleInfo.day;
             document.getElementById('cycle-day-label').textContent = `of ${cycleLength}`;
-            document.getElementById('cycle-phase').textContent = `${_('cycle_day_of', cycleInfo.day, cycleLength)} • ${cycleInfo.phaseName}`;
+            document.getElementById('cycle-phase').textContent = `${_replace('cycle_day_of', cycleInfo.day, cycleLength)} • ${cycleInfo.phaseName}`;
             document.getElementById('current-phase-name').textContent = cycleInfo.phaseName;
             document.getElementById('phase-desc').textContent = _(`phase_desc.${cycleInfo.phase}`);
 
@@ -2710,18 +2721,29 @@
             }
             document.getElementById('wellness-tips').innerHTML = tipsHtml;
 
-            // Update today's events
+            // Update today's events (always visible on home)
             const todayKey = today.toISOString().split('T')[0];
             const todayEventsList = events[todayKey] || [];
             let eventsHtml = '';
             if (todayEventsList.length > 0) {
-                todayEventsList.forEach(event => {
-                    eventsHtml += `<div>• ${event}</div>`;
+                // Sort by time
+                const sorted = [...todayEventsList].sort((a, b) => {
+                    const ta = (typeof a === 'object' && a.time) ? a.time : '99:99';
+                    const tb = (typeof b === 'object' && b.time) ? b.time : '99:99';
+                    return ta.localeCompare(tb);
+                });
+                sorted.forEach(ev => {
+                    const title = typeof ev === 'string' ? ev : (ev.title || '');
+                    const time = (typeof ev === 'object' && ev.time) ? ev.time : '';
+                    const hasNotif = (typeof ev === 'object' && ev.notifications && ev.notifications.length > 0) ? ' 🔔' : '';
+                    const timeStr = time ? `<strong>${time}</strong> · ` : '';
+                    eventsHtml += `<div>• ${timeStr}${escapeHtml(title)}${hasNotif}</div>`;
                 });
             } else {
                 eventsHtml = `<div style="color: #7A5E6A;">${_('no_events')}</div>`;
             }
             document.getElementById('today-events-list').innerHTML = eventsHtml;
+            document.getElementById('today-events-container').style.display = 'block';
 
             // Upcoming predictions
             const nextPeriodDate = getNextPeriodDate();
@@ -3099,10 +3121,10 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
                     const notes = (ev && ev.notes) ? ev.notes : '';
                     const notifs = (ev && ev.notifications) ? ev.notifications : [];
                     const notifStr = notifs.length > 0 ? ' 🔔' : '';
-                    content += `<div class="event-list-item"><div class="ev-body"><div class="ev-title">${escapeHtml(title)}${notifStr}</div>`;
+                    content += `<div class="event-list-item"><div class="ev-body" onclick="editEvent('${dateStr}', ${idx})" style="cursor:pointer;"><div class="ev-title">${escapeHtml(title)}${notifStr}</div>`;
                     if (time) content += `<div class="ev-time">🕐 ${time}</div>`;
                     if (notes) content += `<div class="ev-time">${escapeHtml(notes)}</div>`;
-                    content += `</div><button class="ev-delete" onclick="deleteEvent('${dateStr}', ${idx})" title="${_('delete')}">✕</button></div>`;
+                    content += `</div><button class="ev-edit" onclick="editEvent('${dateStr}', ${idx})" title="${_('edit')}">✏️</button><button class="ev-delete" onclick="deleteEvent('${dateStr}', ${idx})" title="${_('delete')}">✕</button></div>`;
                 });
                 content += `</div>`;
             }
@@ -3132,25 +3154,20 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
         }
 
         // ============ EVENT MANAGEMENT ============
+        let editingEvent = null; // { dateStr, idx } when editing existing
+
         function openEventModal() {
+            editingEvent = null;
             if (!selectedDay) {
                 selectedDay = new Date().toISOString().split('T')[0];
             }
             document.getElementById('event-modal-title').textContent = _('add_event');
-            document.getElementById('ev-title-label').textContent = _('event_title_short');
-            document.getElementById('ev-date-label').textContent = _('event_date');
-            document.getElementById('ev-time-label').textContent = _('event_time');
-            document.getElementById('ev-notes-label').textContent = _('event_notes');
-            document.getElementById('ev-notif-label').textContent = _('event_notifications');
-            document.getElementById('ev-cancel-btn').textContent = _('cancel');
-            document.getElementById('ev-save-btn').textContent = _('save');
+            _applyModalLabels();
 
-            // Translate notif options
-            const notifMap = {'0':'notif_exact','15':'notif_15','30':'notif_30','60':'notif_60','1440':'notif_1440','2880':'notif_2880'};
+            // Translate notif options and reset
+            _buildNotifOptions();
             document.querySelectorAll('#ev-notif-options .notif-option').forEach(el => {
-                el.textContent = _(notifMap[el.dataset.val] || 'notif_exact');
                 el.classList.remove('active');
-                el.onclick = () => el.classList.toggle('active');
             });
 
             document.getElementById('ev-title').value = '';
@@ -3159,13 +3176,55 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             document.getElementById('ev-notes').value = '';
 
             document.getElementById('event-modal').classList.add('active');
-
-            // Request notification permission proactively
             requestNotificationPermission();
+        }
+
+        function editEvent(dateStr, idx) {
+            const ev = (events[dateStr] || [])[idx];
+            if (!ev) return;
+            editingEvent = { dateStr, idx };
+
+            document.getElementById('event-modal-title').textContent = _('edit_event');
+            _applyModalLabels();
+            _buildNotifOptions();
+
+            document.getElementById('ev-title').value = typeof ev === 'string' ? ev : (ev.title || '');
+            document.getElementById('ev-date').value = dateStr;
+            document.getElementById('ev-time').value = (ev && ev.time) || '09:00';
+            document.getElementById('ev-notes').value = (ev && ev.notes) || '';
+
+            const notifs = (ev && ev.notifications) || [];
+            document.querySelectorAll('#ev-notif-options .notif-option').forEach(el => {
+                const val = parseInt(el.dataset.val, 10);
+                if (notifs.includes(val)) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+
+            document.getElementById('event-modal').classList.add('active');
+            requestNotificationPermission();
+        }
+
+        function _applyModalLabels() {
+            document.getElementById('ev-title-label').textContent = _('event_title_short');
+            document.getElementById('ev-date-label').textContent = _('event_date');
+            document.getElementById('ev-time-label').textContent = _('event_time');
+            document.getElementById('ev-notes-label').textContent = _('event_notes');
+            document.getElementById('ev-notif-label').textContent = _('event_notifications');
+            document.getElementById('ev-cancel-btn').textContent = _('cancel');
+            document.getElementById('ev-save-btn').textContent = _('save');
+        }
+
+        function _buildNotifOptions() {
+            const notifMap = {'0':'notif_exact','15':'notif_15','30':'notif_30','60':'notif_60','1440':'notif_1440','2880':'notif_2880'};
+            document.querySelectorAll('#ev-notif-options .notif-option').forEach(el => {
+                el.textContent = _(notifMap[el.dataset.val] || 'notif_exact');
+                el.onclick = () => el.classList.toggle('active');
+            });
         }
 
         function closeEventModal() {
             document.getElementById('event-modal').classList.remove('active');
+            editingEvent = null;
         }
 
         function saveEvent() {
@@ -3179,22 +3238,51 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
                 notifications.push(parseInt(el.dataset.val, 10));
             });
 
-            const event = {
-                id: Date.now() + '_' + Math.random().toString(36).slice(2,8),
-                title, time, notes, notifications,
-                created: new Date().toISOString()
-            };
-
-            if (!events[date]) events[date] = [];
-            events[date].push(event);
-            localStorage.setItem('khloesmoon_events', JSON.stringify(events));
-
-            // Schedule notifications
-            scheduleEventNotifications(date, event);
+            if (editingEvent) {
+                // UPDATE existing
+                const { dateStr: oldDate, idx } = editingEvent;
+                const old = (events[oldDate] || [])[idx];
+                if (old) {
+                    // Clear old timers
+                    if (old.id && pendingTimers[old.id]) {
+                        pendingTimers[old.id].forEach(t => clearTimeout(t));
+                        delete pendingTimers[old.id];
+                    }
+                    const updated = {
+                        id: old.id || (Date.now() + '_' + Math.random().toString(36).slice(2,8)),
+                        title, time, notes, notifications,
+                        created: old.created || new Date().toISOString(),
+                        updated: new Date().toISOString()
+                    };
+                    // If date changed, remove from old and add to new
+                    if (oldDate !== date) {
+                        events[oldDate].splice(idx, 1);
+                        if (events[oldDate].length === 0) delete events[oldDate];
+                        if (!events[date]) events[date] = [];
+                        events[date].push(updated);
+                    } else {
+                        events[date][idx] = updated;
+                    }
+                    localStorage.setItem('khloesmoon_events', JSON.stringify(events));
+                    scheduleEventNotifications(date, updated);
+                }
+            } else {
+                // CREATE new
+                const event = {
+                    id: Date.now() + '_' + Math.random().toString(36).slice(2,8),
+                    title, time, notes, notifications,
+                    created: new Date().toISOString()
+                };
+                if (!events[date]) events[date] = [];
+                events[date].push(event);
+                localStorage.setItem('khloesmoon_events', JSON.stringify(events));
+                scheduleEventNotifications(date, event);
+            }
 
             closeEventModal();
             renderCalendar();
-            if (selectedDay === date) showDayInfo(date);
+            updateHome();
+            if (selectedDay) showDayInfo(selectedDay);
         }
 
         function deleteEvent(dateStr, idx) {
@@ -3209,6 +3297,7 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
                 delete pendingTimers[removed.id];
             }
             renderCalendar();
+            updateHome();
             showDayInfo(dateStr);
         }
 
