@@ -209,20 +209,81 @@
 
         /* HOME SCREEN */
         .app-header {
+            position: relative;
+            margin: -16px -16px 20px -16px;
+            padding: 28px 20px 22px 20px;
+            background: linear-gradient(135deg, #6D2E46 0%, #8E44AD 55%, #D47F93 100%);
+            color: var(--white);
+            border-radius: 0 0 28px 28px;
+            box-shadow: 0 4px 20px rgba(109, 46, 70, 0.25);
+            overflow: hidden;
+        }
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 140px;
+            height: 140px;
+            background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 65%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .app-header::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -20px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 65%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .app-header-content {
+            position: relative;
+            z-index: 1;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
+            gap: 14px;
+        }
+        .app-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #F4E9D8 0%, #D4B796 45%, #8B6F52 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 20px rgba(255, 236, 179, 0.5), inset -4px -4px 10px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+        .app-header-text {
+            flex: 1;
+            min-width: 0;
         }
         .app-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.1;
+        }
+        .app-tagline {
+            font-size: 11px;
+            color: rgba(255,255,255,0.85);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-top: 2px;
         }
         .greeting {
             font-size: 14px;
-            color: var(--secondary);
-            margin-bottom: 16px;
+            color: rgba(255,255,255,0.95);
+            margin-top: 8px;
+            font-style: italic;
         }
         .cycle-ring-container {
             display: flex;
@@ -648,15 +709,20 @@
         }
         .add-event-btn {
             width: 100%;
-            padding: 10px;
-            background: var(--wine);
+            padding: 12px;
+            background: linear-gradient(135deg, var(--wine) 0%, var(--luteal) 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 12px;
+            box-shadow: 0 2px 8px rgba(109,46,70,0.3);
+            letter-spacing: 0.3px;
+        }
+        .add-event-btn:active {
+            transform: scale(0.98);
         }
         .day-info {
             background: var(--white);
@@ -952,9 +1018,13 @@
             <!-- HOME SCREEN -->
             <div id="home-screen" class="screen active">
                 <div class="app-header">
-                    <div>
-                        <div class="app-title">🌙 Khloe's Moon</div>
-                        <div class="greeting" id="greeting">Hola, Usuario</div>
+                    <div class="app-header-content">
+                        <div class="app-logo">🌙</div>
+                        <div class="app-header-text">
+                            <div class="app-title">Khloe's Moon</div>
+                            <div class="app-tagline" id="app-tagline">Cycle & Luna Tracker</div>
+                            <div class="greeting" id="greeting">Hola, Usuario</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1201,7 +1271,7 @@
                 <div class="settings-group">
                     <button class="settings-btn" onclick="forceUpdate()" id="force-update-btn">Force Update</button>
                     <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-top: 6px;">
-                        <span id="version-label">Version</span>: <span id="app-version">v17</span>
+                        <span id="version-label">Version</span>: <span id="app-version">v18</span>
                     </div>
                 </div>
 
@@ -1363,6 +1433,8 @@
                 notifications_denied: 'Notificaciones denegadas por el navegador',
                 enable_notifications: 'Activar notificaciones',
                 add_event_btn: '+ Añadir evento',
+                add_another_event: '+ Añadir otro evento',
+                app_tagline: 'Ciclo & Luna',
                 notification_title: 'Khloe\'s Moon',
                 diary: 'Diario',
                 save: 'Guardar',
@@ -1531,6 +1603,8 @@
                 notifications_denied: 'Notifications denied by browser',
                 enable_notifications: 'Enable notifications',
                 add_event_btn: '+ Add event',
+                add_another_event: '+ Add another event',
+                app_tagline: 'Cycle & Luna',
                 notification_title: "Khloe's Moon",
                 diary: 'Diary',
                 save: 'Save',
@@ -2641,6 +2715,9 @@
         }
 
         function updateLabels() {
+            const tagline = document.getElementById('app-tagline');
+            if (tagline) tagline.textContent = _('app_tagline');
+
             document.querySelectorAll('.tab-label').forEach(el => {
                 const key = el.dataset.key;
                 if (key) el.textContent = _(key);
@@ -3144,7 +3221,10 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
 
             document.getElementById('day-info-content').innerHTML = content;
             const addBtn = document.getElementById('add-event-btn');
-            if (addBtn) addBtn.textContent = _('add_event_btn');
+            if (addBtn) {
+                // Show different label based on whether events exist (emphasize multi-event support)
+                addBtn.textContent = dayEvents.length > 0 ? _('add_another_event') : _('add_event_btn');
+            }
             dayInfo.style.display = 'block';
         }
 
