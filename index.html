@@ -2,18 +2,20 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#FAF6F0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Khloe's Moon v2">
-    <meta name="description" content="Menstrual cycle & lunar tracking PWA - Your cycle, your power">
-    <meta name="version" content="v2.0">
-    <title>Khloe's Moon v2 - Cycle Tracking</title>
+    <meta name="apple-mobile-web-app-title" content="Khloe's Moon">
+    <title>Khloe's Moon</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='96' fill='%23FAF6F0'/><circle cx='96' cy='96' r='70' fill='%238E44AD'/></svg>">
     <style>
-        * { box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         :root {
             --cream: #FAF6F0;
             --pink: #D47F93;
@@ -28,2092 +30,2507 @@
             --luteal: #8E44AD;
         }
         html, body {
-            margin: 0; padding: 0;
-            height: 100vh; height: 100dvh;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: var(--cream);
             color: var(--text);
         }
-        .app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
-        .screens-container { flex: 1; position: relative; overflow: hidden; }
-        .screen {
-            position: absolute; width: 100%; height: 100%;
-            overflow-y: auto; -webkit-overflow-scrolling: touch;
-            padding-bottom: 80px; opacity: 0; pointer-events: none;
-            transition: opacity 0.3s ease;
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--cream);
         }
-        .screen.active { opacity: 1; pointer-events: auto; }
-        .screen-content { padding: 16px; max-width: 500px; margin: 0 auto; }
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px;
+            padding-bottom: 60px;
+        }
         .tab-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
-            background: var(--white); border-top: 1px solid var(--border);
-            display: flex; justify-content: space-around; align-items: center;
-            z-index: 100; padding-bottom: env(safe-area-inset-bottom);
-        }
-        .tab {
-            flex: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; gap: 4px; padding: 8px;
-            font-size: 12px; cursor: pointer; color: var(--secondary);
-            text-align: center; transition: color 0.2s;
-        }
-        .tab.active { color: var(--pink); font-weight: 600; }
-
-        /* Onboarding */
-        .onboarding {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; height: 100%;
-            padding: 40px 20px; text-align: center;
-        }
-        .onboarding-logo { font-size: 64px; margin-bottom: 20px; }
-        .onboarding h1 {
-            font-size: 28px; margin: 0 0 8px 0; color: var(--wine);
-        }
-        .onboarding p {
-            color: var(--secondary); margin-bottom: 30px; font-size: 14px;
-        }
-        .form-group {
-            width: 100%; max-width: 300px; margin-bottom: 16px; text-align: left;
-        }
-        .form-group label {
-            display: block; font-size: 13px; font-weight: 600;
-            margin-bottom: 6px; color: var(--wine);
-        }
-        .form-group input,
-        .form-group select {
-            width: 100%; padding: 10px; border: 1px solid var(--border);
-            border-radius: 8px; font-size: 14px; font-family: inherit;
-        }
-        .btn-primary {
-            background: var(--pink); color: white;
-            border: none; padding: 12px 24px; border-radius: 8px;
-            font-size: 16px; font-weight: 600; cursor: pointer;
-            width: 100%; max-width: 300px; transition: background 0.2s;
-        }
-        .btn-primary:hover { background: var(--wine); }
-        .btn-secondary {
-            background: transparent; color: var(--pink);
-            border: 1px solid var(--pink); padding: 10px 16px; border-radius: 8px;
-            font-size: 14px; cursor: pointer; transition: all 0.2s;
-        }
-        .btn-secondary:hover { background: var(--pink); color: white; }
-        .btn-small {
-            background: var(--pink); color: white;
-            border: none; padding: 8px 12px; border-radius: 6px;
-            font-size: 12px; cursor: pointer; transition: background 0.2s;
-        }
-        .btn-small:hover { background: var(--wine); }
-
-        /* Home Screen */
-        .greeting {
-            font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--wine);
-        }
-        .cycle-status {
-            font-size: 14px; color: var(--secondary); margin-bottom: 16px;
-        }
-        .status-card {
-            background: var(--white); border: 1px solid var(--border);
-            padding: 16px; border-radius: 12px; margin-bottom: 16px;
-        }
-        .status-card-title {
-            font-size: 12px; font-weight: 600; color: var(--secondary);
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .status-card-value {
-            font-size: 20px; font-weight: 700; color: var(--wine); margin-top: 4px;
-        }
-        .moon-info {
-            display: flex; gap: 12px; margin-bottom: 16px;
-        }
-        .moon-info-box {
-            flex: 1; background: var(--white); border: 1px solid var(--border);
-            padding: 12px; border-radius: 8px; text-align: center;
-        }
-        .moon-emoji { font-size: 32px; margin-bottom: 4px; }
-        .moon-stat {
-            font-size: 12px; color: var(--secondary); margin: 4px 0;
-        }
-        .wellness-section {
-            margin-bottom: 16px;
-        }
-        .wellness-header {
-            font-size: 14px; font-weight: 600; color: var(--wine);
-            padding: 12px; background: var(--white); border: 1px solid var(--border);
-            border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: var(--white);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
             align-items: center;
         }
-        .wellness-header:hover { background: #F5F0EA; }
-        .wellness-content {
-            display: none; background: var(--white); border: 1px solid var(--border);
-            border-top: none; border-radius: 0 0 8px 8px; padding: 12px;
+        .tab-btn {
+            flex: 1;
+            height: 100%;
+            border: none;
+            background: transparent;
+            color: var(--secondary);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: color 0.2s;
         }
-        .wellness-content.open { display: block; }
-        .wellness-item {
-            font-size: 13px; color: var(--text); padding: 8px 0;
-            border-bottom: 1px solid var(--border);
+        .tab-btn.active {
+            color: var(--wine);
         }
-        .wellness-item:last-child { border-bottom: none; }
-        .upcoming-events {
-            background: var(--white); border: 1px solid var(--border);
-            padding: 16px; border-radius: 12px; margin-bottom: 16px;
+        .tab-btn span {
+            font-size: 20px;
         }
-        .upcoming-events-title {
-            font-size: 14px; font-weight: 600; color: var(--wine); margin-bottom: 12px;
-        }
-        .event-item {
-            font-size: 13px; padding: 8px 0; color: var(--text);
-            border-bottom: 1px solid var(--border);
-        }
-        .event-item:last-child { border-bottom: none; }
-        .event-date { color: var(--secondary); font-size: 12px; }
-        .event-label { font-weight: 600; color: var(--wine); }
-
-        /* Calendar Screen */
-        .calendar-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 16px;
-        }
-        .calendar-nav {
-            display: flex; gap: 8px;
-        }
-        .calendar-nav button {
-            background: var(--pink); color: white; border: none;
-            padding: 8px 12px; border-radius: 6px; cursor: pointer;
-            font-size: 14px;
-        }
-        .calendar-title { font-size: 16px; font-weight: 600; color: var(--wine); }
-        .calendar-grid {
-            display: grid; grid-template-columns: repeat(7, 1fr);
-            gap: 4px; margin-bottom: 16px;
-        }
-        .calendar-dayname {
-            text-align: center; font-weight: 600; font-size: 12px;
-            color: var(--secondary); padding: 8px;
-        }
-        .calendar-day {
-            min-height: 48px; border: 1px solid var(--border);
-            border-radius: 8px; padding: 8px; text-align: center;
-            cursor: pointer; background: var(--white);
-            transition: all 0.2s; position: relative;
-        }
-        .calendar-day:hover { background: #F5F0EA; }
-        .calendar-day.other-month { color: var(--secondary); background: transparent; }
-        .calendar-day.today {
-            border: 2px solid var(--pink); font-weight: 600;
-        }
-        .calendar-day-number { font-size: 14px; font-weight: 600; }
-        .calendar-day-moon {
-            font-size: 8px; display: block; margin-top: 2px;
-        }
-        .calendar-day-phase {
-            font-size: 8px; color: var(--secondary); display: block;
-        }
-        .calendar-legend {
-            display: flex; gap: 12px; padding: 12px; background: var(--white);
-            border: 1px solid var(--border); border-radius: 8px; font-size: 11px;
-            flex-wrap: wrap; justify-content: center; margin-bottom: 16px;
-        }
-        .legend-item {
-            display: flex; align-items: center; gap: 4px;
-        }
-        .legend-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-        }
-        .day-detail-panel {
-            background: var(--white); border: 1px solid var(--border);
-            border-radius: 12px; padding: 16px; margin-bottom: 16px;
+        .screen {
             display: none;
         }
-        .day-detail-panel.open { display: block; }
-        .day-detail-header {
-            font-size: 16px; font-weight: 600; color: var(--wine); margin-bottom: 12px;
-            padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        .screen.active {
+            display: block;
         }
-        .day-detail-section {
+
+        /* HOME SCREEN */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .app-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .greeting {
+            font-size: 14px;
+            color: var(--secondary);
             margin-bottom: 16px;
         }
-        .day-detail-section-title {
-            font-size: 12px; font-weight: 600; color: var(--secondary);
-            text-transform: uppercase; margin-bottom: 8px;
+        .cycle-ring-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
         }
-        .day-event-item {
-            font-size: 13px; padding: 8px; background: #F5F0EA;
-            border-radius: 6px; margin-bottom: 6px;
+        .cycle-ring-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .day-event-input {
-            width: 100%; padding: 8px; border: 1px solid var(--border);
-            border-radius: 6px; font-size: 13px; margin-bottom: 8px;
-            font-family: inherit;
+        .cycle-ring-svg {
+            width: 100%;
+            height: 100%;
         }
-        .day-log-options {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;
+        .cycle-ring-center {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
         }
-        .day-log-select {
-            padding: 8px; border: 1px solid var(--border);
-            border-radius: 6px; font-size: 12px; font-family: inherit;
+        .cycle-day-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text);
+            line-height: 1;
         }
-        .day-diary-textarea {
-            width: 100%; padding: 8px; border: 1px solid var(--border);
-            border-radius: 6px; font-size: 12px; font-family: inherit;
-            min-height: 60px; resize: vertical;
+        .cycle-day-label {
+            font-size: 10px;
+            color: var(--secondary);
+            text-align: center;
+            margin-top: 2px;
         }
-        .day-detail-save {
-            width: 100%; background: var(--pink); color: white;
-            border: none; padding: 10px; border-radius: 6px;
-            cursor: pointer; font-weight: 600; font-size: 13px;
+        .cycle-info {
+            text-align: center;
+            margin-bottom: 16px;
         }
-        .day-detail-save:hover { background: var(--wine); }
-
-        /* Log Screen */
-        .log-entry {
-            background: var(--white); border: 1px solid var(--border);
-            padding: 12px; border-radius: 8px; margin-bottom: 12px;
+        .cycle-info-main {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
         }
-        .log-entry-date {
-            font-size: 12px; font-weight: 600; color: var(--secondary);
+        .cycle-phase {
+            font-size: 13px;
+            color: var(--secondary);
         }
-        .log-entry-info {
-            font-size: 13px; color: var(--text); margin-top: 4px;
-        }
-        .log-form {
-            background: var(--white); border: 1px solid var(--border);
-            padding: 12px; border-radius: 8px; margin-bottom: 16px;
-        }
-        .log-form-group {
-            margin-bottom: 10px;
-        }
-        .log-form-label {
-            font-size: 12px; font-weight: 600; color: var(--wine);
-            display: block; margin-bottom: 4px;
-        }
-        .log-form-input,
-        .log-form-select {
-            width: 100%; padding: 8px; border: 1px solid var(--border);
-            border-radius: 6px; font-size: 12px; font-family: inherit;
-        }
-        .log-form-textarea {
-            width: 100%; padding: 8px; border: 1px solid var(--border);
-            border-radius: 6px; font-size: 12px; font-family: inherit;
-            min-height: 60px; resize: vertical;
-        }
-        .symptom-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
-        }
-        .symptom-checkbox {
-            display: flex; align-items: center; gap: 6px;
-            padding: 8px; background: #F5F0EA; border-radius: 6px;
+        .phase-description {
             font-size: 12px;
+            color: var(--secondary);
+            font-style: italic;
+            margin-top: 4px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
         }
-        .symptom-checkbox input { cursor: pointer; }
-        .log-save-btn {
-            width: 100%; background: var(--pink); color: white;
-            border: none; padding: 10px; border-radius: 6px;
-            cursor: pointer; font-weight: 600; font-size: 13px;
+        .moon-info {
+            background: var(--white);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
         }
-        .log-save-btn:hover { background: var(--wine); }
-
-        /* Insights Screen */
-        .insights-card {
-            background: var(--white); border: 1px solid var(--border);
-            padding: 12px; border-radius: 8px; margin-bottom: 12px;
+        .collapsible-section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
         }
-        .insights-card-title {
-            font-size: 12px; font-weight: 600; color: var(--secondary);
-            text-transform: uppercase; margin-bottom: 8px;
+        .collapsible-header {
+            padding: 12px;
+            background: var(--white);
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
         }
-        .insights-value {
-            font-size: 18px; font-weight: 700; color: var(--wine); margin-bottom: 4px;
+        .collapsible-header:active {
+            background: var(--border);
         }
-        .insights-subtitle {
-            font-size: 12px; color: var(--text); margin-bottom: 4px;
+        .collapsible-header .toggle-icon {
+            display: inline-block;
+            transition: transform 0.2s;
         }
-        .prediction-item {
-            font-size: 13px; color: var(--text); padding: 8px 0;
-            border-bottom: 1px solid var(--border);
+        .collapsible-section.collapsed .toggle-icon {
+            transform: rotate(-90deg);
         }
-        .prediction-item:last-child { border-bottom: none; }
-        .prediction-label { font-weight: 600; color: var(--wine); }
-        .prediction-date { color: var(--secondary); }
-        .symptom-frequency {
-            font-size: 13px; padding: 8px 0; color: var(--text);
-            border-bottom: 1px solid var(--border);
+        .collapsible-content {
+            padding: 12px;
+            background: rgba(250, 246, 240, 0.5);
+            display: none;
+            border-top: 1px solid var(--border);
         }
-        .symptom-frequency:last-child { border-bottom: none; }
-        .symptom-name { font-weight: 600; color: var(--wine); }
-        .symptom-count { color: var(--secondary); font-size: 12px; }
-        .phase-distribution {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+        .collapsible-section.collapsed .collapsible-content {
+            display: block;
         }
-        .phase-bar {
-            text-align: center; padding: 8px; border-radius: 6px;
-            background: #F5F0EA; font-size: 12px;
+        .wellness-tips {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text);
         }
-        .phase-bar-title { font-weight: 600; font-size: 11px; }
-        .phase-bar-value { color: var(--secondary); font-size: 10px; margin-top: 2px; }
-
-        /* Settings Screen */
-        .settings-section {
-            background: var(--white); border: 1px solid var(--border);
-            padding: 12px; border-radius: 8px; margin-bottom: 12px;
+        .wellness-tips div {
+            margin-bottom: 8px;
         }
-        .settings-section-title {
-            font-size: 12px; font-weight: 600; color: var(--secondary);
-            text-transform: uppercase; margin-bottom: 8px;
+        .upcoming-events {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text);
         }
-        .settings-item {
-            font-size: 13px; color: var(--text); padding: 8px 0;
-            border-bottom: 1px solid var(--border);
+        .upcoming-events div {
+            margin-bottom: 8px;
         }
-        .settings-item:last-child { border-bottom: none; }
-        .settings-label { font-weight: 600; color: var(--wine); }
-        .settings-value {
-            color: var(--secondary); font-size: 12px;
-            font-family: monospace;
+        .upcoming-events .event-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
         }
-        .settings-copy-btn {
-            background: var(--pink); color: white; border: none;
-            padding: 6px 10px; border-radius: 4px; cursor: pointer;
-            font-size: 11px; margin-left: 8px;
-        }
-        .settings-copy-btn:hover { background: var(--wine); }
-        .settings-input {
-            width: 100%; padding: 8px; border: 1px solid var(--border);
-            border-radius: 6px; font-size: 12px; font-family: inherit;
-        }
-        .settings-input-group {
-            display: flex; gap: 8px;
-        }
-        .settings-input-group input {
-            flex: 1; padding: 8px; border: 1px solid var(--border);
-            border-radius: 6px; font-size: 12px; font-family: inherit;
-        }
-        .settings-input-group button {
-            padding: 8px 12px; background: var(--pink); color: white;
-            border: none; border-radius: 6px; cursor: pointer; font-size: 12px;
-        }
-        .settings-input-group button:hover { background: var(--wine); }
-        .friend-item {
-            background: #F5F0EA; padding: 8px; border-radius: 6px;
-            margin-bottom: 6px; font-size: 12px;
-        }
-        .friend-item-name { font-weight: 600; color: var(--wine); }
-        .friend-item-date { color: var(--secondary); font-size: 11px; }
-        .settings-explanation {
-            font-size: 12px; color: var(--secondary); padding: 8px;
-            background: #F5F0EA; border-radius: 6px; margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        .settings-danger {
-            background: #FFE5E5; padding: 12px; border-radius: 8px;
+        .today-events {
+            background: var(--white);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 12px;
             margin-bottom: 12px;
         }
-        .settings-danger-btn {
-            width: 100%; background: #E74C3C; color: white;
-            border: none; padding: 10px; border-radius: 6px;
-            cursor: pointer; font-weight: 600; font-size: 13px;
+        .today-events-title {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
         }
-        .settings-danger-btn:hover { background: #C0392B; }
-        .settings-language {
-            display: flex; gap: 8px; flex-wrap: wrap;
+        .today-events-list {
+            color: var(--secondary);
         }
-        .lang-btn {
-            padding: 8px 12px; border: 1px solid var(--border);
-            background: white; border-radius: 6px; font-size: 12px;
-            cursor: pointer; transition: all 0.2s;
+        .today-events-list div {
+            margin-bottom: 4px;
         }
-        .lang-btn.active {
-            background: var(--pink); color: white; border-color: var(--pink);
+
+        /* CALENDAR SCREEN */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
-        .lang-btn:hover { border-color: var(--pink); }
+        .calendar-nav {
+            display: flex;
+            gap: 12px;
+        }
+        .calendar-nav button {
+            background: var(--white);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text);
+            transition: background 0.2s;
+        }
+        .calendar-nav button:active {
+            background: var(--border);
+        }
+        .calendar-month {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+        .calendar-weekday {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--secondary);
+            padding: 8px 0;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            background: var(--white);
+            transition: background 0.2s;
+            position: relative;
+            border-left: 3px solid transparent;
+        }
+        .calendar-day:active {
+            background: var(--border);
+        }
+        .calendar-day.other-month {
+            color: var(--border);
+        }
+        .calendar-day.today {
+            font-weight: 600;
+            color: var(--wine);
+        }
+        .calendar-day.menstrual {
+            border-left-color: var(--menstrual);
+        }
+        .calendar-day.follicular {
+            border-left-color: var(--follicular);
+        }
+        .calendar-day.ovulation {
+            border-left-color: var(--ovulation);
+        }
+        .calendar-day.luteal {
+            border-left-color: var(--luteal);
+        }
+        .calendar-day.selected {
+            background: var(--border);
+        }
+        .day-info {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 12px;
+        }
+        .day-info-title {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .day-info-content {
+            color: var(--secondary);
+            line-height: 1.6;
+        }
+
+        /* LOG SCREEN */
+        .log-container {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .log-section {
+            margin-bottom: 16px;
+        }
+        .log-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .emoji-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .emoji-btn {
+            flex: 1;
+            min-width: 50px;
+            height: 36px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .emoji-btn.active {
+            background: var(--wine);
+            color: var(--white);
+            border-color: var(--wine);
+        }
+        .emoji-btn:active {
+            opacity: 0.8;
+        }
+        .symptoms-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .symptom-btn {
+            padding: 8px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            color: var(--text);
+        }
+        .symptom-btn.active {
+            background: var(--wine);
+            color: var(--white);
+            border-color: var(--wine);
+        }
+        .symptom-btn:active {
+            opacity: 0.8;
+        }
+        textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            resize: vertical;
+        }
+        .log-save-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--wine);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: opacity 0.2s;
+        }
+        .log-save-btn:active {
+            opacity: 0.8;
+        }
+
+        /* INSIGHTS SCREEN */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .insight-box {
+            background: var(--white);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .insight-box-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .insight-box-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--wine);
+        }
+        .insight-box-label {
+            font-size: 11px;
+            color: var(--secondary);
+            margin-top: 4px;
+        }
+        .phase-distribution {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+        .phase-distribution-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .phase-bar {
+            display: flex;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            height: 32px;
+            background: var(--border);
+        }
+        .phase-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 12px;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .phase-segment.menstrual {
+            background: var(--menstrual);
+        }
+        .phase-segment.follicular {
+            background: var(--follicular);
+        }
+        .phase-segment.ovulation {
+            background: var(--ovulation);
+        }
+        .phase-segment.luteal {
+            background: var(--luteal);
+        }
+        .symptom-frequency {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+        .symptom-frequency-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .symptom-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+        .symptom-item:last-child {
+            border-bottom: none;
+        }
+        .symptom-item-name {
+            color: var(--text);
+        }
+        .symptom-item-count {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        /* SETTINGS SCREEN */
+        .settings-group {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .settings-group-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        .settings-item-label {
+            font-size: 12px;
+            color: var(--text);
+            flex: 1;
+        }
+        .settings-item-value {
+            font-size: 12px;
+            color: var(--secondary);
+            text-align: right;
+            max-width: 150px;
+        }
+        select, input[type="text"], input[type="date"], input[type="number"] {
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: inherit;
+            color: var(--text);
+        }
+        select {
+            cursor: pointer;
+            background: var(--white);
+            width: 100%;
+        }
+        .settings-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 4px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--text);
+            transition: background 0.2s;
+        }
+        .settings-btn:active {
+            background: var(--border);
+        }
+        .settings-btn.danger {
+            color: #E74C3C;
+            border-color: #E74C3C;
+        }
+        .settings-btn.danger:active {
+            background: rgba(231, 76, 60, 0.1);
+        }
     </style>
 </head>
 <body>
-<div class="app">
-    <div class="screens-container">
-        <!-- Onboarding Screen -->
-        <div id="onboarding-screen" class="screen active">
-            <div class="screen-content onboarding">
-                <div class="onboarding-logo">🌙</div>
-                <h1 id="onboard-title">Khloe's Moon</h1>
-                <p id="onboard-subtitle">Track your cycle, sync with your lunar rhythm</p>
-                <form id="onboarding-form" style="width: 100%; max-width: 300px;">
-                    <div class="form-group">
-                        <label id="label-name">Name</label>
-                        <input type="text" id="name-input" placeholder="Your name" required>
+    <div class="app-container">
+        <div class="content" id="content">
+            <!-- HOME SCREEN -->
+            <div id="home-screen" class="screen active">
+                <div class="app-header">
+                    <div>
+                        <div class="app-title">🌙 Khloe's Moon</div>
+                        <div class="greeting" id="greeting">Hola, Usuario</div>
                     </div>
-                    <div class="form-group">
-                        <label id="label-cycle">Cycle length (days)</label>
-                        <input type="number" id="cycle-input" min="21" max="45" placeholder="28" required>
+                </div>
+
+                <div class="cycle-ring-container">
+                    <div class="cycle-ring-wrapper">
+                        <svg class="cycle-ring-svg" viewBox="0 0 240 240">
+                            <circle cx="120" cy="120" r="110" fill="none" stroke="#ECE2D0" stroke-width="20"/>
+                            <circle id="cycle-ring-progress" cx="120" cy="120" r="110" fill="none" stroke="#8E44AD" stroke-width="20"
+                                stroke-dasharray="0 690" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 120 120)"/>
+                        </svg>
+                        <div class="cycle-ring-center">
+                            <div class="cycle-day-number" id="cycle-day-num">14</div>
+                            <div class="cycle-day-label" id="cycle-day-label">of 28</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label id="label-period">Period length (days)</label>
-                        <input type="number" id="period-input" min="3" max="10" placeholder="5" required>
+                </div>
+
+                <div class="cycle-info">
+                    <div class="cycle-info-main" id="cycle-phase">Day 14 of 28 • Ovulation</div>
+                    <div class="cycle-phase" id="current-phase-name">Ovulation</div>
+                    <div class="phase-description" id="phase-desc">Energy peak, confidence high, body ready for reproduction</div>
+                </div>
+
+                <div class="moon-info" id="moon-info">🌖 40% illuminated • Lunar day 24</div>
+
+                <div class="today-events" id="today-events-container">
+                    <div class="today-events-title" id="today-events-label">Today's Events</div>
+                    <div class="today-events-list" id="today-events-list">
+                        <div style="color: #7A5E6A;">No events scheduled</div>
                     </div>
-                    <div class="form-group">
-                        <label id="label-lastperiod">Last period (date)</label>
-                        <input type="date" id="lastperiod-input" required>
+                </div>
+
+                <div class="collapsible-section collapsed">
+                    <button class="collapsible-header" onclick="toggleCollapsible(this)">
+                        <span id="wellness-label">Wellness Tips</span>
+                        <span class="toggle-icon">▶</span>
+                    </button>
+                    <div class="collapsible-content">
+                        <div class="wellness-tips" id="wellness-tips">
+                            <div>🥗 Iron-rich foods</div>
+                            <div>💧 Stay hydrated</div>
+                            <div>🧘 Gentle exercise</div>
+                            <div>😴 Rest and restore</div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary" id="btn-start">Start Tracking</button>
-                </form>
+                </div>
+
+                <div class="collapsible-section collapsed">
+                    <button class="collapsible-header" onclick="toggleCollapsible(this)">
+                        <span id="upcoming-label">Upcoming Events</span>
+                        <span class="toggle-icon">▶</span>
+                    </button>
+                    <div class="collapsible-content">
+                        <div class="upcoming-events" id="upcoming-events">
+                            <div><span class="event-dot" style="background: #E74C3C;"></span><span id="next-period-label">Next period:</span> <span id="next-period-date">24 Apr</span></div>
+                            <div><span class="event-dot" style="background: #27AE60;"></span><span id="fertile-label">Fertile window:</span> <span id="fertile-dates">13-17 Apr</span></div>
+                            <div><span class="event-dot" style="background: #8E44AD;"></span><span id="full-moon-label">Full moon:</span> <span id="full-moon-date">28 Apr</span></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Home Screen -->
-        <div id="home-screen" class="screen">
-            <div class="screen-content">
-                <div class="greeting" id="home-greeting">Hello!</div>
-                <div class="cycle-status" id="cycle-status"></div>
-
-                <div class="moon-info">
-                    <div class="moon-info-box">
-                        <div class="moon-emoji" id="home-moon-emoji">🌙</div>
-                        <div class="moon-stat" id="home-illumination">50% illuminated</div>
-                        <div class="moon-stat" id="home-lunar-day">Lunar day 15</div>
-                    </div>
-                    <div class="moon-info-box">
-                        <div style="font-size: 32px; margin-bottom: 4px;">📊</div>
-                        <div class="moon-stat" id="home-cycle-day">Cycle day 1</div>
-                        <div class="moon-stat" id="home-phase">Menstrual</div>
-                    </div>
-                </div>
-
-                <div class="wellness-section">
-                    <div class="wellness-header" onclick="toggleWellness()">
-                        <span id="wellness-label">Wellness by Phase</span>
-                        <span id="wellness-toggle">▼</span>
-                    </div>
-                    <div id="wellness-content" class="wellness-content">
-                        <div id="wellness-items"></div>
-                    </div>
-                </div>
-
-                <div class="upcoming-events">
-                    <div class="upcoming-events-title" id="upcoming-label">Upcoming Events</div>
-                    <div id="upcoming-events-list"></div>
-                </div>
-
-                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                    <button class="btn-primary" id="btn-log-today" style="flex: 1; max-width: none;" onclick="switchScreen('log')">📝 Log Today</button>
-                    <button class="btn-secondary" id="btn-view-calendar" style="flex: 1; max-width: none;" onclick="switchScreen('calendar')">📅 Calendar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Calendar Screen -->
-        <div id="calendar-screen" class="screen">
-            <div class="screen-content">
+            <!-- CALENDAR SCREEN -->
+            <div id="calendar-screen" class="screen">
                 <div class="calendar-header">
-                    <button class="calendar-nav" id="prev-month" onclick="prevMonth()">← Prev</button>
-                    <div class="calendar-title" id="calendar-month-year"></div>
-                    <button class="calendar-nav" id="next-month" onclick="nextMonth()">Next →</button>
+                    <button class="calendar-nav" onclick="previousMonth()">←</button>
+                    <div class="calendar-month" id="calendar-month">April 2026</div>
+                    <button class="calendar-nav" onclick="nextMonth()">→</button>
                 </div>
 
-                <div class="calendar-legend" id="calendar-legend"></div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Generated by JS -->
+                </div>
 
-                <div class="calendar-grid" id="calendar-grid"></div>
+                <div class="day-info" id="day-info" style="display: none;">
+                    <div class="day-info-title" id="day-info-title">April 9</div>
+                    <div class="day-info-content" id="day-info-content">No log data</div>
+                </div>
+            </div>
 
-                <div class="day-detail-panel" id="day-detail-panel">
-                    <div class="day-detail-header" id="day-detail-date"></div>
-
-                    <div class="day-detail-section">
-                        <div class="day-detail-section-title" id="events-label">Events</div>
-                        <div id="day-events-list"></div>
-                        <input type="text" class="day-event-input" id="day-event-input" placeholder="Add event...">
-                        <button class="btn-small" id="btn-add-event" onclick="addDayEvent()">Add</button>
-                    </div>
-
-                    <div class="day-detail-section">
-                        <div class="day-detail-section-title" id="log-label">Quick Log</div>
-                        <div class="day-log-options">
-                            <div>
-                                <label class="day-detail-section-title" id="flow-label">Flow</label>
-                                <select class="day-log-select" id="day-flow">
-                                    <option value="">None</option>
-                                    <option value="light">Light</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="heavy">Heavy</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="day-detail-section-title" id="mood-label">Mood</label>
-                                <select class="day-log-select" id="day-mood">
-                                    <option value="">None</option>
-                                    <option value="😊">😊 Great</option>
-                                    <option value="😐">😐 OK</option>
-                                    <option value="😞">😞 Rough</option>
-                                </select>
-                            </div>
+            <!-- LOG SCREEN -->
+            <div id="log-screen" class="screen">
+                <div class="log-container">
+                    <div class="log-section">
+                        <label class="log-label" id="period-flow-label">Period Flow</label>
+                        <div class="emoji-row">
+                            <button class="emoji-btn" onclick="setFlow('none')" id="flow-none">-</button>
+                            <button class="emoji-btn" onclick="setFlow('spotting')" id="flow-spotting">🩸</button>
+                            <button class="emoji-btn" onclick="setFlow('light')" id="flow-light">💧</button>
+                            <button class="emoji-btn" onclick="setFlow('normal')" id="flow-normal">💧💧</button>
+                            <button class="emoji-btn" onclick="setFlow('heavy')" id="flow-heavy">💧💧💧</button>
                         </div>
                     </div>
 
-                    <div class="day-detail-section">
-                        <div class="day-detail-section-title" id="diary-label">Notes</div>
-                        <textarea class="day-diary-textarea" id="day-notes" placeholder="Add notes..."></textarea>
-                    </div>
-
-                    <button class="day-detail-save" id="btn-save-day" onclick="saveDayDetail()">Save</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Log Screen -->
-        <div id="log-screen" class="screen">
-            <div class="screen-content">
-                <h2 id="log-title" style="font-size: 18px; font-weight: 600; color: var(--wine); margin-bottom: 12px;">Log Entry</h2>
-
-                <div class="log-form">
-                    <div class="log-form-group">
-                        <label class="log-form-label" id="log-date-label">Date</label>
-                        <input type="date" class="log-form-input" id="log-date" required>
-                    </div>
-
-                    <div class="log-form-group">
-                        <label class="log-form-label" id="log-flow-label">Period Flow</label>
-                        <select class="log-form-select" id="log-flow">
-                            <option value="">Select...</option>
-                            <option value="light">Light</option>
-                            <option value="normal">Normal</option>
-                            <option value="heavy">Heavy</option>
-                            <option value="spotting">Spotting</option>
-                        </select>
-                    </div>
-
-                    <div class="log-form-group">
-                        <label class="log-form-label" id="log-mood-label">Mood</label>
-                        <select class="log-form-select" id="log-mood">
-                            <option value="">Select...</option>
-                            <option value="😊">😊 Great</option>
-                            <option value="😐">😐 OK</option>
-                            <option value="😞">😞 Rough</option>
-                            <option value="😴">😴 Tired</option>
-                            <option value="😤">😤 Stressed</option>
-                        </select>
-                    </div>
-
-                    <div class="log-form-group">
-                        <label class="log-form-label" id="log-energy-label">Energy Level</label>
-                        <select class="log-form-select" id="log-energy">
-                            <option value="">Select...</option>
-                            <option value="high">High</option>
-                            <option value="normal">Normal</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </div>
-
-                    <div class="log-form-group">
-                        <label class="log-form-label" id="log-symptoms-label">Symptoms</label>
-                        <div class="symptom-grid">
-                            <label class="symptom-checkbox">
-                                <input type="checkbox" value="cramps"> <span id="symptom-cramps">Cramps</span>
-                            </label>
-                            <label class="symptom-checkbox">
-                                <input type="checkbox" value="bloating"> <span id="symptom-bloating">Bloating</span>
-                            </label>
-                            <label class="symptom-checkbox">
-                                <input type="checkbox" value="headache"> <span id="symptom-headache">Headache</span>
-                            </label>
-                            <label class="symptom-checkbox">
-                                <input type="checkbox" value="fatigue"> <span id="symptom-fatigue">Fatigue</span>
-                            </label>
-                            <label class="symptom-checkbox">
-                                <input type="checkbox" value="acne"> <span id="symptom-acne">Acne</span>
-                            </label>
-                            <label class="symptom-checkbox">
-                                <input type="checkbox" value="insomnia"> <span id="symptom-insomnia">Insomnia</span>
-                            </label>
+                    <div class="log-section">
+                        <label class="log-label" id="mood-label">Mood</label>
+                        <div class="emoji-row">
+                            <button class="emoji-btn" onclick="setMood('great')" id="mood-great">😊</button>
+                            <button class="emoji-btn" onclick="setMood('good')" id="mood-good">🙂</button>
+                            <button class="emoji-btn" onclick="setMood('ok')" id="mood-ok">😐</button>
+                            <button class="emoji-btn" onclick="setMood('tired')" id="mood-tired">😴</button>
+                            <button class="emoji-btn" onclick="setMood('stressed')" id="mood-stressed">😟</button>
+                            <button class="emoji-btn" onclick="setMood('bad')" id="mood-bad">😤</button>
                         </div>
                     </div>
 
-                    <div class="log-form-group">
-                        <label class="log-form-label" id="log-notes-label">Notes</label>
-                        <textarea class="log-form-textarea" id="log-notes" placeholder="How are you feeling?"></textarea>
+                    <div class="log-section">
+                        <label class="log-label" id="energy-label">Energy Level</label>
+                        <div class="emoji-row">
+                            <button class="emoji-btn" onclick="setEnergy('high')" id="energy-high">⚡⚡⚡</button>
+                            <button class="emoji-btn" onclick="setEnergy('normal')" id="energy-normal">⚡⚡</button>
+                            <button class="emoji-btn" onclick="setEnergy('low')" id="energy-low">⚡</button>
+                        </div>
                     </div>
 
-                    <button class="log-save-btn" id="btn-save-log" onclick="saveLogEntry()">Save Entry</button>
+                    <div class="log-section">
+                        <label class="log-label" id="symptoms-label">Symptoms</label>
+                        <div class="symptoms-grid">
+                            <button class="symptom-btn" onclick="toggleSymptom('cramps')" id="symptom-cramps">Cramps</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('fatigue')" id="symptom-fatigue">Fatigue</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('bloating')" id="symptom-bloating">Bloating</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('headache')" id="symptom-headache">Headache</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('nausea')" id="symptom-nausea">Nausea</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('acne')" id="symptom-acne">Acne</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('mood_swings')" id="symptom-mood_swings">Mood Swings</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('insomnia')" id="symptom-insomnia">Insomnia</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('back_pain')" id="symptom-back_pain">Back Pain</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('cravings')" id="symptom-cravings">Cravings</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('tenderness')" id="symptom-tenderness">Tenderness</button>
+                            <button class="symptom-btn" onclick="toggleSymptom('anxiety')" id="symptom-anxiety">Anxiety</button>
+                        </div>
+                    </div>
+
+                    <div class="log-section">
+                        <label class="log-label" id="notes-label">Notes</label>
+                        <textarea id="log-notes" placeholder="Add any additional notes..."></textarea>
+                    </div>
+
+                    <button class="log-save-btn" onclick="saveLog()" id="save-entry-btn">Save Entry</button>
+                </div>
+            </div>
+
+            <!-- INSIGHTS SCREEN -->
+            <div id="insights-screen" class="screen">
+                <div class="insights-grid">
+                    <div class="insight-box">
+                        <div class="insight-box-title" id="avg-cycle-label">Average Cycle</div>
+                        <div class="insight-box-value" id="avg-cycle">28</div>
+                        <div class="insight-box-label" id="days-label">days</div>
+                    </div>
+                    <div class="insight-box">
+                        <div class="insight-box-title" id="avg-period-label">Average Period</div>
+                        <div class="insight-box-value" id="avg-period">5</div>
+                        <div class="insight-box-label" id="days-label2">days</div>
+                    </div>
+                    <div class="insight-box">
+                        <div class="insight-box-title" id="tracked-label">Tracked Months</div>
+                        <div class="insight-box-value" id="tracked-months">0</div>
+                        <div class="insight-box-label" id="months-label">months</div>
+                    </div>
+                    <div class="insight-box">
+                        <div class="insight-box-title" id="predictions-label">Predictions</div>
+                        <div class="insight-box-value">✓</div>
+                        <div class="insight-box-label" id="active-label">active</div>
+                    </div>
                 </div>
 
-                <h3 id="log-history-title" style="font-size: 14px; font-weight: 600; color: var(--wine); margin-top: 20px; margin-bottom: 12px;">Recent Logs</h3>
-                <div id="log-history"></div>
+                <div class="phase-distribution">
+                    <div class="phase-distribution-title" id="phase-dist-label">Phase Distribution</div>
+                    <div class="phase-bar" id="phase-bar">
+                        <div class="phase-segment menstrual" style="width: 18%; min-width: 20px;">18%</div>
+                        <div class="phase-segment follicular" style="width: 24%; min-width: 20px;">24%</div>
+                        <div class="phase-segment ovulation" style="width: 12%; min-width: 20px;">12%</div>
+                        <div class="phase-segment luteal" style="width: 46%; min-width: 20px;">46%</div>
+                    </div>
+                </div>
+
+                <div class="symptom-frequency">
+                    <div class="symptom-frequency-title" id="symptom-freq-label">Symptom Frequency</div>
+                    <div id="symptom-list">
+                        <div class="symptom-item">
+                            <span class="symptom-item-name">Cramps</span>
+                            <span class="symptom-item-count">3 <span id="times-label">times</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS SCREEN -->
+            <div id="settings-screen" class="screen">
+                <div class="settings-group">
+                    <div class="settings-group-title" id="profile-label">Profile</div>
+                    <div class="settings-item">
+                        <label class="settings-item-label" id="name-label">Name</label>
+                        <input type="text" id="profile-name" placeholder="Name">
+                    </div>
+                    <div class="settings-item">
+                        <label class="settings-item-label" id="cycle-label">Cycle Length</label>
+                        <input type="number" id="profile-cycle" min="20" max="45" value="28" style="width: 80px;">
+                    </div>
+                    <div class="settings-item">
+                        <label class="settings-item-label" id="period-label">Period Length</label>
+                        <input type="number" id="profile-period" min="2" max="10" value="5" style="width: 80px;">
+                    </div>
+                    <div class="settings-item">
+                        <label class="settings-item-label" id="lastperiod-label">Last Period</label>
+                        <input type="date" id="profile-last-period" style="width: 120px;">
+                    </div>
+                    <button class="settings-btn" onclick="saveProfile()" id="save-profile-btn">Save</button>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-group-title" id="language-label">Language</div>
+                    <div class="settings-item">
+                        <select id="language-select" onchange="changeLanguage()">
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                            <option value="fr">Français</option>
+                            <option value="pt">Português</option>
+                            <option value="de">Deutsch</option>
+                            <option value="it">Italiano</option>
+                            <option value="zh">中文</option>
+                            <option value="ja">日本語</option>
+                            <option value="ko">한국어</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <button class="settings-btn danger" onclick="resetData()" id="reset-data-btn">Reset All Data</button>
+                </div>
             </div>
         </div>
 
-        <!-- Insights Screen -->
-        <div id="insights-screen" class="screen">
-            <div class="screen-content">
-                <h2 id="insights-title" style="font-size: 18px; font-weight: 600; color: var(--wine); margin-bottom: 12px;">Insights & Predictions</h2>
-
-                <div class="insights-card">
-                    <div class="insights-card-title" id="predictions-label">Predictions</div>
-                    <div id="predictions-list">
-                        <div class="prediction-item" id="no-data-msg">Log data to see patterns</div>
-                    </div>
-                </div>
-
-                <div class="insights-card">
-                    <div class="insights-card-title" id="stats-label">Cycle Statistics</div>
-                    <div id="cycle-stats-list">
-                        <div style="font-size: 13px; color: var(--secondary);">No data yet</div>
-                    </div>
-                </div>
-
-                <div class="insights-card">
-                    <div class="insights-card-title" id="symptom-freq-label">Symptom Frequency</div>
-                    <div id="symptom-freq-list">
-                        <div style="font-size: 13px; color: var(--secondary);">No symptoms logged</div>
-                    </div>
-                </div>
-
-                <div class="insights-card">
-                    <div class="insights-card-title" id="phase-dist-label">Phase Distribution</div>
-                    <div class="phase-distribution" id="phase-dist"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings Screen -->
-        <div id="settings-screen" class="screen">
-            <div class="screen-content">
-                <h2 id="settings-title" style="font-size: 18px; font-weight: 600; color: var(--wine); margin-bottom: 12px;">Settings</h2>
-
-                <div class="settings-section">
-                    <div class="settings-section-title" id="profile-label">Profile</div>
-                    <div class="settings-item">
-                        <span class="settings-label" id="name-label">Name:</span>
-                        <span id="profile-name">—</span>
-                    </div>
-                    <div class="settings-item">
-                        <span class="settings-label" id="cycle-label">Cycle:</span>
-                        <span id="profile-cycle">—</span>
-                    </div>
-                    <div class="settings-item">
-                        <span class="settings-label" id="period-label">Period:</span>
-                        <span id="profile-period">—</span>
-                    </div>
-                    <button class="btn-small" id="btn-edit-profile" onclick="editProfile()" style="width: 100%; margin-top: 8px;">Edit Profile</button>
-                </div>
-
-                <div class="settings-section">
-                    <div class="settings-section-title" id="language-label">Language</div>
-                    <div class="settings-language">
-                        <button class="lang-btn" onclick="setLanguage('es')">Español</button>
-                        <button class="lang-btn" onclick="setLanguage('en')">English</button>
-                        <button class="lang-btn" onclick="setLanguage('fr')">Français</button>
-                        <button class="lang-btn" onclick="setLanguage('pt')">Português</button>
-                        <button class="lang-btn" onclick="setLanguage('de')">Deutsch</button>
-                        <button class="lang-btn" onclick="setLanguage('it')">Italiano</button>
-                        <button class="lang-btn" onclick="setLanguage('zh')">中文</button>
-                        <button class="lang-btn" onclick="setLanguage('ja')">日本語</button>
-                        <button class="lang-btn" onclick="setLanguage('ko')">한국어</button>
-                    </div>
-                </div>
-
-                <div class="settings-section">
-                    <div class="settings-section-title" id="friends-label">Friends</div>
-                    <div class="settings-explanation" id="share-explanation">
-                        Share your code with a friend. She enters it in her app and you can both see each other's cycle day.
-                    </div>
-                    <div class="settings-item">
-                        <span class="settings-label" id="your-code-label">Your code:</span>
-                        <span class="settings-value" id="profile-code">—</span>
-                        <button class="settings-copy-btn" id="btn-copy-code" onclick="copyToClipboard()">Copy</button>
-                    </div>
-                    <input type="text" class="settings-input" id="friend-code-input" placeholder="Friend's code">
-                    <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <button class="btn-small" id="btn-add-friend" style="flex: 1;" onclick="addFriend()">Add Friend</button>
-                    </div>
-                    <div id="friends-list" style="margin-top: 12px;"></div>
-                </div>
-
-                <div class="settings-danger">
-                    <button class="settings-danger-btn" id="btn-reset-data" onclick="confirmReset()">Delete All Data</button>
-                </div>
-
-                <div class="settings-section" style="margin-bottom: 40px;">
-                    <div class="settings-item">
-                        <span class="settings-label" id="version-label">Version:</span>
-                        <span id="app-version">v2.0</span>
-                    </div>
-                    <button class="btn-small" id="btn-force-update" style="width: 100%; margin-top: 8px;" onclick="forceUpdate()">Check for Updates</button>
-                </div>
-            </div>
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tab-home" onclick="switchScreen('home-screen')">
+                <span>🏠</span>
+                <span class="tab-label" data-key="home">Inicio</span>
+            </button>
+            <button class="tab-btn" id="tab-calendar" onclick="switchScreen('calendar-screen')">
+                <span>📅</span>
+                <span class="tab-label" data-key="calendar">Calendario</span>
+            </button>
+            <button class="tab-btn" id="tab-log" onclick="switchScreen('log-screen')">
+                <span>📝</span>
+                <span class="tab-label" data-key="log">Registrar</span>
+            </button>
+            <button class="tab-btn" id="tab-insights" onclick="switchScreen('insights-screen')">
+                <span>📊</span>
+                <span class="tab-label" data-key="insights">Estadísticas</span>
+            </button>
+            <button class="tab-btn" id="tab-settings" onclick="switchScreen('settings-screen')">
+                <span>⚙️</span>
+                <span class="tab-label" data-key="settings">Ajustes</span>
+            </button>
         </div>
     </div>
 
-    <div class="tab-bar">
-        <div class="tab active" id="tab-home" onclick="switchScreen('home')">🏠<br>Home</div>
-        <div class="tab" id="tab-calendar" onclick="switchScreen('calendar')">📅<br>Calendar</div>
-        <div class="tab" id="tab-log" onclick="switchScreen('log')">📝<br>Log</div>
-        <div class="tab" id="tab-insights" onclick="switchScreen('insights')">📊<br>Insights</div>
-        <div class="tab" id="tab-settings" onclick="switchScreen('settings')">⚙️<br>Settings</div>
-    </div>
-</div>
+    <script>
+        // ============ TRANSLATIONS ============
+        const T = {
+            es: {
+                hello: 'Hola',
+                name: 'Nombre',
+                cycle: 'Ciclo',
+                period: 'Período',
+                lastperiod: 'Último período',
+                start: 'Comenzar',
+                language: 'Idioma',
+                settings: 'Configuración',
+                wellness: 'Bienestar',
+                log_today: 'Registrar hoy',
+                view_calendar: 'Ver calendario',
+                upcoming_events: 'Próximos eventos',
+                next_period: 'Próximo período',
+                fertile_window: 'Ventana fértil',
+                next_full_moon: 'Luna llena',
+                next_new_moon: 'Luna nueva',
+                next_ovulation: 'Próxima ovulación',
+                in_days: 'en {0} días',
+                illuminated: 'iluminada',
+                lunar_day: 'Día lunar',
+                cycle_day_of: 'Día {0} de {1}',
+                how_feeling: 'Cómo te sientes',
+                period_flow: 'Flujo menstrual',
+                mood: 'Humor',
+                energy_level: 'Nivel de energía',
+                symptoms: 'Síntomas',
+                notes: 'Notas',
+                save_entry: 'Guardar entrada',
+                avg_cycle: 'Ciclo promedio',
+                avg_period: 'Período promedio',
+                tracked_months: 'Meses registrados',
+                predictions: 'Predicciones',
+                no_data_yet: 'Sin datos aún',
+                profile: 'Perfil',
+                edit_profile: 'Editar perfil',
+                share_with_friends: 'Compartir con amigos',
+                share_explanation: 'Comparte tu código con amigos para sincronizar datos',
+                your_code: 'Tu código',
+                copy: 'Copiar',
+                friends_label: 'Amigos',
+                add: 'Añadir',
+                friend_code: 'Código de amigo',
+                reset_data: 'Restablecer datos',
+                confirm_reset: 'Esto borrará todos tus datos. ¿Estás seguro?',
+                add_event: 'Añadir evento',
+                event_title: 'Título del evento',
+                diary: 'Diario',
+                save: 'Guardar',
+                no_events: 'Sin eventos',
+                force_update: 'Forzar actualización',
+                version: 'Versión',
+                mark_period: 'Marcar período',
+                period_marked: 'Período marcado',
+                symptom_frequency: 'Frecuencia de síntomas',
+                times: 'veces',
+                phase_dist: 'Distribución de fases',
+                recent_logs: 'Registros recientes',
+                home: 'Home',
+                calendar: 'Calendario',
+                log: 'Registro',
+                insights: 'Estadísticas',
+                today_events: 'Eventos de hoy',
+                days: 'días',
+                months: 'meses',
+                active: 'activo',
+                phases: {
+                    menstrual: 'Menstrual',
+                    follicular: 'Folicular',
+                    ovulation: 'Ovulación',
+                    luteal: 'Lútea'
+                },
+                moon_phases: {
+                    new_moon: 'Luna Nueva',
+                    waxing_crescent: 'Creciente',
+                    first_quarter: 'Cuarto Creciente',
+                    waxing_gibbous: 'Gibosa Creciente',
+                    full_moon: 'Luna Llena',
+                    waning_gibbous: 'Gibosa Menguante',
+                    last_quarter: 'Cuarto Menguante',
+                    waning_crescent: 'Menguante'
+                },
+                wellness_tips: {
+                    menstrual: ['Descanso y restauración', 'Alimentos ricos en hierro', 'Hidratación', 'Ejercicio suave'],
+                    follicular: ['Ejercicio dinámico', 'Socializar y conectar', 'Proyectos nuevos', 'Nutrientes para el crecimiento'],
+                    ovulation: ['Ejercicio intenso', 'Tareas importantes', 'Conexiones sociales', 'Energía máxima'],
+                    luteal: ['Preparación para el período', 'Alimentos reconfortantes', 'Descanso extra', 'Actividades reflexivas']
+                },
+                symptoms_list: {
+                    cramps: 'Calambres',
+                    fatigue: 'Fatiga',
+                    bloating: 'Hinchazón',
+                    headache: 'Dolor de cabeza',
+                    nausea: 'Náuseas',
+                    acne: 'Acné',
+                    mood_swings: 'Cambios de humor',
+                    insomnia: 'Insomnio',
+                    back_pain: 'Dolor de espalda',
+                    cravings: 'Antojos',
+                    tenderness: 'Sensibilidad',
+                    anxiety: 'Ansiedad'
+                },
+                phase_desc: {
+                    menstrual: 'Fase de descanso y renovación',
+                    follicular: 'Energía y creatividad en aumento',
+                    ovulation: 'Pico de confianza y atracción',
+                    luteal: 'Introspección y preparación'
+                },
+                flow_levels: {
+                    none: 'Ninguno',
+                    spotting: 'Manchado',
+                    light: 'Ligero',
+                    normal: 'Normal',
+                    heavy: 'Abundante'
+                },
+                mood_levels: {
+                    great: 'Excelente',
+                    good: 'Bien',
+                    ok: 'Regular',
+                    tired: 'Cansado',
+                    stressed: 'Estresado',
+                    bad: 'Mal'
+                },
+                energy_levels: {
+                    high: 'Alto',
+                    normal: 'Normal',
+                    low: 'Bajo'
+                }
+            },
+            en: {
+                hello: 'Hello',
+                name: 'Name',
+                cycle: 'Cycle',
+                period: 'Period',
+                lastperiod: 'Last Period',
+                start: 'Start',
+                language: 'Language',
+                settings: 'Settings',
+                wellness: 'Wellness',
+                log_today: 'Log Today',
+                view_calendar: 'View Calendar',
+                upcoming_events: 'Upcoming Events',
+                next_period: 'Next Period',
+                fertile_window: 'Fertile Window',
+                next_full_moon: 'Full Moon',
+                next_new_moon: 'New Moon',
+                next_ovulation: 'Next Ovulation',
+                in_days: 'in {0} days',
+                illuminated: 'illuminated',
+                lunar_day: 'Lunar Day',
+                cycle_day_of: 'Day {0} of {1}',
+                how_feeling: 'How Are You Feeling',
+                period_flow: 'Period Flow',
+                mood: 'Mood',
+                energy_level: 'Energy Level',
+                symptoms: 'Symptoms',
+                notes: 'Notes',
+                save_entry: 'Save Entry',
+                avg_cycle: 'Average Cycle',
+                avg_period: 'Average Period',
+                tracked_months: 'Tracked Months',
+                predictions: 'Predictions',
+                no_data_yet: 'No Data Yet',
+                profile: 'Profile',
+                edit_profile: 'Edit Profile',
+                share_with_friends: 'Share With Friends',
+                share_explanation: 'Share your code with friends to sync data',
+                your_code: 'Your Code',
+                copy: 'Copy',
+                friends_label: 'Friends',
+                add: 'Add',
+                friend_code: 'Friend Code',
+                reset_data: 'Reset All Data',
+                confirm_reset: 'This will delete all your data. Are you sure?',
+                add_event: 'Add Event',
+                event_title: 'Event Title',
+                diary: 'Diary',
+                save: 'Save',
+                no_events: 'No Events',
+                force_update: 'Force Update',
+                version: 'Version',
+                mark_period: 'Mark Period',
+                period_marked: 'Period Marked',
+                symptom_frequency: 'Symptom Frequency',
+                times: 'times',
+                phase_dist: 'Phase Distribution',
+                recent_logs: 'Recent Logs',
+                home: 'Home',
+                calendar: 'Calendar',
+                log: 'Log',
+                insights: 'Insights',
+                today_events: "Today's Events",
+                days: 'days',
+                months: 'months',
+                active: 'active',
+                phases: {
+                    menstrual: 'Menstrual',
+                    follicular: 'Follicular',
+                    ovulation: 'Ovulation',
+                    luteal: 'Luteal'
+                },
+                moon_phases: {
+                    new_moon: 'New Moon',
+                    waxing_crescent: 'Waxing Crescent',
+                    first_quarter: 'First Quarter',
+                    waxing_gibbous: 'Waxing Gibbous',
+                    full_moon: 'Full Moon',
+                    waning_gibbous: 'Waning Gibbous',
+                    last_quarter: 'Last Quarter',
+                    waning_crescent: 'Waning Crescent'
+                },
+                wellness_tips: {
+                    menstrual: ['Rest and restoration', 'Iron-rich foods', 'Hydration', 'Gentle exercise'],
+                    follicular: ['Dynamic exercise', 'Socialize', 'New projects', 'Growth nutrients'],
+                    ovulation: ['Intense exercise', 'Important tasks', 'Social time', 'Peak energy'],
+                    luteal: ['Prepare for period', 'Comfort foods', 'Extra rest', 'Reflective activities']
+                },
+                symptoms_list: {
+                    cramps: 'Cramps',
+                    fatigue: 'Fatigue',
+                    bloating: 'Bloating',
+                    headache: 'Headache',
+                    nausea: 'Nausea',
+                    acne: 'Acne',
+                    mood_swings: 'Mood Swings',
+                    insomnia: 'Insomnia',
+                    back_pain: 'Back Pain',
+                    cravings: 'Cravings',
+                    tenderness: 'Tenderness',
+                    anxiety: 'Anxiety'
+                },
+                phase_desc: {
+                    menstrual: 'Time for rest and renewal',
+                    follicular: 'Rising energy and creativity',
+                    ovulation: 'Peak confidence and attraction',
+                    luteal: 'Introspection and preparation'
+                },
+                flow_levels: {
+                    none: 'None',
+                    spotting: 'Spotting',
+                    light: 'Light',
+                    normal: 'Normal',
+                    heavy: 'Heavy'
+                },
+                mood_levels: {
+                    great: 'Great',
+                    good: 'Good',
+                    ok: 'OK',
+                    tired: 'Tired',
+                    stressed: 'Stressed',
+                    bad: 'Bad'
+                },
+                energy_levels: {
+                    high: 'High',
+                    normal: 'Normal',
+                    low: 'Low'
+                }
+            },
+            fr: {
+                hello: 'Bonjour',
+                name: 'Nom',
+                cycle: 'Cycle',
+                period: 'Période',
+                lastperiod: 'Dernière période',
+                start: 'Commencer',
+                language: 'Langue',
+                settings: 'Paramètres',
+                wellness: 'Bien-être',
+                log_today: 'Enregistrer',
+                view_calendar: 'Voir calendrier',
+                upcoming_events: 'Événements à venir',
+                next_period: 'Prochaine période',
+                fertile_window: 'Fenêtre fertile',
+                next_full_moon: 'Pleine lune',
+                next_new_moon: 'Nouvelle lune',
+                next_ovulation: 'Prochaine ovulation',
+                in_days: 'en {0} jours',
+                illuminated: 'illuminée',
+                lunar_day: 'Jour lunaire',
+                cycle_day_of: 'Jour {0} sur {1}',
+                how_feeling: 'Comment allez-vous',
+                period_flow: 'Flux menstruel',
+                mood: 'Humeur',
+                energy_level: 'Niveau d\'énergie',
+                symptoms: 'Symptômes',
+                notes: 'Notes',
+                save_entry: 'Enregistrer',
+                avg_cycle: 'Cycle moyen',
+                avg_period: 'Période moyenne',
+                tracked_months: 'Mois suivi',
+                predictions: 'Prédictions',
+                no_data_yet: 'Pas de données',
+                profile: 'Profil',
+                edit_profile: 'Modifier profil',
+                share_with_friends: 'Partager avec amis',
+                share_explanation: 'Partagez votre code pour synchroniser',
+                your_code: 'Votre code',
+                copy: 'Copier',
+                friends_label: 'Amis',
+                add: 'Ajouter',
+                friend_code: 'Code ami',
+                reset_data: 'Réinitialiser données',
+                confirm_reset: 'Cela supprimera toutes vos données. Êtes-vous sûr?',
+                add_event: 'Ajouter événement',
+                event_title: 'Titre événement',
+                diary: 'Journal',
+                save: 'Enregistrer',
+                no_events: 'Pas d\'événements',
+                force_update: 'Forcer mise à jour',
+                version: 'Version',
+                mark_period: 'Marquer période',
+                period_marked: 'Période marquée',
+                symptom_frequency: 'Fréquence symptômes',
+                times: 'fois',
+                phase_dist: 'Distribution phases',
+                recent_logs: 'Logs récents',
+                home: 'Accueil',
+                calendar: 'Calendrier',
+                log: 'Journal',
+                insights: 'Statistiques',
+                today_events: 'Événements',
+                days: 'jours',
+                months: 'mois',
+                active: 'actif',
+                phases: {
+                    menstrual: 'Menstruelle',
+                    follicular: 'Folliculaire',
+                    ovulation: 'Ovulation',
+                    luteal: 'Lutéale'
+                },
+                moon_phases: {
+                    new_moon: 'Nouvelle lune',
+                    waxing_crescent: 'Croissant montant',
+                    first_quarter: 'Premier quartier',
+                    waxing_gibbous: 'Gibbeuse montante',
+                    full_moon: 'Pleine lune',
+                    waning_gibbous: 'Gibbeuse descendante',
+                    last_quarter: 'Dernier quartier',
+                    waning_crescent: 'Croissant descendant'
+                },
+                wellness_tips: {
+                    menstrual: ['Repos et restauration', 'Aliments riches en fer', 'Hydratation', 'Exercice doux'],
+                    follicular: ['Exercice dynamique', 'Socialiser', 'Nouveaux projets', 'Nutriments croissance'],
+                    ovulation: ['Exercice intense', 'Tâches importantes', 'Temps social', 'Énergie maximale'],
+                    luteal: ['Préparer période', 'Aliments réconfortants', 'Repos extra', 'Activités réflexives']
+                },
+                symptoms_list: {
+                    cramps: 'Crampes',
+                    fatigue: 'Fatigue',
+                    bloating: 'Ballonnements',
+                    headache: 'Mal de tête',
+                    nausea: 'Nausées',
+                    acne: 'Acné',
+                    mood_swings: 'Sautes d\'humeur',
+                    insomnia: 'Insomnie',
+                    back_pain: 'Mal de dos',
+                    cravings: 'Envies',
+                    tenderness: 'Sensibilité',
+                    anxiety: 'Anxiété'
+                },
+                phase_desc: {
+                    menstrual: 'Temps de repos et renouvellement',
+                    follicular: 'Énergie et créativité montantes',
+                    ovulation: 'Pic de confiance et attraction',
+                    luteal: 'Introspection et préparation'
+                },
+                flow_levels: {
+                    none: 'Aucun',
+                    spotting: 'Spotting',
+                    light: 'Léger',
+                    normal: 'Normal',
+                    heavy: 'Abondant'
+                },
+                mood_levels: {
+                    great: 'Excellent',
+                    good: 'Bien',
+                    ok: 'OK',
+                    tired: 'Fatigué',
+                    stressed: 'Stressé',
+                    bad: 'Mal'
+                },
+                energy_levels: {
+                    high: 'Haut',
+                    normal: 'Normal',
+                    low: 'Bas'
+                }
+            },
+            pt: {
+                hello: 'Olá',
+                name: 'Nome',
+                cycle: 'Ciclo',
+                period: 'Período',
+                lastperiod: 'Último período',
+                start: 'Começar',
+                language: 'Idioma',
+                settings: 'Configurações',
+                wellness: 'Bem-estar',
+                log_today: 'Registrar',
+                view_calendar: 'Ver calendário',
+                upcoming_events: 'Próximos eventos',
+                next_period: 'Próximo período',
+                fertile_window: 'Janela fértil',
+                next_full_moon: 'Lua cheia',
+                next_new_moon: 'Lua nova',
+                next_ovulation: 'Próxima ovulação',
+                in_days: 'em {0} dias',
+                illuminated: 'iluminada',
+                lunar_day: 'Dia lunar',
+                cycle_day_of: 'Dia {0} de {1}',
+                how_feeling: 'Como você está',
+                period_flow: 'Fluxo menstrual',
+                mood: 'Humor',
+                energy_level: 'Nível de energia',
+                symptoms: 'Sintomas',
+                notes: 'Notas',
+                save_entry: 'Salvar entrada',
+                avg_cycle: 'Ciclo médio',
+                avg_period: 'Período médio',
+                tracked_months: 'Meses registrados',
+                predictions: 'Previsões',
+                no_data_yet: 'Sem dados',
+                profile: 'Perfil',
+                edit_profile: 'Editar perfil',
+                share_with_friends: 'Compartilhar com amigos',
+                share_explanation: 'Compartilhe seu código para sincronizar',
+                your_code: 'Seu código',
+                copy: 'Copiar',
+                friends_label: 'Amigos',
+                add: 'Adicionar',
+                friend_code: 'Código do amigo',
+                reset_data: 'Redefinir dados',
+                confirm_reset: 'Isso excluirá todos os seus dados. Tem certeza?',
+                add_event: 'Adicionar evento',
+                event_title: 'Título do evento',
+                diary: 'Diário',
+                save: 'Salvar',
+                no_events: 'Sem eventos',
+                force_update: 'Forçar atualização',
+                version: 'Versão',
+                mark_period: 'Marcar período',
+                period_marked: 'Período marcado',
+                symptom_frequency: 'Frequência de sintomas',
+                times: 'vezes',
+                phase_dist: 'Distribuição de fases',
+                recent_logs: 'Logs recentes',
+                home: 'Início',
+                calendar: 'Calendário',
+                log: 'Registro',
+                insights: 'Insights',
+                today_events: 'Eventos hoje',
+                days: 'dias',
+                months: 'meses',
+                active: 'ativo',
+                phases: {
+                    menstrual: 'Menstrual',
+                    follicular: 'Folicular',
+                    ovulation: 'Ovulação',
+                    luteal: 'Lútea'
+                },
+                moon_phases: {
+                    new_moon: 'Lua Nova',
+                    waxing_crescent: 'Crescente',
+                    first_quarter: 'Quarto Crescente',
+                    waxing_gibbous: 'Gibosa Crescente',
+                    full_moon: 'Lua Cheia',
+                    waning_gibbous: 'Gibosa Minguante',
+                    last_quarter: 'Quarto Minguante',
+                    waning_crescent: 'Minguante'
+                },
+                wellness_tips: {
+                    menstrual: ['Descanso e restauração', 'Alimentos ricos em ferro', 'Hidratação', 'Exercício suave'],
+                    follicular: ['Exercício dinâmico', 'Socializar', 'Novos projetos', 'Nutrientes de crescimento'],
+                    ovulation: ['Exercício intenso', 'Tarefas importantes', 'Tempo social', 'Energia de pico'],
+                    luteal: ['Preparar para período', 'Alimentos reconfortantes', 'Descanso extra', 'Atividades reflexivas']
+                },
+                symptoms_list: {
+                    cramps: 'Cólicas',
+                    fatigue: 'Fadiga',
+                    bloating: 'Inchaço',
+                    headache: 'Dor de cabeça',
+                    nausea: 'Náusea',
+                    acne: 'Acne',
+                    mood_swings: 'Mudanças de humor',
+                    insomnia: 'Insônia',
+                    back_pain: 'Dor nas costas',
+                    cravings: 'Desejos',
+                    tenderness: 'Sensibilidade',
+                    anxiety: 'Ansiedade'
+                },
+                phase_desc: {
+                    menstrual: 'Tempo de descanso e renovação',
+                    follicular: 'Energia e criatividade crescentes',
+                    ovulation: 'Pico de confiança e atração',
+                    luteal: 'Introspecção e preparação'
+                },
+                flow_levels: {
+                    none: 'Nenhum',
+                    spotting: 'Manchado',
+                    light: 'Leve',
+                    normal: 'Normal',
+                    heavy: 'Abundante'
+                },
+                mood_levels: {
+                    great: 'Ótimo',
+                    good: 'Bem',
+                    ok: 'OK',
+                    tired: 'Cansado',
+                    stressed: 'Estressado',
+                    bad: 'Mal'
+                },
+                energy_levels: {
+                    high: 'Alto',
+                    normal: 'Normal',
+                    low: 'Baixo'
+                }
+            },
+            de: {
+                hello: 'Hallo',
+                name: 'Name',
+                cycle: 'Zyklus',
+                period: 'Periode',
+                lastperiod: 'Letzte Periode',
+                start: 'Start',
+                language: 'Sprache',
+                settings: 'Einstellungen',
+                wellness: 'Wohlbefinden',
+                log_today: 'Heute protokollieren',
+                view_calendar: 'Kalender anzeigen',
+                upcoming_events: 'Kommende Ereignisse',
+                next_period: 'Nächste Periode',
+                fertile_window: 'Fertiles Fenster',
+                next_full_moon: 'Vollmond',
+                next_new_moon: 'Neumond',
+                next_ovulation: 'Nächster Eisprung',
+                in_days: 'in {0} Tagen',
+                illuminated: 'beleuchtet',
+                lunar_day: 'Mondtag',
+                cycle_day_of: 'Tag {0} von {1}',
+                how_feeling: 'Wie fühlst du dich',
+                period_flow: 'Menstruationsfluss',
+                mood: 'Stimmung',
+                energy_level: 'Energieniveau',
+                symptoms: 'Symptome',
+                notes: 'Notizen',
+                save_entry: 'Eintrag speichern',
+                avg_cycle: 'Durchschnittlicher Zyklus',
+                avg_period: 'Durchschnittliche Periode',
+                tracked_months: 'Erfasste Monate',
+                predictions: 'Vorhersagen',
+                no_data_yet: 'Keine Daten',
+                profile: 'Profil',
+                edit_profile: 'Profil bearbeiten',
+                share_with_friends: 'Mit Freunden teilen',
+                share_explanation: 'Teilen Sie Ihren Code zum Synchronisieren',
+                your_code: 'Ihr Code',
+                copy: 'Kopieren',
+                friends_label: 'Freunde',
+                add: 'Hinzufügen',
+                friend_code: 'Freundescode',
+                reset_data: 'Daten zurücksetzen',
+                confirm_reset: 'Dies löscht alle Ihre Daten. Sicher?',
+                add_event: 'Ereignis hinzufügen',
+                event_title: 'Ereignistitel',
+                diary: 'Tagebuch',
+                save: 'Speichern',
+                no_events: 'Keine Ereignisse',
+                force_update: 'Aktualisierung erzwingen',
+                version: 'Version',
+                mark_period: 'Periode markieren',
+                period_marked: 'Periode markiert',
+                symptom_frequency: 'Symptomhäufigkeit',
+                times: 'mal',
+                phase_dist: 'Phasenverteilung',
+                recent_logs: 'Neueste Protokolle',
+                home: 'Startseite',
+                calendar: 'Kalender',
+                log: 'Protokoll',
+                insights: 'Erkenntnisse',
+                today_events: 'Heutige Ereignisse',
+                days: 'Tage',
+                months: 'Monate',
+                active: 'aktiv',
+                phases: {
+                    menstrual: 'Menstruation',
+                    follicular: 'Follikulär',
+                    ovulation: 'Eisprung',
+                    luteal: 'Luteal'
+                },
+                moon_phases: {
+                    new_moon: 'Neumond',
+                    waxing_crescent: 'Zunehmende Sichel',
+                    first_quarter: 'Erstes Viertel',
+                    waxing_gibbous: 'Zunehmend Gibbous',
+                    full_moon: 'Vollmond',
+                    waning_gibbous: 'Abnehmend Gibbous',
+                    last_quarter: 'Letztes Viertel',
+                    waning_crescent: 'Abnehmende Sichel'
+                },
+                wellness_tips: {
+                    menstrual: ['Ruhe und Wiederherstellung', 'Eisenreiche Lebensmittel', 'Hydration', 'Sanfte Bewegung'],
+                    follicular: ['Dynamische Bewegung', 'Sozialisieren', 'Neue Projekte', 'Wachstumsnährstoffe'],
+                    ovulation: ['Intensive Bewegung', 'Wichtige Aufgaben', 'Soziale Zeit', 'Spitzenenergie'],
+                    luteal: ['Vorbereitung auf Periode', 'Trostlebensmittel', 'Zusätzliche Ruhe', 'Reflexive Aktivitäten']
+                },
+                symptoms_list: {
+                    cramps: 'Krämpfe',
+                    fatigue: 'Müdigkeit',
+                    bloating: 'Aufblähung',
+                    headache: 'Kopfschmerz',
+                    nausea: 'Übelkeit',
+                    acne: 'Akne',
+                    mood_swings: 'Stimmungsschwankungen',
+                    insomnia: 'Schlaflosigkeit',
+                    back_pain: 'Rückenschmerzen',
+                    cravings: 'Heißhunger',
+                    tenderness: 'Zartheit',
+                    anxiety: 'Angst'
+                },
+                phase_desc: {
+                    menstrual: 'Zeit für Ruhe und Erneuerung',
+                    follicular: 'Steigende Energie und Kreativität',
+                    ovulation: 'Spitzenkonfidenz und Anziehung',
+                    luteal: 'Introspection und Vorbereitung'
+                },
+                flow_levels: {
+                    none: 'Keine',
+                    spotting: 'Spotting',
+                    light: 'Leicht',
+                    normal: 'Normal',
+                    heavy: 'Reichlich'
+                },
+                mood_levels: {
+                    great: 'Großartig',
+                    good: 'Gut',
+                    ok: 'OK',
+                    tired: 'Müde',
+                    stressed: 'Gestresst',
+                    bad: 'Schlecht'
+                },
+                energy_levels: {
+                    high: 'Hoch',
+                    normal: 'Normal',
+                    low: 'Niedrig'
+                }
+            },
+            it: {
+                hello: 'Ciao',
+                name: 'Nome',
+                cycle: 'Ciclo',
+                period: 'Periodo',
+                lastperiod: 'Ultimo periodo',
+                start: 'Inizio',
+                language: 'Lingua',
+                settings: 'Impostazioni',
+                wellness: 'Benessere',
+                log_today: 'Registra oggi',
+                view_calendar: 'Visualizza calendario',
+                upcoming_events: 'Prossimi eventi',
+                next_period: 'Prossimo periodo',
+                fertile_window: 'Finestra fertile',
+                next_full_moon: 'Luna piena',
+                next_new_moon: 'Luna nuova',
+                next_ovulation: 'Prossima ovulazione',
+                in_days: 'tra {0} giorni',
+                illuminated: 'illuminata',
+                lunar_day: 'Giorno lunare',
+                cycle_day_of: 'Giorno {0} di {1}',
+                how_feeling: 'Come stai',
+                period_flow: 'Flusso mestruale',
+                mood: 'Umore',
+                energy_level: 'Livello di energia',
+                symptoms: 'Sintomi',
+                notes: 'Note',
+                save_entry: 'Salva voce',
+                avg_cycle: 'Ciclo medio',
+                avg_period: 'Periodo medio',
+                tracked_months: 'Mesi tracciati',
+                predictions: 'Previsioni',
+                no_data_yet: 'Nessun dato',
+                profile: 'Profilo',
+                edit_profile: 'Modifica profilo',
+                share_with_friends: 'Condividi con amici',
+                share_explanation: 'Condividi il tuo codice per sincronizzare',
+                your_code: 'Il tuo codice',
+                copy: 'Copia',
+                friends_label: 'Amici',
+                add: 'Aggiungi',
+                friend_code: 'Codice amico',
+                reset_data: 'Ripristina dati',
+                confirm_reset: 'Questo eliminerà tutti i tuoi dati. Sei sicuro?',
+                add_event: 'Aggiungi evento',
+                event_title: 'Titolo evento',
+                diary: 'Diario',
+                save: 'Salva',
+                no_events: 'Nessun evento',
+                force_update: 'Forza aggiornamento',
+                version: 'Versione',
+                mark_period: 'Contrassegna periodo',
+                period_marked: 'Periodo contrassegnato',
+                symptom_frequency: 'Frequenza sintomi',
+                times: 'volte',
+                phase_dist: 'Distribuzione fasi',
+                recent_logs: 'Log recenti',
+                home: 'Home',
+                calendar: 'Calendario',
+                log: 'Registro',
+                insights: 'Approfondimenti',
+                today_events: 'Eventi oggi',
+                days: 'giorni',
+                months: 'mesi',
+                active: 'attivo',
+                phases: {
+                    menstrual: 'Mestruale',
+                    follicular: 'Follicolare',
+                    ovulation: 'Ovulazione',
+                    luteal: 'Luteale'
+                },
+                moon_phases: {
+                    new_moon: 'Luna nuova',
+                    waxing_crescent: 'Falce crescente',
+                    first_quarter: 'Primo quarto',
+                    waxing_gibbous: 'Gibba crescente',
+                    full_moon: 'Luna piena',
+                    waning_gibbous: 'Gibba calante',
+                    last_quarter: 'Ultimo quarto',
+                    waning_crescent: 'Falce calante'
+                },
+                wellness_tips: {
+                    menstrual: ['Riposo e ripristino', 'Cibi ricchi di ferro', 'Idratazione', 'Esercizio leggero'],
+                    follicular: ['Esercizio dinamico', 'Socializzare', 'Nuovi progetti', 'Nutrienti di crescita'],
+                    ovulation: ['Esercizio intenso', 'Compiti importanti', 'Tempo sociale', 'Energia di picco'],
+                    luteal: ['Preparati al periodo', 'Cibi confortevoli', 'Riposo extra', 'Attività riflessiva']
+                },
+                symptoms_list: {
+                    cramps: 'Crampi',
+                    fatigue: 'Affaticamento',
+                    bloating: 'Gonfiore',
+                    headache: 'Mal di testa',
+                    nausea: 'Nausea',
+                    acne: 'Acne',
+                    mood_swings: 'Sbalzi d\'umore',
+                    insomnia: 'Insonnia',
+                    back_pain: 'Mal di schiena',
+                    cravings: 'Voglie',
+                    tenderness: 'Tenerezza',
+                    anxiety: 'Ansia'
+                },
+                phase_desc: {
+                    menstrual: 'Tempo di riposo e rinnovamento',
+                    follicular: 'Energia e creatività crescenti',
+                    ovulation: 'Punta di fiducia e attrazione',
+                    luteal: 'Introspezione e preparazione'
+                },
+                flow_levels: {
+                    none: 'Nessuno',
+                    spotting: 'Spotting',
+                    light: 'Leggero',
+                    normal: 'Normale',
+                    heavy: 'Abbondante'
+                },
+                mood_levels: {
+                    great: 'Ottimo',
+                    good: 'Bene',
+                    ok: 'OK',
+                    tired: 'Stanco',
+                    stressed: 'Stressato',
+                    bad: 'Male'
+                },
+                energy_levels: {
+                    high: 'Alto',
+                    normal: 'Normale',
+                    low: 'Basso'
+                }
+            },
+            zh: {
+                hello: '你好',
+                name: '名字',
+                cycle: '周期',
+                period: '周期',
+                lastperiod: '最后一次周期',
+                start: '开始',
+                language: '语言',
+                settings: '设置',
+                wellness: '健康',
+                log_today: '今天记录',
+                view_calendar: '查看日历',
+                upcoming_events: '即将发生的事件',
+                next_period: '下一个周期',
+                fertile_window: '受孕窗口',
+                next_full_moon: '满月',
+                next_new_moon: '新月',
+                next_ovulation: '下一次排卵',
+                in_days: '在{0}天内',
+                illuminated: '照亮',
+                lunar_day: '农历日',
+                cycle_day_of: '第{0}天，共{1}天',
+                how_feeling: '你感觉如何',
+                period_flow: '周期流量',
+                mood: '心情',
+                energy_level: '能量水平',
+                symptoms: '症状',
+                notes: '笔记',
+                save_entry: '保存条目',
+                avg_cycle: '平均周期',
+                avg_period: '平均周期',
+                tracked_months: '跟踪月数',
+                predictions: '预测',
+                no_data_yet: '无数据',
+                profile: '个人资料',
+                edit_profile: '编辑个人资料',
+                share_with_friends: '与朋友分享',
+                share_explanation: '分享您的代码进行同步',
+                your_code: '你的代码',
+                copy: '复制',
+                friends_label: '朋友',
+                add: '添加',
+                friend_code: '朋友代码',
+                reset_data: '重置数据',
+                confirm_reset: '这将删除您的所有数据。您确定吗?',
+                add_event: '添加事件',
+                event_title: '事件标题',
+                diary: '日记',
+                save: '保存',
+                no_events: '无事件',
+                force_update: '强制更新',
+                version: '版本',
+                mark_period: '标记周期',
+                period_marked: '标记的周期',
+                symptom_frequency: '症状频率',
+                times: '次',
+                phase_dist: '阶段分布',
+                recent_logs: '最近的日志',
+                home: '首页',
+                calendar: '日历',
+                log: '日志',
+                insights: '洞察',
+                today_events: '今天的事件',
+                days: '天',
+                months: '个月',
+                active: '活跃',
+                phases: {
+                    menstrual: '月经期',
+                    follicular: '卵泡期',
+                    ovulation: '排卵期',
+                    luteal: '黄体期'
+                },
+                moon_phases: {
+                    new_moon: '新月',
+                    waxing_crescent: '蛾眉月',
+                    first_quarter: '上弦月',
+                    waxing_gibbous: '盈凸月',
+                    full_moon: '满月',
+                    waning_gibbous: '亏凸月',
+                    last_quarter: '下弦月',
+                    waning_crescent: '残月'
+                },
+                wellness_tips: {
+                    menstrual: ['休息和恢复', '富含铁的食物', '补水', '温和运动'],
+                    follicular: ['动态运动', '社交', '新项目', '成长营养'],
+                    ovulation: ['强烈运动', '重要任务', '社交时间', '峰值能量'],
+                    luteal: ['为周期做准备', '舒适食物', '额外休息', '反思活动']
+                },
+                symptoms_list: {
+                    cramps: '痉挛',
+                    fatigue: '疲劳',
+                    bloating: '肿胀',
+                    headache: '头痛',
+                    nausea: '恶心',
+                    acne: '粉刺',
+                    mood_swings: '情绪波动',
+                    insomnia: '失眠',
+                    back_pain: '背痛',
+                    cravings: '渴望',
+                    tenderness: '柔情',
+                    anxiety: '焦虑'
+                },
+                phase_desc: {
+                    menstrual: '休息和更新的时间',
+                    follicular: '能量和创造力上升',
+                    ovulation: '信心和吸引力的高峰',
+                    luteal: '内省和准备'
+                },
+                flow_levels: {
+                    none: '无',
+                    spotting: '点状出血',
+                    light: '轻',
+                    normal: '正常',
+                    heavy: '重'
+                },
+                mood_levels: {
+                    great: '太好了',
+                    good: '好',
+                    ok: '还好',
+                    tired: '疲惫',
+                    stressed: '紧张',
+                    bad: '坏'
+                },
+                energy_levels: {
+                    high: '高',
+                    normal: '正常',
+                    low: '低'
+                }
+            },
+            ja: {
+                hello: 'こんにちは',
+                name: '名前',
+                cycle: 'サイクル',
+                period: '周期',
+                lastperiod: '最後の周期',
+                start: '開始',
+                language: '言語',
+                settings: '設定',
+                wellness: 'ウェルネス',
+                log_today: '今日を記録',
+                view_calendar: 'カレンダーを表示',
+                upcoming_events: '今後のイベント',
+                next_period: '次の周期',
+                fertile_window: '妊娠可能窓',
+                next_full_moon: '満月',
+                next_new_moon: '新月',
+                next_ovulation: '次の排卵',
+                in_days: '{0}日以内',
+                illuminated: '照らされた',
+                lunar_day: '太陰暦の日',
+                cycle_day_of: 'サイクルの{0}日目({1}日中)',
+                how_feeling: 'どう感じていますか',
+                period_flow: '周期フロー',
+                mood: 'ムード',
+                energy_level: 'エネルギーレベル',
+                symptoms: '症状',
+                notes: 'ノート',
+                save_entry: 'エントリを保存',
+                avg_cycle: '平均サイクル',
+                avg_period: '平均周期',
+                tracked_months: '追跡月数',
+                predictions: '予測',
+                no_data_yet: 'データなし',
+                profile: 'プロフィール',
+                edit_profile: 'プロフィールを編集',
+                share_with_friends: '友人と共有',
+                share_explanation: 'コードを共有して同期',
+                your_code: 'あなたのコード',
+                copy: 'コピー',
+                friends_label: '友人',
+                add: '追加',
+                friend_code: '友人コード',
+                reset_data: 'データをリセット',
+                confirm_reset: 'これにより、すべてのデータが削除されます。よろしいですか?',
+                add_event: 'イベントを追加',
+                event_title: 'イベントタイトル',
+                diary: '日記',
+                save: '保存',
+                no_events: 'イベントなし',
+                force_update: 'アップデートを強制',
+                version: 'バージョン',
+                mark_period: 'マーク周期',
+                period_marked: 'マーク済みの周期',
+                symptom_frequency: '症状の頻度',
+                times: '回',
+                phase_dist: 'フェーズ分布',
+                recent_logs: '最近のログ',
+                home: 'ホーム',
+                calendar: 'カレンダー',
+                log: 'ログ',
+                insights: 'インサイト',
+                today_events: '今日のイベント',
+                days: '日',
+                months: '月',
+                active: 'アクティブ',
+                phases: {
+                    menstrual: '月経期',
+                    follicular: '卵胞期',
+                    ovulation: '排卵期',
+                    luteal: '黄体期'
+                },
+                moon_phases: {
+                    new_moon: '新月',
+                    waxing_crescent: '三日月',
+                    first_quarter: '上弦月',
+                    waxing_gibbous: '十三夜',
+                    full_moon: '満月',
+                    waning_gibbous: '十六夜',
+                    last_quarter: '下弦月',
+                    waning_crescent: '有明月'
+                },
+                wellness_tips: {
+                    menstrual: ['休息と回復', '鉄分豊富な食品', '水分補給', '穏やかな運動'],
+                    follicular: ['ダイナミックな運動', '社交', '新しいプロジェクト', '成長栄養'],
+                    ovulation: ['激しい運動', '重要なタスク', '社交時間', 'ピークエネルギー'],
+                    luteal: ['周期に備える', '快適な食事', '余分な休息', '思慮深い活動']
+                },
+                symptoms_list: {
+                    cramps: 'けいれん',
+                    fatigue: '疲労',
+                    bloating: '膨満',
+                    headache: '頭痛',
+                    nausea: '吐き気',
+                    acne: 'にきび',
+                    mood_swings: 'ムードスイング',
+                    insomnia: '不眠症',
+                    back_pain: '背中の痛み',
+                    cravings: '渇望',
+                    tenderness: 'やさしさ',
+                    anxiety: '不安'
+                },
+                phase_desc: {
+                    menstrual: '休息と更新の時間',
+                    follicular: 'エネルギーと創造性の上昇',
+                    ovulation: '自信と魅力のピーク',
+                    luteal: '内省と準備'
+                },
+                flow_levels: {
+                    none: 'なし',
+                    spotting: 'スポッティング',
+                    light: 'ライト',
+                    normal: '通常',
+                    heavy: 'ヘビー'
+                },
+                mood_levels: {
+                    great: '素晴らしい',
+                    good: 'いい',
+                    ok: 'OK',
+                    tired: '疲れた',
+                    stressed: 'ストレスを受けた',
+                    bad: '悪い'
+                },
+                energy_levels: {
+                    high: '高い',
+                    normal: '通常',
+                    low: '低い'
+                }
+            },
+            ko: {
+                hello: '안녕하세요',
+                name: '이름',
+                cycle: '주기',
+                period: '주기',
+                lastperiod: '마지막 주기',
+                start: '시작',
+                language: '언어',
+                settings: '설정',
+                wellness: '웰니스',
+                log_today: '오늘 기록',
+                view_calendar: '달력 보기',
+                upcoming_events: '예정된 이벤트',
+                next_period: '다음 주기',
+                fertile_window: '임신 가능 기간',
+                next_full_moon: '보름달',
+                next_new_moon: '새로운 달',
+                next_ovulation: '다음 배란',
+                in_days: '{0}일 이내',
+                illuminated: '조명',
+                lunar_day: '음력 일',
+                cycle_day_of: '주기의 {0}일({1}일 중)',
+                how_feeling: '어떤 기분이십니까',
+                period_flow: '주기 흐름',
+                mood: '기분',
+                energy_level: '에너지 수준',
+                symptoms: '증상',
+                notes: '노트',
+                save_entry: '항목 저장',
+                avg_cycle: '평균 주기',
+                avg_period: '평균 주기',
+                tracked_months: '추적된 개월',
+                predictions: '예측',
+                no_data_yet: '데이터 없음',
+                profile: '프로필',
+                edit_profile: '프로필 수정',
+                share_with_friends: '친구와 공유',
+                share_explanation: '코드를 공유하여 동기화',
+                your_code: '귀하의 코드',
+                copy: '복사',
+                friends_label: '친구',
+                add: '추가',
+                friend_code: '친구 코드',
+                reset_data: '데이터 재설정',
+                confirm_reset: '이것은 모든 데이터를 삭제합니다. 확실합니까?',
+                add_event: '이벤트 추가',
+                event_title: '이벤트 제목',
+                diary: '일기',
+                save: '저장',
+                no_events: '이벤트 없음',
+                force_update: '강제 업데이트',
+                version: '버전',
+                mark_period: '마크 주기',
+                period_marked: '표시된 주기',
+                symptom_frequency: '증상 빈도',
+                times: '회',
+                phase_dist: '단계 분포',
+                recent_logs: '최근 로그',
+                home: '홈',
+                calendar: '달력',
+                log: '로그',
+                insights: '통찰력',
+                today_events: '오늘의 이벤트',
+                days: '일',
+                months: '개월',
+                active: '활성',
+                phases: {
+                    menstrual: '월경기',
+                    follicular: '난포기',
+                    ovulation: '배란기',
+                    luteal: '황체기'
+                },
+                moon_phases: {
+                    new_moon: '새로운 달',
+                    waxing_crescent: '초승달',
+                    first_quarter: '상현달',
+                    waxing_gibbous: '상리달',
+                    full_moon: '보름달',
+                    waning_gibbous: '하리달',
+                    last_quarter: '하현달',
+                    waning_crescent: '그믐달'
+                },
+                wellness_tips: {
+                    menstrual: ['휴식 및 회복', '철분이 풍부한 음식', '수분 공급', '부드러운 운동'],
+                    follicular: ['역동적인 운동', '사교', '새로운 프로젝트', '성장 영양소'],
+                    ovulation: ['강렬한 운동', '중요한 작업', '사교 시간', '최고 에너지'],
+                    luteal: ['주기 준비', '편안한 음식', '추가 휴식', '성찰적 활동']
+                },
+                symptoms_list: {
+                    cramps: '경련',
+                    fatigue: '피로',
+                    bloating: '팽만감',
+                    headache: '두통',
+                    nausea: '메스꺼움',
+                    acne: '여드름',
+                    mood_swings: '기분 변화',
+                    insomnia: '불면증',
+                    back_pain: '등 통증',
+                    cravings: '갈망',
+                    tenderness: '민감함',
+                    anxiety: '불안'
+                },
+                phase_desc: {
+                    menstrual: '휴식과 갱신의 시간',
+                    follicular: '에너지와 창의성 증가',
+                    ovulation: '자신감과 매력의 정점',
+                    luteal: '내성찰과 준비'
+                },
+                flow_levels: {
+                    none: '없음',
+                    spotting: '소량 출혈',
+                    light: '가벼움',
+                    normal: '정상',
+                    heavy: '많음'
+                },
+                mood_levels: {
+                    great: '훌륭함',
+                    good: '좋음',
+                    ok: '괜찮음',
+                    tired: '피곤함',
+                    stressed: '스트레스',
+                    bad: '나쁨'
+                },
+                energy_levels: {
+                    high: '높음',
+                    normal: '정상',
+                    low: '낮음'
+                }
+            }
+        };
 
-<script>
-// ========== TOP-LEVEL VARIABLES ==========
-let profile = JSON.parse(localStorage.getItem('khloesmoon_profile')) || {
-    name: '',
-    cycleLength: 28,
-    periodLength: 5,
-    lastPeriod: ''
-};
-let logs = JSON.parse(localStorage.getItem('khloesmoon_logs')) || {};
-let events = JSON.parse(localStorage.getItem('khloesmoon_events')) || {};
-let friends = JSON.parse(localStorage.getItem('khloesmoon_friends')) || [];
-let currentLanguage = localStorage.getItem('khloesmoon_lang') || 'es';
-let currentMonth = new Date();
-let selectedDay = null;
-
-// ========== TRANSLATION OBJECT ==========
-const T = {
-    es: {
-        name: 'Nombre',
-        cycle: 'Ciclo',
-        period: 'Período',
-        lastperiod: 'Último período',
-        wellness: 'Bienestar por fase',
-        log_today: 'Registrar hoy',
-        view_calendar: 'Ver calendario',
-        upcoming_events: 'Próximos eventos',
-        next_period: 'Próximo período',
-        fertile_window: 'Ventana fértil',
-        next_full_moon: 'Próxima luna llena',
-        next_new_moon: 'Próxima luna nueva',
-        in_days: 'días',
-        illuminated: 'iluminada',
-        lunar_day: 'Día lunar',
-        how_feeling: '¿Cómo te sientes?',
-        period_flow: 'Flujo',
-        mood: 'Ánimo',
-        energy_level: 'Energía',
-        symptoms: 'Síntomas',
-        notes: 'Notas',
-        save_entry: 'Guardar',
-        avg_cycle: 'Ciclo promedio',
-        avg_period: 'Período promedio',
-        tracked_months: 'Meses registrados',
-        predictions: 'Predicciones',
-        no_data_yet: 'Registra datos para ver patrones',
-        profile: 'Perfil',
-        edit_profile: 'Editar perfil',
-        share_with_friends: 'Compartir con amigas',
-        share_explanation: 'Comparte tu código con una amiga. Ella lo ingresa en su app y ambas podrán ver en qué día del ciclo está la otra.',
-        your_code: 'Tu código',
-        copy: 'Copiar',
-        friends_label: 'Amigas conectadas',
-        add: 'Agregar',
-        friend_code: 'Código de amiga',
-        reset_data: 'Borrar todos los datos',
-        confirm_reset: '¿Segura? Se borrarán todos los datos.',
-        add_event: 'Agregar evento',
-        event_title: 'Título del evento',
-        diary: 'Diario',
-        save: 'Guardar',
-        no_events: 'Sin eventos',
-        force_update: 'Forzar actualización',
-        version: 'Versión',
-        mark_period: 'Marcar inicio de período',
-        period_marked: 'Inicio de período marcado',
-        next_ovulation: 'Próxima ovulación',
-        cycle_day_of: 'Día {0} de {1}',
-        symptom_frequency: 'Frecuencia de síntomas',
-        times: 'veces',
-        phases: {
-            menstrual: 'Menstrual',
-            follicular: 'Folicular',
-            ovulation: 'Ovulación',
-            luteal: 'Lútea'
-        },
-        wellness_tips: {
-            menstrual: ['Descanso', 'Alimentos ricos en hierro', 'Hidratación', 'Ejercicio suave'],
-            follicular: ['Ejercicio intenso', 'Socializa', 'Nuevos proyectos', 'Come más carbohidratos'],
-            ovulation: ['Ejercicio fuerte', 'Networking', 'Proyectos desafiantes', 'Come proteína'],
-            luteal: ['Yoga y estiramientos', 'Más tiempo de sueño', 'Alimentos complejos', 'Autocuidado']
+        // Translation function
+        function _(key) {
+            const keys = key.split('.');
+            let value = T[currentLanguage];
+            for (let k of keys) {
+                if (value && typeof value === 'object') value = value[k];
+                else return key;
+            }
+            return value || key;
         }
-    },
-    en: {
-        name: 'Name',
-        cycle: 'Cycle',
-        period: 'Period',
-        lastperiod: 'Last period',
-        wellness: 'Phase wellness',
-        log_today: 'Log today',
-        view_calendar: 'View calendar',
-        upcoming_events: 'Upcoming events',
-        next_period: 'Next period',
-        fertile_window: 'Fertile window',
-        next_full_moon: 'Next full moon',
-        next_new_moon: 'Next new moon',
-        in_days: 'days',
-        illuminated: 'illuminated',
-        lunar_day: 'Lunar day',
-        how_feeling: 'How are you feeling?',
-        period_flow: 'Flow',
-        mood: 'Mood',
-        energy_level: 'Energy',
-        symptoms: 'Symptoms',
-        notes: 'Notes',
-        save_entry: 'Save',
-        avg_cycle: 'Avg cycle',
-        avg_period: 'Avg period',
-        tracked_months: 'Months tracked',
-        predictions: 'Predictions',
-        no_data_yet: 'Log data to see patterns',
-        profile: 'Profile',
-        edit_profile: 'Edit profile',
-        share_with_friends: 'Share with friends',
-        share_explanation: 'Share your code with a friend. She enters it in her app and you can both see each other\'s cycle day.',
-        your_code: 'Your code',
-        copy: 'Copy',
-        friends_label: 'Connected friends',
-        add: 'Add',
-        friend_code: 'Friend code',
-        reset_data: 'Delete all data',
-        confirm_reset: 'Are you sure? All data will be deleted.',
-        add_event: 'Add event',
-        event_title: 'Event title',
-        diary: 'Diary',
-        save: 'Save',
-        no_events: 'No events',
-        force_update: 'Force update',
-        version: 'Version',
-        mark_period: 'Mark period start',
-        period_marked: 'Period start marked',
-        next_ovulation: 'Next ovulation',
-        cycle_day_of: 'Day {0} of {1}',
-        symptom_frequency: 'Symptom frequency',
-        times: 'times',
-        phases: {
-            menstrual: 'Menstrual',
-            follicular: 'Follicular',
-            ovulation: 'Ovulation',
-            luteal: 'Luteal'
-        },
-        wellness_tips: {
-            menstrual: ['Rest', 'Iron-rich foods', 'Hydration', 'Light exercise'],
-            follicular: ['Intense exercise', 'Socialize', 'New projects', 'Eat more carbs'],
-            ovulation: ['Strong workouts', 'Networking', 'Challenging projects', 'Eat protein'],
-            luteal: ['Yoga and stretching', 'More sleep', 'Complex foods', 'Self-care']
+
+        function _replace(key, ...args) {
+            let text = _(key);
+            args.forEach((arg, i) => { text = text.replace('{' + i + '}', arg); });
+            return text;
         }
-    },
-    fr: {
-        name: 'Nom',
-        cycle: 'Cycle',
-        period: 'Période',
-        lastperiod: 'Dernière période',
-        wellness: 'Bien-être par phase',
-        log_today: 'Enregistrer aujourd\'hui',
-        view_calendar: 'Voir le calendrier',
-        upcoming_events: 'Événements à venir',
-        next_period: 'Prochaine période',
-        fertile_window: 'Fenêtre fertile',
-        next_full_moon: 'Prochaine pleine lune',
-        next_new_moon: 'Prochaine nouvelle lune',
-        in_days: 'jours',
-        illuminated: 'illuminée',
-        lunar_day: 'Jour lunaire',
-        how_feeling: 'Comment allez-vous?',
-        period_flow: 'Flux',
-        mood: 'Humeur',
-        energy_level: 'Énergie',
-        symptoms: 'Symptômes',
-        notes: 'Notes',
-        save_entry: 'Enregistrer',
-        avg_cycle: 'Cycle moyen',
-        avg_period: 'Période moyenne',
-        tracked_months: 'Mois suivis',
-        predictions: 'Prédictions',
-        no_data_yet: 'Enregistrez des données pour voir les modèles',
-        profile: 'Profil',
-        edit_profile: 'Éditer le profil',
-        share_with_friends: 'Partager avec les amies',
-        share_explanation: 'Partagez votre code avec une amie. Elle le saisit dans son app et vous pouvez tous les deux voir le jour du cycle de l\'autre.',
-        your_code: 'Votre code',
-        copy: 'Copier',
-        friends_label: 'Amies connectées',
-        add: 'Ajouter',
-        friend_code: 'Code de l\'amie',
-        reset_data: 'Supprimer toutes les données',
-        confirm_reset: 'Êtes-vous sûr? Toutes les données seront supprimées.',
-        add_event: 'Ajouter un événement',
-        event_title: 'Titre de l\'événement',
-        diary: 'Journal',
-        save: 'Enregistrer',
-        no_events: 'Pas d\'événements',
-        force_update: 'Forcer la mise à jour',
-        version: 'Version',
-        mark_period: 'Marquer le début de la période',
-        period_marked: 'Début de période marqué',
-        next_ovulation: 'Prochaine ovulation',
-        cycle_day_of: 'Jour {0} de {1}',
-        symptom_frequency: 'Fréquence des symptômes',
-        times: 'fois',
-        phases: {
-            menstrual: 'Menstruel',
-            follicular: 'Folliculaire',
-            ovulation: 'Ovulation',
-            luteal: 'Lutéale'
-        },
-        wellness_tips: {
-            menstrual: ['Repos', 'Aliments riches en fer', 'Hydratation', 'Exercice léger'],
-            follicular: ['Exercice intense', 'Socialiser', 'Nouveaux projets', 'Mangez plus de glucides'],
-            ovulation: ['Entraînements forts', 'Réseautage', 'Projets stimulants', 'Mangez des protéines'],
-            luteal: ['Yoga et étirements', 'Plus de sommeil', 'Aliments complexes', 'Soin de soi']
+
+        // ============ STATE & STORAGE ============
+        let currentLanguage = localStorage.getItem('khloesmoon_lang') || 'es';
+        let profile = JSON.parse(localStorage.getItem('khloesmoon_profile')) || { name: '', cycleLength: 28, periodLength: 5, lastPeriod: '', shareCode: '' };
+        let logs = JSON.parse(localStorage.getItem('khloesmoon_logs')) || {};
+        let events = JSON.parse(localStorage.getItem('khloesmoon_events')) || {};
+        let friends = JSON.parse(localStorage.getItem('khloesmoon_friends')) || [];
+        let currentMonth = new Date();
+        let selectedDay = null;
+
+        let currentLog = {
+            flow: '',
+            mood: '',
+            energy: '',
+            symptoms: [],
+            notes: ''
+        };
+
+        // ============ MOON PHASE CALCULATION ============
+        function getMoonPhase(date) {
+            const epochDate = new Date('2000-01-06');
+            const synodicMonth = 29.53058867;
+            const daysSinceEpoch = Math.floor((date - epochDate) / 86400000);
+            const moonAge = (daysSinceEpoch % synodicMonth);
+            const illumination = Math.round(100 * (1 - Math.cos(2 * Math.PI * moonAge / synodicMonth)) / 2);
+            const phase = (moonAge / synodicMonth) * 100;
+            let phaseName = 'new_moon';
+            if (phase > 1.5 && phase <= 23.5) phaseName = 'waxing_crescent';
+            else if (phase > 23.5 && phase <= 26.5) phaseName = 'first_quarter';
+            else if (phase > 26.5 && phase <= 48.5) phaseName = 'waxing_gibbous';
+            else if (phase > 48.5 && phase <= 51.5) phaseName = 'full_moon';
+            else if (phase > 51.5 && phase <= 73.5) phaseName = 'waning_gibbous';
+            else if (phase > 73.5 && phase <= 76.5) phaseName = 'last_quarter';
+            else if (phase > 76.5 && phase <= 98.5) phaseName = 'waning_crescent';
+            return { illumination, phase, phaseName, lunarDay: Math.ceil(moonAge) };
         }
-    },
-    pt: {
-        name: 'Nome',
-        cycle: 'Ciclo',
-        period: 'Período',
-        lastperiod: 'Último período',
-        wellness: 'Bem-estar por fase',
-        log_today: 'Registrar hoje',
-        view_calendar: 'Ver calendário',
-        upcoming_events: 'Próximos eventos',
-        next_period: 'Próximo período',
-        fertile_window: 'Janela fértil',
-        next_full_moon: 'Próxima lua cheia',
-        next_new_moon: 'Próxima lua nova',
-        in_days: 'dias',
-        illuminated: 'iluminada',
-        lunar_day: 'Dia lunar',
-        how_feeling: 'Como você se sente?',
-        period_flow: 'Fluxo',
-        mood: 'Humor',
-        energy_level: 'Energia',
-        symptoms: 'Sintomas',
-        notes: 'Notas',
-        save_entry: 'Salvar',
-        avg_cycle: 'Ciclo médio',
-        avg_period: 'Período médio',
-        tracked_months: 'Meses rastreados',
-        predictions: 'Previsões',
-        no_data_yet: 'Registre dados para ver padrões',
-        profile: 'Perfil',
-        edit_profile: 'Editar perfil',
-        share_with_friends: 'Compartilhar com amigas',
-        share_explanation: 'Compartilhe seu código com uma amiga. Ela o insere no seu app e vocês dois podem ver em que dia do ciclo uma da outra está.',
-        your_code: 'Seu código',
-        copy: 'Copiar',
-        friends_label: 'Amigas conectadas',
-        add: 'Adicionar',
-        friend_code: 'Código da amiga',
-        reset_data: 'Excluir todos os dados',
-        confirm_reset: 'Tem certeza? Todos os dados serão excluídos.',
-        add_event: 'Adicionar evento',
-        event_title: 'Título do evento',
-        diary: 'Diário',
-        save: 'Salvar',
-        no_events: 'Sem eventos',
-        force_update: 'Forçar atualização',
-        version: 'Versão',
-        mark_period: 'Marcar início do período',
-        period_marked: 'Início do período marcado',
-        next_ovulation: 'Próxima ovulação',
-        cycle_day_of: 'Dia {0} de {1}',
-        symptom_frequency: 'Frequência de sintomas',
-        times: 'vezes',
-        phases: {
-            menstrual: 'Menstrual',
-            follicular: 'Folicular',
-            ovulation: 'Ovulação',
-            luteal: 'Lútea'
-        },
-        wellness_tips: {
-            menstrual: ['Descanso', 'Alimentos ricos em ferro', 'Hidratação', 'Exercício leve'],
-            follicular: ['Exercício intenso', 'Socialize', 'Novos projetos', 'Coma mais carboidratos'],
-            ovulation: ['Treinos fortes', 'Networking', 'Projetos desafiadores', 'Coma proteína'],
-            luteal: ['Yoga e alongamento', 'Mais sono', 'Alimentos complexos', 'Autocuidado']
+
+        // ============ CYCLE CALCULATION ============
+        function getCycleDay(date) {
+            if (!profile.lastPeriod) return { day: 1, phase: 'follicular', phaseName: _(('phases.follicular')) };
+            const lastPeriodDate = new Date(profile.lastPeriod);
+            const diff = Math.floor((date - lastPeriodDate) / 86400000);
+            const cycleLength = profile.cycleLength || 28;
+            const dayInCycle = (diff % cycleLength) + 1;
+
+            let phase = 'follicular';
+            const periodLen = profile.periodLength || 5;
+
+            if (dayInCycle <= periodLen) phase = 'menstrual';
+            else if (dayInCycle <= Math.floor(cycleLength / 2)) phase = 'follicular';
+            else if (dayInCycle <= Math.floor(cycleLength / 2) + 2) phase = 'ovulation';
+            else phase = 'luteal';
+
+            return { day: dayInCycle, phase, phaseName: _(('phases.' + phase)) };
         }
-    },
-    de: {
-        name: 'Name',
-        cycle: 'Zyklus',
-        period: 'Periode',
-        lastperiod: 'Letzte Periode',
-        wellness: 'Wohlbefinden nach Phase',
-        log_today: 'Heute protokollieren',
-        view_calendar: 'Kalender anzeigen',
-        upcoming_events: 'Kommende Ereignisse',
-        next_period: 'Nächste Periode',
-        fertile_window: 'Fertiles Fenster',
-        next_full_moon: 'Nächster Vollmond',
-        next_new_moon: 'Neumond',
-        in_days: 'Tage',
-        illuminated: 'beleuchtet',
-        lunar_day: 'Mondtag',
-        how_feeling: 'Wie fühlen Sie sich?',
-        period_flow: 'Fluss',
-        mood: 'Stimmung',
-        energy_level: 'Energie',
-        symptoms: 'Symptome',
-        notes: 'Notizen',
-        save_entry: 'Speichern',
-        avg_cycle: 'Durchschnittlicher Zyklus',
-        avg_period: 'Durchschnittliche Periode',
-        tracked_months: 'Nachverfolgte Monate',
-        predictions: 'Vorhersagen',
-        no_data_yet: 'Daten protokollieren, um Muster zu sehen',
-        profile: 'Profil',
-        edit_profile: 'Profil bearbeiten',
-        share_with_friends: 'Mit Freundinnen teilen',
-        share_explanation: 'Teilen Sie Ihren Code mit einer Freundin. Sie gibt ihn in ihrer App ein und Sie können beide sehen, an welchem Tag des Zyklus die andere ist.',
-        your_code: 'Ihr Code',
-        copy: 'Kopieren',
-        friends_label: 'Verbundene Freundinnen',
-        add: 'Hinzufügen',
-        friend_code: 'Freundin Code',
-        reset_data: 'Alle Daten löschen',
-        confirm_reset: 'Sind Sie sicher? Alle Daten werden gelöscht.',
-        add_event: 'Ereignis hinzufügen',
-        event_title: 'Ereignistitel',
-        diary: 'Tagebuch',
-        save: 'Speichern',
-        no_events: 'Keine Ereignisse',
-        force_update: 'Aktualisierung erzwingen',
-        version: 'Version',
-        mark_period: 'Periodenbeginn markieren',
-        period_marked: 'Periodenbeginn markiert',
-        next_ovulation: 'Nächster Eisprung',
-        cycle_day_of: 'Tag {0} von {1}',
-        symptom_frequency: 'Symptomhäufigkeit',
-        times: 'mal',
-        phases: {
-            menstrual: 'Menstruation',
-            follicular: 'Follikular',
-            ovulation: 'Eisprung',
-            luteal: 'Luteal'
-        },
-        wellness_tips: {
-            menstrual: ['Ruhe', 'Eisenhaltige Lebensmittel', 'Flüssigkeitszufuhr', 'Leichtes Training'],
-            follicular: ['Intensives Training', 'Sozialisieren', 'Neue Projekte', 'Mehr Kohlenhydrate essen'],
-            ovulation: ['Starke Trainingseinheiten', 'Networking', 'Herausfordernde Projekte', 'Protein essen'],
-            luteal: ['Yoga und Dehnen', 'Mehr Schlaf', 'Komplexe Lebensmittel', 'Selbstpflege']
+
+        // ============ INITIALIZATION ============
+        function init() {
+            loadProfile();
+            updateUI();
+            renderCalendar();
+            loadSettings();
+            updateHome();
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            }
         }
-    },
-    it: {
-        name: 'Nome',
-        cycle: 'Ciclo',
-        period: 'Periodo',
-        lastperiod: 'Ultimo periodo',
-        wellness: 'Benessere per fase',
-        log_today: 'Registra oggi',
-        view_calendar: 'Visualizza calendario',
-        upcoming_events: 'Prossimi eventi',
-        next_period: 'Prossimo periodo',
-        fertile_window: 'Finestra fertile',
-        next_full_moon: 'Prossima luna piena',
-        next_new_moon: 'Prossima luna nuova',
-        in_days: 'giorni',
-        illuminated: 'illuminata',
-        lunar_day: 'Giorno lunare',
-        how_feeling: 'Come ti senti?',
-        period_flow: 'Flusso',
-        mood: 'Umore',
-        energy_level: 'Energia',
-        symptoms: 'Sintomi',
-        notes: 'Note',
-        save_entry: 'Salva',
-        avg_cycle: 'Ciclo medio',
-        avg_period: 'Periodo medio',
-        tracked_months: 'Mesi monitorati',
-        predictions: 'Previsioni',
-        no_data_yet: 'Registra i dati per vedere i modelli',
-        profile: 'Profilo',
-        edit_profile: 'Modifica profilo',
-        share_with_friends: 'Condividi con le amiche',
-        share_explanation: 'Condividi il tuo codice con un\'amica. Lei lo inserisce nella sua app e potrete entrambi vedere il giorno del ciclo dell\'altro.',
-        your_code: 'Il tuo codice',
-        copy: 'Copia',
-        friends_label: 'Amiche connesse',
-        add: 'Aggiungi',
-        friend_code: 'Codice amica',
-        reset_data: 'Elimina tutti i dati',
-        confirm_reset: 'Sei sicuro? Tutti i dati verranno eliminati.',
-        add_event: 'Aggiungi evento',
-        event_title: 'Titolo dell\'evento',
-        diary: 'Diario',
-        save: 'Salva',
-        no_events: 'Nessun evento',
-        force_update: 'Forza aggiornamento',
-        version: 'Versione',
-        mark_period: 'Segna inizio periodo',
-        period_marked: 'Inizio periodo segnato',
-        next_ovulation: 'Prossima ovulazione',
-        cycle_day_of: 'Giorno {0} di {1}',
-        symptom_frequency: 'Frequenza dei sintomi',
-        times: 'volte',
-        phases: {
-            menstrual: 'Mestruale',
-            follicular: 'Follicolare',
-            ovulation: 'Ovulazione',
-            luteal: 'Luteale'
-        },
-        wellness_tips: {
-            menstrual: ['Riposo', 'Cibi ricchi di ferro', 'Idratazione', 'Esercizio leggero'],
-            follicular: ['Esercizio intenso', 'Socializzare', 'Nuovi progetti', 'Mangia più carboidrati'],
-            ovulation: ['Allenamenti forti', 'Networking', 'Progetti impegnativi', 'Mangia proteine'],
-            luteal: ['Yoga e stretching', 'Più sonno', 'Cibi complessi', 'Autocura']
+
+        function updateUI() {
+            document.documentElement.lang = currentLanguage;
+            updateLabels();
+            updateHome();
+            renderCalendar();
         }
-    },
-    zh: {
-        name: '名字',
-        cycle: '周期',
-        period: '月经',
-        lastperiod: '最后月经',
-        wellness: '阶段健康',
-        log_today: '今天记录',
-        view_calendar: '查看日历',
-        upcoming_events: '即将发生的事件',
-        next_period: '下一个月经期',
-        fertile_window: '受孕窗口',
-        next_full_moon: '下一个满月',
-        next_new_moon: '下一个新月',
-        in_days: '天',
-        illuminated: '照亮',
-        lunar_day: '农历日',
-        how_feeling: '你感觉如何？',
-        period_flow: '流量',
-        mood: '心情',
-        energy_level: '能量',
-        symptoms: '症状',
-        notes: '笔记',
-        save_entry: '保存',
-        avg_cycle: '平均周期',
-        avg_period: '平均月经期',
-        tracked_months: '跟踪月数',
-        predictions: '预测',
-        no_data_yet: '记录数据以查看模式',
-        profile: '个人资料',
-        edit_profile: '编辑个人资料',
-        share_with_friends: '与朋友分享',
-        share_explanation: '与朋友分享您的代码。她在她的应用中输入，你们都可以看到彼此的周期日。',
-        your_code: '您的代码',
-        copy: '复制',
-        friends_label: '连接的朋友',
-        add: '添加',
-        friend_code: '朋友代码',
-        reset_data: '删除所有数据',
-        confirm_reset: '你确定吗？所有数据将被删除。',
-        add_event: '添加事件',
-        event_title: '事件标题',
-        diary: '日记',
-        save: '保存',
-        no_events: '没有事件',
-        force_update: '强制更新',
-        version: '版本',
-        mark_period: '标记月经开始',
-        period_marked: '月经开始已标记',
-        next_ovulation: '下一次排卵',
-        cycle_day_of: '第{0}天，共{1}天',
-        symptom_frequency: '症状频率',
-        times: '次',
-        phases: {
-            menstrual: '月经期',
-            follicular: '卵泡期',
-            ovulation: '排卵期',
-            luteal: '黄体期'
-        },
-        wellness_tips: {
-            menstrual: ['休息', '含铁食物', '补水', '轻度运动'],
-            follicular: ['强力运动', '社交', '新项目', '多吃碳水化合物'],
-            ovulation: ['强力训练', '人脉拓展', '具有挑战性的项目', '吃蛋白质'],
-            luteal: ['瑜伽和拉伸', '更多睡眠', '复杂食物', '自我护理']
+
+        function updateLabels() {
+            document.querySelectorAll('.tab-label').forEach(el => {
+                const key = el.dataset.key;
+                if (key) el.textContent = _(key);
+            });
+
+            document.getElementById('period-flow-label').textContent = _('period_flow');
+            document.getElementById('mood-label').textContent = _('mood');
+            document.getElementById('energy-label').textContent = _('energy_level');
+            document.getElementById('symptoms-label').textContent = _('symptoms');
+            document.getElementById('notes-label').textContent = _('notes');
+            document.getElementById('save-entry-btn').textContent = _('save_entry');
+
+            document.getElementById('wellness-label').textContent = _('wellness');
+            document.getElementById('upcoming-label').textContent = _('upcoming_events');
+            document.getElementById('next-period-label').textContent = _('next_period') + ':';
+            document.getElementById('fertile-label').textContent = _('fertile_window') + ':';
+            document.getElementById('full-moon-label').textContent = _('next_full_moon') + ':';
+
+            document.getElementById('today-events-label').textContent = _('today_events');
+
+            document.getElementById('profile-label').textContent = _('profile');
+            document.getElementById('name-label').textContent = _('name');
+            document.getElementById('cycle-label').textContent = _('cycle');
+            document.getElementById('period-label').textContent = _('period');
+            document.getElementById('lastperiod-label').textContent = _('lastperiod');
+            document.getElementById('save-profile-btn').textContent = _('save');
+
+            document.getElementById('language-label').textContent = _('language');
+            document.getElementById('reset-data-btn').textContent = _('reset_data');
+
+            document.getElementById('avg-cycle-label').textContent = _('avg_cycle');
+            document.getElementById('avg-period-label').textContent = _('avg_period');
+            document.getElementById('tracked-label').textContent = _('tracked_months');
+            document.getElementById('predictions-label').textContent = _('predictions');
+            document.getElementById('phase-dist-label').textContent = _('phase_dist');
+            document.getElementById('symptom-freq-label').textContent = _('symptom_frequency');
+            document.getElementById('times-label').textContent = _('times');
         }
-    },
-    ja: {
-        name: '名前',
-        cycle: '周期',
-        period: '月経',
-        lastperiod: '最後の月経',
-        wellness: 'フェーズウェルネス',
-        log_today: '今日を記録',
-        view_calendar: 'カレンダーを表示',
-        upcoming_events: '今後のイベント',
-        next_period: '次の月経',
-        fertile_window: '受妊可能窓',
-        next_full_moon: '次の満月',
-        next_new_moon: '次の新月',
-        in_days: '日',
-        illuminated: '照らされた',
-        lunar_day: '太陰日',
-        how_feeling: 'お気分はいかがですか？',
-        period_flow: 'フロー',
-        mood: '気分',
-        energy_level: 'エネルギー',
-        symptoms: '症状',
-        notes: 'ノート',
-        save_entry: '保存',
-        avg_cycle: '平均周期',
-        avg_period: '平均月経',
-        tracked_months: '追跡された月',
-        predictions: '予測',
-        no_data_yet: 'データを記録してパターンを確認',
-        profile: 'プロフィール',
-        edit_profile: 'プロフィールを編集',
-        share_with_friends: '友達と共有',
-        share_explanation: 'あなたのコードを友人と共有してください。彼女はそれを彼女のアプリに入力し、あなたは両方の周期の日を見ることができます。',
-        your_code: 'あなたのコード',
-        copy: 'コピー',
-        friends_label: '接続されている友達',
-        add: '追加',
-        friend_code: '友人コード',
-        reset_data: 'すべてのデータを削除',
-        confirm_reset: 'よろしいですか？すべてのデータが削除されます。',
-        add_event: 'イベントを追加',
-        event_title: 'イベントタイトル',
-        diary: '日記',
-        save: '保存',
-        no_events: 'イベントなし',
-        force_update: '更新を強制',
-        version: 'バージョン',
-        mark_period: '月経開始を標記',
-        period_marked: '月経開始がマークされました',
-        next_ovulation: '次の排卵',
-        cycle_day_of: '第{0}日目 / {1}',
-        symptom_frequency: '症状の頻度',
-        times: '回',
-        phases: {
-            menstrual: '月経期',
-            follicular: '卵胞期',
-            ovulation: '排卵期',
-            luteal: '黄体期'
-        },
-        wellness_tips: {
-            menstrual: ['休息', '鉄分豊富な食品', '水分補給', '軽い運動'],
-            follicular: ['激しい運動', '社交', '新しいプロジェクト', 'より多くの炭水化物を食べる'],
-            ovulation: ['強いトレーニング', 'ネットワーキング', 'チャレンジングなプロジェクト', 'タンパク質を食べる'],
-            luteal: ['ヨガとストレッチ', 'より多くの睡眠', '複雑な食品', 'セルフケア']
+
+        function updateHome() {
+            const today = new Date();
+            const cycleInfo = getCycleDay(today);
+            const moon = getMoonPhase(today);
+
+            const greeting = `${_('hello')}, ${profile.name || 'User'}`;
+            document.getElementById('greeting').textContent = greeting;
+
+            const cycleLength = profile.cycleLength || 28;
+            document.getElementById('cycle-day-num').textContent = cycleInfo.day;
+            document.getElementById('cycle-day-label').textContent = `of ${cycleLength}`;
+            document.getElementById('cycle-phase').textContent = `${_('cycle_day_of', cycleInfo.day, cycleLength)} • ${cycleInfo.phaseName}`;
+            document.getElementById('current-phase-name').textContent = cycleInfo.phaseName;
+            document.getElementById('phase-desc').textContent = _(`phase_desc.${cycleInfo.phase}`);
+
+            const moonPercent = moon.illumination;
+            const moonPhase = _((`moon_phases.${moon.phaseName}`));
+            const moonEmoji = getMoonEmoji(moon.phase);
+            document.getElementById('moon-info').textContent = `${moonEmoji} ${moonPercent}% ${_('illuminated')} • ${_('lunar_day')} ${moon.lunarDay}`;
+
+            // Update cycle ring
+            const progress = (cycleInfo.day / cycleLength) * 100;
+            const circumference = 2 * Math.PI * 110;
+            const offset = circumference - (progress / 100) * circumference;
+            const ring = document.getElementById('cycle-ring-progress');
+            ring.style.strokeDasharray = circumference;
+            ring.style.strokeDashoffset = offset;
+
+            const phaseColor = { menstrual: '#E74C3C', follicular: '#F39C12', ovulation: '#27AE60', luteal: '#8E44AD' };
+            ring.style.stroke = phaseColor[cycleInfo.phase] || '#8E44AD';
+
+            // Update wellness tips
+            const tips = T[currentLanguage].wellness_tips[cycleInfo.phase];
+            let tipsHtml = '';
+            if (tips && Array.isArray(tips)) {
+                tips.forEach(tip => {
+                    tipsHtml += `<div>${tip}</div>`;
+                });
+            }
+            document.getElementById('wellness-tips').innerHTML = tipsHtml;
+
+            // Update today's events
+            const todayKey = today.toISOString().split('T')[0];
+            const todayEventsList = events[todayKey] || [];
+            let eventsHtml = '';
+            if (todayEventsList.length > 0) {
+                todayEventsList.forEach(event => {
+                    eventsHtml += `<div>• ${event}</div>`;
+                });
+            } else {
+                eventsHtml = `<div style="color: #7A5E6A;">${_('no_events')}</div>`;
+            }
+            document.getElementById('today-events-list').innerHTML = eventsHtml;
+
+            // Upcoming predictions
+            const nextPeriodDate = getNextPeriodDate();
+            const fertileDates = getFertileWindow();
+            const nextFullMoonDate = getNextFullMoon();
+
+            document.getElementById('next-period-date').textContent = formatDate(nextPeriodDate);
+            document.getElementById('fertile-dates').textContent = `${formatDate(fertileDates.start)}-${formatDate(fertileDates.end)}`;
+            document.getElementById('full-moon-date').textContent = formatDate(nextFullMoonDate);
         }
-    },
-    ko: {
-        name: '이름',
-        cycle: '주기',
-        period: '월경',
-        lastperiod: '마지막 월경',
-        wellness: '단계별 웰니스',
-        log_today: '오늘 기록',
-        view_calendar: '달력보기',
-        upcoming_events: '예정된 이벤트',
-        next_period: '다음 월경',
-        fertile_window: '가임기',
-        next_full_moon: '다음 보름달',
-        next_new_moon: '다음 새로운 달',
-        in_days: '일',
-        illuminated: '조명',
-        lunar_day: '음력 일',
-        how_feeling: '기분이 어떠세요?',
-        period_flow: '흐름',
-        mood: '기분',
-        energy_level: '에너지',
-        symptoms: '증상',
-        notes: '메모',
-        save_entry: '저장',
-        avg_cycle: '평균주기',
-        avg_period: '평균 월경',
-        tracked_months: '추적된 월',
-        predictions: '예측',
-        no_data_yet: '데이터를 기록하여 패턴 확인',
-        profile: '프로필',
-        edit_profile: '프로필 편집',
-        share_with_friends: '친구와 공유',
-        share_explanation: '코드를 친구와 공유하세요. 그녀가 앱에 입력하면 서로의 주기 날을 볼 수 있습니다.',
-        your_code: '귀하의 코드',
-        copy: '복사',
-        friends_label: '연결된 친구',
-        add: '추가',
-        friend_code: '친구 코드',
-        reset_data: '모든 데이터 삭제',
-        confirm_reset: '확실합니까? 모든 데이터가 삭제됩니다.',
-        add_event: '이벤트 추가',
-        event_title: '이벤트 제목',
-        diary: '일기',
-        save: '저장',
-        no_events: '이벤트 없음',
-        force_update: '업데이트 강제',
-        version: '버전',
-        mark_period: '월경 시작 표시',
-        period_marked: '월경 시작 표시됨',
-        next_ovulation: '다음 배란',
-        cycle_day_of: '{0}일 / {1}',
-        symptom_frequency: '증상 빈도',
-        times: '번',
-        phases: {
-            menstrual: '월경기',
-            follicular: '난포기',
-            ovulation: '배란기',
-            luteal: '황체기'
-        },
-        wellness_tips: {
-            menstrual: ['휴식', '철분 많은 식품', '수분 섭취', '가벼운 운동'],
-            follicular: ['격렬한 운동', '사교', '새로운 프로젝트', '더 많은 탄수화물 섭취'],
-            ovulation: ['강한 운동', '네트워킹', '도전적인 프로젝트', '단백질 섭취'],
-            luteal: ['요가 및 스트레칭', '더 많은 수면', '복잡한 음식', '자기 관리']
+
+        function getMoonEmoji(phase) {
+            if (phase <= 1.5 || phase > 98.5) return '🌑';
+            if (phase <= 23.5) return '🌒';
+            if (phase <= 26.5) return '🌓';
+            if (phase <= 48.5) return '🌔';
+            if (phase <= 51.5) return '🌕';
+            if (phase <= 73.5) return '🌖';
+            if (phase <= 76.5) return '🌗';
+            if (phase <= 98.5) return '🌘';
+            return '🌙';
         }
-    }
-};
 
-// ========== TRANSLATION FUNCTION ==========
-function _(key) {
-    const keys = key.split('.');
-    let value = T[currentLanguage];
-    for (let k of keys) {
-        if (value && typeof value === 'object') {
-            value = value[k];
-        } else {
-            return key;
+        function getNextPeriodDate() {
+            if (!profile.lastPeriod) return new Date();
+            const lastDate = new Date(profile.lastPeriod);
+            const cycleLength = profile.cycleLength || 28;
+            const nextDate = new Date(lastDate.getTime() + cycleLength * 86400000);
+            return nextDate;
         }
-    }
-    return value || key;
-}
-
-function _replace(key, ...args) {
-    let text = _(key);
-    args.forEach((arg, i) => {
-        text = text.replace('{' + i + '}', arg);
-    });
-    return text;
-}
-
-// ========== MOON PHASE CALCULATION ==========
-function getMoonPhase(date) {
-    const epochDate = new Date('2000-01-06');
-    const synodicMonth = 29.53058867;
-    const daysSinceEpoch = Math.floor((date - epochDate) / 86400000);
-    const moonAge = (daysSinceEpoch % synodicMonth);
-    const illumination = Math.round(100 * (1 - Math.cos(2 * Math.PI * moonAge / synodicMonth)) / 2);
-    const phase = (moonAge / synodicMonth) * 100;
-    let phaseName = 'New Moon';
-    if (phase > 1.5 && phase <= 23.5) phaseName = 'Waxing Crescent';
-    else if (phase > 23.5 && phase <= 26.5) phaseName = 'First Quarter';
-    else if (phase > 26.5 && phase <= 48.5) phaseName = 'Waxing Gibbous';
-    else if (phase > 48.5 && phase <= 51.5) phaseName = 'Full Moon';
-    else if (phase > 51.5 && phase <= 73.5) phaseName = 'Waning Gibbous';
-    else if (phase > 73.5 && phase <= 76.5) phaseName = 'Last Quarter';
-    else if (phase > 76.5 && phase <= 98.5) phaseName = 'Waning Crescent';
-    return {
-        illumination,
-        phase,
-        phaseName,
-        lunarDay: Math.ceil(moonAge)
-    };
-}
-
-function getMoonEmoji(phaseName) {
-    const phases = {
-        'New Moon': '🌑',
-        'Waxing Crescent': '🌒',
-        'First Quarter': '🌓',
-        'Waxing Gibbous': '🌔',
-        'Full Moon': '🌕',
-        'Waning Gibbous': '🌖',
-        'Last Quarter': '🌗',
-        'Waning Crescent': '🌘'
-    };
-    return phases[phaseName] || '🌙';
-}
-
-// ========== CYCLE CALCULATION ==========
-function getCycleDay(lastPeriodDate, targetDate) {
-    const last = new Date(lastPeriodDate);
-    const target = new Date(targetDate);
-    const daysDiff = Math.floor((target - last) / 86400000);
-    const cycleDay = (daysDiff % profile.cycleLength) + 1;
-    return Math.max(1, cycleDay);
-}
-
-function getPhase(day) {
-    const cycle = profile.cycleLength;
-    const period = profile.periodLength;
-    const follicular = Math.floor((cycle - period) / 2);
-    const ovulation = 5;
-    if (day <= period) return 'menstrual';
-    if (day <= period + follicular) return 'follicular';
-    if (day <= period + follicular + ovulation) return 'ovulation';
-    return 'luteal';
-}
-
-function getPhaseColor(phase) {
-    const colors = {
-        menstrual: 'var(--menstrual)',
-        follicular: 'var(--follicular)',
-        ovulation: 'var(--ovulation)',
-        luteal: 'var(--luteal)'
-    };
-    return colors[phase] || '#999';
-}
-
-// ========== DATE UTILITIES ==========
-function formatDate(date) {
-    const d = new Date(date);
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${year}-${month}-${day}`;
-}
-
-function formatDisplayDate(date) {
-    const d = new Date(date);
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return d.toLocaleDateString(currentLanguage === 'es' ? 'es-ES' : currentLanguage === 'en' ? 'en-US' : currentLanguage, options);
-}
-
-// ========== INITIALIZATION ==========
-function init() {
-    if (!profile.lastPeriod) {
-        showScreen('onboarding-screen');
-        setupOnboarding();
-    } else {
-        showScreen('home-screen');
-        renderHome();
-        renderCalendar();
-        updateLanguageUI();
-        registerServiceWorker();
-    }
-}
-
-function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
-}
-
-function setupOnboarding() {
-    document.getElementById('onboarding-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        profile.name = document.getElementById('name-input').value;
-        profile.cycleLength = parseInt(document.getElementById('cycle-input').value) || 28;
-        profile.periodLength = parseInt(document.getElementById('period-input').value) || 5;
-        profile.lastPeriod = document.getElementById('lastperiod-input').value;
-        saveProfile();
-        showScreen('home-screen');
-        renderHome();
-        renderCalendar();
-        updateLanguageUI();
-    });
-    updateLanguageUI();
-}
-
-function saveProfile() {
-    localStorage.setItem('khloesmoon_profile', JSON.stringify(profile));
-}
-
-function saveLogs() {
-    localStorage.setItem('khloesmoon_logs', JSON.stringify(logs));
-}
-
-function saveEvents() {
-    localStorage.setItem('khloesmoon_events', JSON.stringify(events));
-}
-
-function saveFriends() {
-    localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
-}
-
-// ========== SCREEN NAVIGATION ==========
-function switchScreen(screenName) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById(`${screenName}-screen`).classList.add('active');
-    document.getElementById(`tab-${screenName}`).classList.add('active');
-
-    if (screenName === 'home') renderHome();
-    if (screenName === 'calendar') renderCalendar();
-    if (screenName === 'log') renderLog();
-    if (screenName === 'insights') renderInsights();
-    if (screenName === 'settings') renderSettings();
-}
-
-// ========== HOME SCREEN ==========
-function renderHome() {
-    const today = new Date();
-    const todayStr = formatDate(today);
-    const cycleDay = getCycleDay(profile.lastPeriod, todayStr);
-    const phase = getPhase(cycleDay);
-    const moon = getMoonPhase(today);
-
-    document.getElementById('home-greeting').textContent = `Hi ${profile.name}! 👋`;
-    document.getElementById('cycle-status').textContent = `You're ${cycleDay}/${profile.cycleLength} in your cycle`;
-    document.getElementById('home-moon-emoji').textContent = getMoonEmoji(moon.phaseName);
-    document.getElementById('home-illumination').textContent = `${moon.illumination}% ${_('illuminated')}`;
-    document.getElementById('home-lunar-day').textContent = `${_('lunar_day')} ${moon.lunarDay}`;
-    document.getElementById('home-cycle-day').textContent = `${_replace('cycle_day_of', cycleDay, profile.cycleLength)}`;
-    document.getElementById('home-phase').textContent = _(`phases.${phase}.name`);
-
-    renderWellness(phase);
-    renderUpcomingEvents();
-}
-
-function toggleWellness() {
-    const content = document.getElementById('wellness-content');
-    const toggle = document.getElementById('wellness-toggle');
-    content.classList.toggle('open');
-    toggle.textContent = content.classList.contains('open') ? '▲' : '▼';
-}
-
-function renderWellness(phase) {
-    const tips = T[currentLanguage].wellness_tips[phase] || [];
-    let html = '';
-    tips.forEach(tip => {
-        html += `<div class="wellness-item">${tip}</div>`;
-    });
-    document.getElementById('wellness-items').innerHTML = html;
-    document.getElementById('wellness-label').textContent = _('wellness');
-}
-
-function renderUpcomingEvents() {
-    const today = new Date();
-    const nextPeriodDate = new Date(profile.lastPeriod);
-    while (nextPeriodDate < today) {
-        nextPeriodDate.setDate(nextPeriodDate.getDate() + profile.cycleLength);
-    }
-    const daysUntilPeriod = Math.ceil((nextPeriodDate - today) / 86400000);
-
-    const cycle = profile.cycleLength;
-    const period = profile.periodLength;
-    const follicular = Math.floor((cycle - period) / 2);
-    const ovulationDay = period + follicular + 3;
-    const nextOvulation = new Date(nextPeriodDate);
-    nextOvulation.setDate(nextOvulation.getDate() - (cycle - ovulationDay));
-    const daysUntilOvulation = Math.ceil((nextOvulation - today) / 86400000);
-
-    const fertileStart = new Date(nextOvulation);
-    fertileStart.setDate(fertileStart.getDate() - 2);
-    const fertileEnd = new Date(nextOvulation);
-    fertileEnd.setDate(fertileEnd.getDate() + 2);
-
-    const moonDate = new Date(today);
-    let fullMoonDays = 0;
-    const moon = getMoonPhase(moonDate);
-    while (fullMoonDays < 30) {
-        moonDate.setDate(moonDate.getDate() + 1);
-        fullMoonDays++;
-        const m = getMoonPhase(moonDate);
-        if (m.illumination >= 95) break;
-    }
-
-    let newMoonDays = 0;
-    const moonDate2 = new Date(today);
-    while (newMoonDays < 30) {
-        moonDate2.setDate(moonDate2.getDate() + 1);
-        newMoonDays++;
-        const m = getMoonPhase(moonDate2);
-        if (m.illumination <= 5) break;
-    }
-
-    let html = `
-        <div class="event-item">
-            <div class="event-label">${_('next_period')}</div>
-            <div class="event-date">${formatDisplayDate(nextPeriodDate)} (${daysUntilPeriod} ${_('in_days')})</div>
-        </div>
-        <div class="event-item">
-            <div class="event-label">${_('next_ovulation')}</div>
-            <div class="event-date">${formatDisplayDate(nextOvulation)} (${daysUntilOvulation} ${_('in_days')})</div>
-        </div>
-        <div class="event-item">
-            <div class="event-label">${_('fertile_window')}</div>
-            <div class="event-date">${formatDisplayDate(fertileStart)} - ${formatDisplayDate(fertileEnd)}</div>
-        </div>
-        <div class="event-item">
-            <div class="event-label">${_('next_full_moon')}</div>
-            <div class="event-date">${formatDisplayDate(moonDate)} (${fullMoonDays} ${_('in_days')})</div>
-        </div>
-        <div class="event-item">
-            <div class="event-label">${_('next_new_moon')}</div>
-            <div class="event-date">${formatDisplayDate(moonDate2)} (${newMoonDays} ${_('in_days')})</div>
-        </div>
-    `;
-    document.getElementById('upcoming-events-list').innerHTML = html;
-    document.getElementById('upcoming-label').textContent = _('upcoming_events');
-}
-
-// ========== CALENDAR SCREEN ==========
-let currentCalendarMonth = new Date();
-
-function renderCalendar() {
-    const year = currentCalendarMonth.getFullYear();
-    const month = currentCalendarMonth.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startDay = firstDay.getDay();
-
-    document.getElementById('calendar-month-year').textContent =
-        currentCalendarMonth.toLocaleDateString(currentLanguage === 'es' ? 'es-ES' : currentLanguage === 'en' ? 'en-US' : currentLanguage,
-        { year: 'numeric', month: 'long' });
-
-    renderCalendarLegend();
-
-    let html = '';
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    dayNames.forEach(day => {
-        html += `<div class="calendar-dayname">${day.substring(0, 1)}</div>`;
-    });
-
-    for (let i = 0; i < startDay; i++) {
-        html += `<div class="calendar-day other-month"></div>`;
-    }
-
-    const today = new Date();
-    for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const dateStr = formatDate(date);
-        const cycleDay = getCycleDay(profile.lastPeriod, dateStr);
-        const phase = getPhase(cycleDay);
-        const moon = getMoonPhase(date);
-        const isToday = dateStr === formatDate(today);
-
-        html += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="selectDay(${day})">
-            <div class="calendar-day-number">${day}</div>
-            <div class="calendar-day-moon">${getMoonEmoji(moon.phaseName)}</div>
-            <div class="calendar-day-phase" style="color: ${getPhaseColor(phase)};">●</div>
-        </div>`;
-    }
-
-    document.getElementById('calendar-grid').innerHTML = html;
-}
-
-function renderCalendarLegend() {
-    const phases = [
-        { name: 'phases.menstrual', color: 'var(--menstrual)' },
-        { name: 'phases.follicular', color: 'var(--follicular)' },
-        { name: 'phases.ovulation', color: 'var(--ovulation)' },
-        { name: 'phases.luteal', color: 'var(--luteal)' }
-    ];
-
-    let html = '';
-    phases.forEach(p => {
-        html += `
-            <div class="legend-item">
-                <div class="legend-dot" style="background: ${p.color};"></div>
-                <span>${_(p.name)}</span>
-            </div>
-        `;
-    });
-    document.getElementById('calendar-legend').innerHTML = html;
-}
-
-function prevMonth() {
-    currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() - 1);
-    renderCalendar();
-}
-
-function nextMonth() {
-    currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + 1);
-    renderCalendar();
-}
-
-function selectDay(day) {
-    const year = currentCalendarMonth.getFullYear();
-    const month = currentCalendarMonth.getMonth();
-    selectedDay = new Date(year, month, day);
-    const dateStr = formatDate(selectedDay);
-
-    const cycleDay = getCycleDay(profile.lastPeriod, dateStr);
-    const phase = getPhase(cycleDay);
-    const moon = getMoonPhase(selectedDay);
-
-    document.getElementById('day-detail-date').innerHTML = `
-        ${formatDisplayDate(selectedDay)} - ${_(`phases.${phase}.name`)} - ${moon.illumination}% 🌙
-    `;
-
-    const dayEvents = events[dateStr] || [];
-    let eventsHtml = '';
-    dayEvents.forEach((evt, idx) => {
-        eventsHtml += `<div class="day-event-item">${evt} <button class="btn-small" onclick="removeDayEvent(${idx})" style="float: right; padding: 2px 6px; font-size: 10px;">✕</button></div>`;
-    });
-    if (dayEvents.length === 0) {
-        eventsHtml = `<div style="font-size: 12px; color: var(--secondary);">${_('no_events')}</div>`;
-    }
-    document.getElementById('day-events-list').innerHTML = eventsHtml;
-    document.getElementById('day-event-input').value = '';
-
-    const dayLog = logs[dateStr] || {};
-    document.getElementById('day-flow').value = dayLog.flow || '';
-    document.getElementById('day-mood').value = dayLog.mood || '';
-    document.getElementById('day-notes').value = dayLog.notes || '';
-
-    document.getElementById('day-detail-panel').classList.add('open');
-    document.getElementById('events-label').textContent = _('add_event');
-    document.getElementById('log-label').textContent = _('log_today');
-    document.getElementById('flow-label').textContent = _('period_flow');
-    document.getElementById('mood-label').textContent = _('mood');
-    document.getElementById('diary-label').textContent = _('notes');
-}
-
-function addDayEvent() {
-    const input = document.getElementById('day-event-input');
-    const eventText = input.value.trim();
-    if (!eventText) return;
-
-    const dateStr = formatDate(selectedDay);
-    if (!events[dateStr]) events[dateStr] = [];
-    events[dateStr].push(eventText);
-    saveEvents();
-    input.value = '';
-    selectDay(selectedDay.getDate());
-}
-
-function removeDayEvent(idx) {
-    const dateStr = formatDate(selectedDay);
-    if (events[dateStr]) {
-        events[dateStr].splice(idx, 1);
-        saveEvents();
-        selectDay(selectedDay.getDate());
-    }
-}
-
-function saveDayDetail() {
-    const dateStr = formatDate(selectedDay);
-    logs[dateStr] = {
-        flow: document.getElementById('day-flow').value,
-        mood: document.getElementById('day-mood').value,
-        notes: document.getElementById('day-notes').value
-    };
-    saveLogs();
-    selectDay(selectedDay.getDate());
-    alert(_('save'));
-}
-
-// ========== LOG SCREEN ==========
-function renderLog() {
-    const today = formatDate(new Date());
-    document.getElementById('log-date').value = today;
-    document.getElementById('log-title').textContent = _('how_feeling');
-
-    document.querySelectorAll('.log-form-label').forEach((el, idx) => {
-        const labels = [_('period_flow'), _('mood'), _('energy_level'), _('symptoms'), _('notes')];
-        if (idx < labels.length) el.textContent = labels[idx];
-    });
-
-    document.getElementById('btn-save-log').textContent = _('save_entry');
-
-    const logsArray = Object.entries(logs).map(([date, data]) => ({ date, ...data }))
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 10);
-
-    let html = '';
-    logsArray.forEach(log => {
-        html += `<div class="log-entry">
-            <div class="log-entry-date">${formatDisplayDate(log.date)}</div>
-            <div class="log-entry-info">
-                ${log.flow ? `Flow: ${log.flow} | ` : ''}
-                ${log.mood ? `Mood: ${log.mood} | ` : ''}
-                ${log.energy ? `Energy: ${log.energy}` : ''}
-            </div>
-        </div>`;
-    });
-
-    if (logsArray.length === 0) {
-        html = `<div style="font-size: 12px; color: var(--secondary); text-align: center; padding: 20px;">${_('no_data_yet')}</div>`;
-    }
-
-    document.getElementById('log-history').innerHTML = html;
-    document.getElementById('log-history-title').textContent = _('tracked_months');
-
-    updateLogLabels();
-}
-
-function updateLogLabels() {
-    document.getElementById('log-date-label').textContent = _replace('cycle_day_of', '?', profile.cycleLength);
-    document.getElementById('log-flow-label').textContent = _('period_flow');
-    document.getElementById('log-mood-label').textContent = _('mood');
-    document.getElementById('log-energy-label').textContent = _('energy_level');
-    document.getElementById('log-symptoms-label').textContent = _('symptoms');
-    document.getElementById('log-notes-label').textContent = _('notes');
-
-    document.getElementById('symptom-cramps').textContent = 'Cramps';
-    document.getElementById('symptom-bloating').textContent = 'Bloating';
-    document.getElementById('symptom-headache').textContent = 'Headache';
-    document.getElementById('symptom-fatigue').textContent = 'Fatigue';
-    document.getElementById('symptom-acne').textContent = 'Acne';
-    document.getElementById('symptom-insomnia').textContent = 'Insomnia';
-}
-
-function saveLogEntry() {
-    const dateStr = document.getElementById('log-date').value;
-    const symptoms = [];
-    document.querySelectorAll('.symptom-checkbox input:checked').forEach(cb => {
-        symptoms.push(cb.value);
-    });
-
-    logs[dateStr] = {
-        flow: document.getElementById('log-flow').value,
-        mood: document.getElementById('log-mood').value,
-        energy: document.getElementById('log-energy').value,
-        symptoms,
-        notes: document.getElementById('log-notes').value
-    };
-
-    saveLogs();
-    renderLog();
-    alert(_('period_marked'));
-}
-
-// ========== INSIGHTS SCREEN ==========
-function renderInsights() {
-    const today = new Date();
-    const nextPeriodDate = new Date(profile.lastPeriod);
-    while (nextPeriodDate < today) {
-        nextPeriodDate.setDate(nextPeriodDate.getDate() + profile.cycleLength);
-    }
-
-    const cycle = profile.cycleLength;
-    const period = profile.periodLength;
-    const follicular = Math.floor((cycle - period) / 2);
-    const ovulationDay = period + follicular + 3;
-    const nextOvulation = new Date(nextPeriodDate);
-    nextOvulation.setDate(nextOvulation.getDate() - (cycle - ovulationDay));
-
-    const fertileStart = new Date(nextOvulation);
-    fertileStart.setDate(fertileStart.getDate() - 2);
-    const fertileEnd = new Date(nextOvulation);
-    fertileEnd.setDate(fertileEnd.getDate() + 2);
-
-    let predictionsHtml = `
-        <div class="prediction-item">
-            <span class="prediction-label">${_('next_period')}:</span>
-            <span class="prediction-date">${formatDisplayDate(nextPeriodDate)}</span>
-        </div>
-        <div class="prediction-item">
-            <span class="prediction-label">${_('next_ovulation')}:</span>
-            <span class="prediction-date">${formatDisplayDate(nextOvulation)}</span>
-        </div>
-        <div class="prediction-item">
-            <span class="prediction-label">${_('fertile_window')}:</span>
-            <span class="prediction-date">${formatDisplayDate(fertileStart)} - ${formatDisplayDate(fertileEnd)}</span>
-        </div>
-    `;
-    document.getElementById('predictions-list').innerHTML = predictionsHtml;
-
-    const logsCount = Object.keys(logs).length;
-    const uniqueMonths = new Set();
-    Object.keys(logs).forEach(date => {
-        uniqueMonths.add(date.substring(0, 7));
-    });
-
-    let statsHtml = `
-        <div class="prediction-item">
-            <span class="prediction-label">${_('avg_cycle')}:</span>
-            <span>${profile.cycleLength} ${_('in_days')}</span>
-        </div>
-        <div class="prediction-item">
-            <span class="prediction-label">${_('avg_period')}:</span>
-            <span>${profile.periodLength} ${_('in_days')}</span>
-        </div>
-        <div class="prediction-item">
-            <span class="prediction-label">${_('tracked_months')}:</span>
-            <span>${uniqueMonths.size}</span>
-        </div>
-    `;
-    document.getElementById('cycle-stats-list').innerHTML = statsHtml;
-
-    const symptomCounts = {};
-    Object.values(logs).forEach(log => {
-        if (log.symptoms && Array.isArray(log.symptoms)) {
-            log.symptoms.forEach(symptom => {
-                symptomCounts[symptom] = (symptomCounts[symptom] || 0) + 1;
+
+        function getFertileWindow() {
+            if (!profile.lastPeriod) return { start: new Date(), end: new Date() };
+            const lastDate = new Date(profile.lastPeriod);
+            const cycleLength = profile.cycleLength || 28;
+            const ovulationDay = Math.floor(cycleLength / 2);
+            const start = new Date(lastDate.getTime() + (ovulationDay - 3) * 86400000);
+            const end = new Date(lastDate.getTime() + (ovulationDay + 1) * 86400000);
+            return { start, end };
+        }
+
+        function getNextFullMoon() {
+            let date = new Date();
+            for (let i = 0; i < 30; i++) {
+                const moon = getMoonPhase(date);
+                if (moon.phaseName === 'full_moon') return date;
+                date = new Date(date.getTime() + 86400000);
+            }
+            return date;
+        }
+
+        function formatDate(date) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${date.getDate()} ${months[date.getMonth()]}`;
+        }
+
+        // ============ SCREEN SWITCHING ============
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            const tabMap = {'home-screen':'tab-home','calendar-screen':'tab-calendar','log-screen':'tab-log','insights-screen':'tab-insights','settings-screen':'tab-settings'};
+            const tabId = tabMap[screenId];
+            if (tabId) document.getElementById(tabId).classList.add('active');
+
+            if (screenId === 'home-screen') updateHome();
+            else if (screenId === 'calendar-screen') renderCalendar();
+            else if (screenId === 'insights-screen') updateInsights();
+            else if (screenId === 'settings-screen') loadSettings();
+        }
+
+        // ============ CALENDAR ============
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const prevLastDay = new Date(year, month, 0).getDate();
+            const nextDays = 7 - lastDay.getDay();
+
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            weekdays.forEach(day => {
+                const el = document.createElement('div');
+                el.className = 'calendar-weekday';
+                el.textContent = day;
+                grid.appendChild(el);
+            });
+
+            for (let i = prevLastDay - firstDay.getDay() + 1; i <= prevLastDay; i++) {
+                const el = document.createElement('div');
+                el.className = 'calendar-day other-month';
+                el.textContent = i;
+                grid.appendChild(el);
+            }
+
+            for (let i = 1; i <= lastDay.getDate(); i++) {
+                const el = document.createElement('div');
+                const date = new Date(year, month, i);
+                const dateStr = date.toISOString().split('T')[0];
+                const cycleInfo = getCycleDay(date);
+
+                el.className = 'calendar-day ' + cycleInfo.phase;
+                el.textContent = i;
+
+                if (date.toDateString() === new Date().toDateString()) el.classList.add('today');
+
+                el.onclick = () => {
+                    selectedDay = dateStr;
+                    document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+                    el.classList.add('selected');
+                    showDayInfo(dateStr);
+                };
+
+                grid.appendChild(el);
+            }
+
+            for (let i = 1; i <= nextDays; i++) {
+                const el = document.createElement('div');
+                el.className = 'calendar-day other-month';
+                el.textContent = i;
+                grid.appendChild(el);
+            }
+
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendar-month').textContent = `${months[month]} ${year}`;
+        }
+
+        function previousMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function showDayInfo(dateStr) {
+            const dayInfo = document.getElementById('day-info');
+            const date = new Date(dateStr);
+            const cycleInfo = getCycleDay(date);
+            const log = logs[dateStr];
+
+            const dateObj = new Date(dateStr + 'T00:00:00');
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dateObj.getDay()];
+            document.getElementById('day-info-title').textContent = `${dayName}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}`;
+
+            let content = `<strong>${cycleInfo.phaseName}</strong> (${_('cycle_day_of', cycleInfo.day, profile.cycleLength || 28)})`;
+
+            if (log) {
+                content += `<br/>Flow: ${log.flow || '-'}<br/>Mood: ${log.mood || '-'}<br/>Energy: ${log.energy || '-'}`;
+                if (log.symptoms && log.symptoms.length > 0) {
+                    content += `<br/>Symptoms: ${log.symptoms.join(', ')}`;
+                }
+                if (log.notes) {
+                    content += `<br/>Notes: ${log.notes}`;
+                }
+            }
+
+            document.getElementById('day-info-content').innerHTML = content;
+            dayInfo.style.display = 'block';
+        }
+
+        // ============ LOG SCREEN ============
+        function setFlow(value) {
+            currentLog.flow = value;
+            document.querySelectorAll('[onclick*="setFlow"]').forEach(b => b.classList.remove('active'));
+            document.getElementById('flow-' + value).classList.add('active');
+        }
+
+        function setMood(value) {
+            currentLog.mood = value;
+            document.querySelectorAll('[onclick*="setMood"]').forEach(b => b.classList.remove('active'));
+            document.getElementById('mood-' + value).classList.add('active');
+        }
+
+        function setEnergy(value) {
+            currentLog.energy = value;
+            document.querySelectorAll('[onclick*="setEnergy"]').forEach(b => b.classList.remove('active'));
+            document.getElementById('energy-' + value).classList.add('active');
+        }
+
+        function toggleSymptom(symptom) {
+            const btn = document.getElementById('symptom-' + symptom);
+            if (currentLog.symptoms.includes(symptom)) {
+                currentLog.symptoms = currentLog.symptoms.filter(s => s !== symptom);
+                btn.classList.remove('active');
+            } else {
+                currentLog.symptoms.push(symptom);
+                btn.classList.add('active');
+            }
+        }
+
+        function saveLog() {
+            currentLog.notes = document.getElementById('log-notes').value;
+            const today = new Date().toISOString().split('T')[0];
+            logs[today] = currentLog;
+            localStorage.setItem('khloesmoon_logs', JSON.stringify(logs));
+            alert(_('period_marked'));
+            currentLog = { flow: '', mood: '', energy: '', symptoms: [], notes: '' };
+            clearLogForm();
+        }
+
+        function clearLogForm() {
+            document.querySelectorAll('.emoji-btn, .symptom-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('log-notes').value = '';
+        }
+
+        // ============ INSIGHTS ============
+        function updateInsights() {
+            const cycleCount = Object.keys(logs).length;
+            document.getElementById('tracked-months').textContent = Math.ceil(cycleCount / 28) || 0;
+
+            let symptomCount = {};
+            Object.values(logs).forEach(log => {
+                if (log.symptoms) {
+                    log.symptoms.forEach(s => {
+                        symptomCount[s] = (symptomCount[s] || 0) + 1;
+                    });
+                }
+            });
+
+            const symptomList = document.getElementById('symptom-list');
+            symptomList.innerHTML = '';
+            Object.entries(symptomCount).sort((a, b) => b[1] - a[1]).slice(0, 5).forEach(([symptom, count]) => {
+                const div = document.createElement('div');
+                div.className = 'symptom-item';
+                div.innerHTML = `<span class="symptom-item-name">${_((`symptoms_list.${symptom}`))}</span><span class="symptom-item-count">${count} <span>${_('times')}</span></span>`;
+                symptomList.appendChild(div);
             });
         }
-    });
 
-    let symptomHtml = '';
-    const sorted = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]);
-    if (sorted.length === 0) {
-        symptomHtml = `<div style="font-size: 12px; color: var(--secondary);">${_('no_data_yet')}</div>`;
-    } else {
-        sorted.forEach(([symptom, count]) => {
-            symptomHtml += `
-                <div class="symptom-frequency">
-                    <span class="symptom-name">${symptom}</span>
-                    <span class="symptom-count">${count} ${_('times')}</span>
-                </div>
-            `;
-        });
-    }
-    document.getElementById('symptom-freq-list').innerHTML = symptomHtml;
-
-    let phaseHtml = `
-        <div class="phase-bar" style="background: var(--menstrual);">
-            <div class="phase-bar-title">${_('phases.menstrual')}</div>
-            <div class="phase-bar-value">${period} days</div>
-        </div>
-        <div class="phase-bar" style="background: var(--follicular);">
-            <div class="phase-bar-title">${_('phases.follicular')}</div>
-            <div class="phase-bar-value">${follicular} days</div>
-        </div>
-        <div class="phase-bar" style="background: var(--ovulation);">
-            <div class="phase-bar-title">${_('phases.ovulation')}</div>
-            <div class="phase-bar-value">5 days</div>
-        </div>
-        <div class="phase-bar" style="background: var(--luteal);">
-            <div class="phase-bar-title">${_('phases.luteal')}</div>
-            <div class="phase-bar-value">${cycle - period - follicular - 5} days</div>
-        </div>
-    `;
-    document.getElementById('phase-dist').innerHTML = phaseHtml;
-
-    document.getElementById('insights-title').textContent = _('predictions');
-    document.getElementById('predictions-label').textContent = _('predictions');
-    document.getElementById('stats-label').textContent = _('avg_cycle');
-    document.getElementById('symptom-freq-label').textContent = _('symptom_frequency');
-    document.getElementById('phase-dist-label').textContent = _('phase_dist');
-}
-
-// ========== SETTINGS SCREEN ==========
-function renderSettings() {
-    document.getElementById('settings-title').textContent = _('settings');
-    document.getElementById('profile-label').textContent = _('profile');
-    document.getElementById('name-label').textContent = _('name');
-    document.getElementById('cycle-label').textContent = _('cycle');
-    document.getElementById('period-label').textContent = _('period');
-    document.getElementById('btn-edit-profile').textContent = _('edit_profile');
-    document.getElementById('profile-name').textContent = profile.name;
-    document.getElementById('profile-cycle').textContent = profile.cycleLength;
-    document.getElementById('profile-period').textContent = profile.periodLength;
-
-    document.getElementById('language-label').textContent = _('language');
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.textContent.toLowerCase().includes(currentLanguage)) {
-            btn.classList.add('active');
+        // ============ SETTINGS ============
+        function loadProfile() {
+            document.getElementById('profile-name').value = profile.name || '';
+            document.getElementById('profile-cycle').value = profile.cycleLength || 28;
+            document.getElementById('profile-period').value = profile.periodLength || 5;
+            document.getElementById('profile-last-period').value = profile.lastPeriod || '';
+            document.getElementById('language-select').value = currentLanguage;
         }
-    });
 
-    document.getElementById('friends-label').textContent = _('friends_label');
-    document.getElementById('share-explanation').textContent = _('share_explanation');
-    document.getElementById('your-code-label').textContent = _('your_code');
-    document.getElementById('btn-copy-code').textContent = _('copy');
-    document.getElementById('friend-code-input').placeholder = _('friend_code');
-    document.getElementById('btn-add-friend').textContent = _('add');
-    document.getElementById('btn-reset-data').textContent = _('reset_data');
-    document.getElementById('btn-force-update').textContent = _('force_update');
-    document.getElementById('version-label').textContent = _('version');
+        function saveProfile() {
+            profile.name = document.getElementById('profile-name').value;
+            profile.cycleLength = parseInt(document.getElementById('profile-cycle').value) || 28;
+            profile.periodLength = parseInt(document.getElementById('profile-period').value) || 5;
+            profile.lastPeriod = document.getElementById('profile-last-period').value;
+            localStorage.setItem('khloesmoon_profile', JSON.stringify(profile));
+            updateHome();
+            alert(_('save'));
+        }
 
-    const code = generateUserCode();
-    document.getElementById('profile-code').textContent = code;
+        function loadSettings() {
+            document.getElementById('language-select').value = currentLanguage;
+        }
 
-    let friendsHtml = '';
-    if (friends.length === 0) {
-        friendsHtml = `<div style="font-size: 12px; color: var(--secondary); text-align: center; padding: 12px;">${_('no_data_yet')}</div>`;
-    } else {
-        friends.forEach((friend, idx) => {
-            const cycleDay = getCycleDay(friend.lastPeriod, formatDate(new Date()));
-            friendsHtml += `
-                <div class="friend-item">
-                    <div class="friend-item-name">${friend.name}</div>
-                    <div class="friend-item-date">Cycle day ${cycleDay}/${friend.cycleLength}</div>
-                    <button class="btn-small" onclick="removeFriend(${idx})" style="float: right; padding: 4px 8px; font-size: 11px;">Remove</button>
-                </div>
-            `;
-        });
-    }
-    document.getElementById('friends-list').innerHTML = friendsHtml;
-}
+        function changeLanguage() {
+            currentLanguage = document.getElementById('language-select').value;
+            localStorage.setItem('khloesmoon_lang', currentLanguage);
+            updateUI();
+        }
 
-function generateUserCode() {
-    if (!profile.code) {
-        profile.code = Math.random().toString(36).substring(2, 8).toUpperCase();
-        saveProfile();
-    }
-    return profile.code;
-}
+        function resetData() {
+            if (confirm(_('confirm_reset'))) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
 
-function copyToClipboard() {
-    const code = document.getElementById('profile-code').textContent;
-    navigator.clipboard.writeText(code).then(() => {
-        alert(_('copy'));
-    });
-}
+        function toggleCollapsible(btn) {
+            btn.parentElement.classList.toggle('collapsed');
+        }
 
-function addFriend() {
-    const code = document.getElementById('friend-code-input').value.trim();
-    if (!code) {
-        alert(_('friend_code'));
-        return;
-    }
-    const friendProfile = {
-        code,
-        name: `Friend (${code})`,
-        lastPeriod: formatDate(new Date()),
-        cycleLength: 28
-    };
-    friends.push(friendProfile);
-    saveFriends();
-    document.getElementById('friend-code-input').value = '';
-    renderSettings();
-}
-
-function removeFriend(idx) {
-    friends.splice(idx, 1);
-    saveFriends();
-    renderSettings();
-}
-
-function editProfile() {
-    document.getElementById('name-input').value = profile.name;
-    document.getElementById('cycle-input').value = profile.cycleLength;
-    document.getElementById('period-input').value = profile.periodLength;
-    document.getElementById('lastperiod-input').value = profile.lastPeriod;
-    showScreen('onboarding-screen');
-}
-
-function confirmReset() {
-    if (confirm(_('confirm_reset'))) {
-        resetApp();
-    }
-}
-
-function resetApp() {
-    localStorage.clear();
-    profile = { name: '', cycleLength: 28, periodLength: 5, lastPeriod: '' };
-    logs = {};
-    events = {};
-    friends = [];
-    currentLanguage = 'es';
-    showScreen('onboarding-screen');
-    setupOnboarding();
-}
-
-function forceUpdate() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            registrations.forEach(reg => reg.unregister());
-        });
-    }
-    if (window.caches) {
-        caches.keys().then(names => {
-            names.forEach(name => caches.delete(name));
-        });
-    }
-    location.reload();
-}
-
-function setLanguage(lang) {
-    currentLanguage = lang;
-    localStorage.setItem('khloesmoon_lang', lang);
-    updateLanguageUI();
-    renderHome();
-    renderSettings();
-}
-
-function updateLanguageUI() {
-    document.getElementById('onboard-title').textContent = "Khloe's Moon";
-    document.getElementById('onboard-subtitle').textContent = _('how_feeling');
-    document.getElementById('label-name').textContent = _('name');
-    document.getElementById('label-cycle').textContent = _('cycle');
-    document.getElementById('label-period').textContent = _('period');
-    document.getElementById('label-lastperiod').textContent = _('lastperiod');
-    document.getElementById('btn-start').textContent = _('mark_period');
-    document.getElementById('btn-log-today').textContent = '📝 ' + _('log_today');
-    document.getElementById('btn-view-calendar').textContent = '📅 ' + _('view_calendar');
-}
-
-function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js', { scope: './' });
-    }
-}
-
-document.addEventListener('DOMContentLoaded', init);
-</script>
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
