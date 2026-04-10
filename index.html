@@ -511,6 +511,146 @@
             align-items: center;
             gap: 3px;
         }
+        /* Event Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: var(--white);
+            border-radius: 14px;
+            padding: 18px;
+            width: 100%;
+            max-width: 380px;
+            max-height: 85vh;
+            overflow-y: auto;
+            z-index: 9999;
+        }
+        .modal h3 {
+            margin: 0 0 12px 0;
+            color: var(--wine);
+            font-size: 16px;
+        }
+        .modal-field {
+            margin-bottom: 12px;
+        }
+        .modal-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 4px;
+        }
+        .modal-field input[type="text"],
+        .modal-field input[type="date"],
+        .modal-field input[type="time"],
+        .modal-field textarea,
+        .modal-field select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .modal-field textarea {
+            resize: vertical;
+            min-height: 50px;
+        }
+        .notif-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .notif-option {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--white);
+            color: var(--secondary);
+            font-size: 11px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .notif-option.active {
+            background: var(--wine);
+            color: white;
+            border-color: var(--wine);
+        }
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .modal-btn.primary {
+            background: var(--wine);
+            color: white;
+        }
+        .modal-btn.secondary {
+            background: var(--border);
+            color: var(--text, #333);
+        }
+        .event-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 8px;
+            background: var(--cream, #faf8f5);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            gap: 8px;
+        }
+        .event-list-item .ev-body {
+            flex: 1;
+            font-size: 12px;
+        }
+        .event-list-item .ev-title {
+            font-weight: 600;
+            color: var(--text, #333);
+        }
+        .event-list-item .ev-time {
+            color: var(--secondary);
+            font-size: 11px;
+        }
+        .event-list-item .ev-delete {
+            background: transparent;
+            border: none;
+            color: #c0392b;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 4px;
+        }
+        .add-event-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--wine);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
         .day-info {
             background: var(--white);
             border: 1px solid var(--border);
@@ -885,6 +1025,7 @@
                 <div class="day-info" id="day-info" style="display: none;">
                     <div class="day-info-title" id="day-info-title">April 9</div>
                     <div class="day-info-content" id="day-info-content">No log data</div>
+                    <button class="add-event-btn" id="add-event-btn" onclick="openEventModal()">+ Añadir evento</button>
                 </div>
             </div>
 
@@ -1051,6 +1192,13 @@
                 </div>
 
                 <div class="settings-group">
+                    <button class="settings-btn" onclick="forceUpdate()" id="force-update-btn">Force Update</button>
+                    <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-top: 6px;">
+                        <span id="version-label">Version</span>: <span id="app-version">v16</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
                     <button class="settings-btn danger" onclick="resetData()" id="reset-data-btn">Reset All Data</button>
                 </div>
             </div>
@@ -1068,6 +1216,44 @@
                         <input type="text" class="chat-input" id="chat-input" placeholder="Pregúntame algo..." onkeypress="if(event.key==='Enter')sendChatMessage()">
                         <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">→</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EVENT MODAL -->
+        <div class="modal-overlay" id="event-modal">
+            <div class="modal">
+                <h3 id="event-modal-title">Añadir evento</h3>
+                <div class="modal-field">
+                    <label id="ev-title-label">Título</label>
+                    <input type="text" id="ev-title" placeholder="Ej. Cita médica">
+                </div>
+                <div class="modal-field">
+                    <label id="ev-date-label">Fecha</label>
+                    <input type="date" id="ev-date">
+                </div>
+                <div class="modal-field">
+                    <label id="ev-time-label">Hora</label>
+                    <input type="time" id="ev-time" value="09:00">
+                </div>
+                <div class="modal-field">
+                    <label id="ev-notes-label">Notas</label>
+                    <textarea id="ev-notes" placeholder=""></textarea>
+                </div>
+                <div class="modal-field">
+                    <label id="ev-notif-label">Notificaciones</label>
+                    <div class="notif-options" id="ev-notif-options">
+                        <span class="notif-option" data-val="0">A la hora exacta</span>
+                        <span class="notif-option" data-val="15">15 min antes</span>
+                        <span class="notif-option" data-val="30">30 min antes</span>
+                        <span class="notif-option" data-val="60">1 hora antes</span>
+                        <span class="notif-option" data-val="1440">1 día antes</span>
+                        <span class="notif-option" data-val="2880">2 días antes</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn secondary" id="ev-cancel-btn" onclick="closeEventModal()">Cancelar</button>
+                    <button class="modal-btn primary" id="ev-save-btn" onclick="saveEvent()">Guardar</button>
                 </div>
             </div>
         </div>
@@ -1150,6 +1336,25 @@
                 confirm_reset: 'Esto borrará todos tus datos. ¿Estás seguro?',
                 add_event: 'Añadir evento',
                 event_title: 'Título del evento',
+                event_title_short: 'Título',
+                event_date: 'Fecha',
+                event_time: 'Hora',
+                event_notes: 'Notas',
+                event_notifications: 'Notificaciones',
+                notif_exact: 'A la hora exacta',
+                notif_15: '15 min antes',
+                notif_30: '30 min antes',
+                notif_60: '1 hora antes',
+                notif_1440: '1 día antes',
+                notif_2880: '2 días antes',
+                cancel: 'Cancelar',
+                delete: 'Eliminar',
+                confirm_delete_event: '¿Eliminar este evento?',
+                notifications_enabled: 'Notificaciones activadas',
+                notifications_denied: 'Notificaciones denegadas por el navegador',
+                enable_notifications: 'Activar notificaciones',
+                add_event_btn: '+ Añadir evento',
+                notification_title: 'Khloe\'s Moon',
                 diary: 'Diario',
                 save: 'Guardar',
                 no_events: 'Sin eventos',
@@ -1297,6 +1502,25 @@
                 confirm_reset: 'This will delete all your data. Are you sure?',
                 add_event: 'Add Event',
                 event_title: 'Event Title',
+                event_title_short: 'Title',
+                event_date: 'Date',
+                event_time: 'Time',
+                event_notes: 'Notes',
+                event_notifications: 'Notifications',
+                notif_exact: 'At exact time',
+                notif_15: '15 min before',
+                notif_30: '30 min before',
+                notif_60: '1 hour before',
+                notif_1440: '1 day before',
+                notif_2880: '2 days before',
+                cancel: 'Cancel',
+                delete: 'Delete',
+                confirm_delete_event: 'Delete this event?',
+                notifications_enabled: 'Notifications enabled',
+                notifications_denied: 'Notifications denied by browser',
+                enable_notifications: 'Enable notifications',
+                add_event_btn: '+ Add event',
+                notification_title: "Khloe's Moon",
                 diary: 'Diary',
                 save: 'Save',
                 no_events: 'No Events',
@@ -2391,6 +2615,11 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             }
+
+            // Re-schedule any pending notifications from saved events
+            if ('Notification' in window && Notification.permission === 'granted') {
+                rescheduleAllNotifications();
+            }
         }
 
         function updateUI() {
@@ -2863,10 +3092,19 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
 
             const dayEvents = events[dateStr] || [];
             if (dayEvents.length > 0) {
-                content += `<br/><br/><strong>${_('today_events')}:</strong>`;
-                dayEvents.forEach(ev => {
-                    content += `<br/>• ${ev.title || ev}`;
+                content += `<br/><br/><strong>${_('today_events')}:</strong><div style="margin-top:6px;">`;
+                dayEvents.forEach((ev, idx) => {
+                    const title = typeof ev === 'string' ? ev : (ev.title || '');
+                    const time = (ev && ev.time) ? ev.time : '';
+                    const notes = (ev && ev.notes) ? ev.notes : '';
+                    const notifs = (ev && ev.notifications) ? ev.notifications : [];
+                    const notifStr = notifs.length > 0 ? ' 🔔' : '';
+                    content += `<div class="event-list-item"><div class="ev-body"><div class="ev-title">${escapeHtml(title)}${notifStr}</div>`;
+                    if (time) content += `<div class="ev-time">🕐 ${time}</div>`;
+                    if (notes) content += `<div class="ev-time">${escapeHtml(notes)}</div>`;
+                    content += `</div><button class="ev-delete" onclick="deleteEvent('${dateStr}', ${idx})" title="${_('delete')}">✕</button></div>`;
                 });
+                content += `</div>`;
             }
 
             if (log) {
@@ -2883,7 +3121,166 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             }
 
             document.getElementById('day-info-content').innerHTML = content;
+            const addBtn = document.getElementById('add-event-btn');
+            if (addBtn) addBtn.textContent = _('add_event_btn');
             dayInfo.style.display = 'block';
+        }
+
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+        }
+
+        // ============ EVENT MANAGEMENT ============
+        function openEventModal() {
+            if (!selectedDay) {
+                selectedDay = new Date().toISOString().split('T')[0];
+            }
+            document.getElementById('event-modal-title').textContent = _('add_event');
+            document.getElementById('ev-title-label').textContent = _('event_title_short');
+            document.getElementById('ev-date-label').textContent = _('event_date');
+            document.getElementById('ev-time-label').textContent = _('event_time');
+            document.getElementById('ev-notes-label').textContent = _('event_notes');
+            document.getElementById('ev-notif-label').textContent = _('event_notifications');
+            document.getElementById('ev-cancel-btn').textContent = _('cancel');
+            document.getElementById('ev-save-btn').textContent = _('save');
+
+            // Translate notif options
+            const notifMap = {'0':'notif_exact','15':'notif_15','30':'notif_30','60':'notif_60','1440':'notif_1440','2880':'notif_2880'};
+            document.querySelectorAll('#ev-notif-options .notif-option').forEach(el => {
+                el.textContent = _(notifMap[el.dataset.val] || 'notif_exact');
+                el.classList.remove('active');
+                el.onclick = () => el.classList.toggle('active');
+            });
+
+            document.getElementById('ev-title').value = '';
+            document.getElementById('ev-date').value = selectedDay;
+            document.getElementById('ev-time').value = '09:00';
+            document.getElementById('ev-notes').value = '';
+
+            document.getElementById('event-modal').classList.add('active');
+
+            // Request notification permission proactively
+            requestNotificationPermission();
+        }
+
+        function closeEventModal() {
+            document.getElementById('event-modal').classList.remove('active');
+        }
+
+        function saveEvent() {
+            const title = document.getElementById('ev-title').value.trim();
+            if (!title) return;
+            const date = document.getElementById('ev-date').value;
+            const time = document.getElementById('ev-time').value;
+            const notes = document.getElementById('ev-notes').value.trim();
+            const notifications = [];
+            document.querySelectorAll('#ev-notif-options .notif-option.active').forEach(el => {
+                notifications.push(parseInt(el.dataset.val, 10));
+            });
+
+            const event = {
+                id: Date.now() + '_' + Math.random().toString(36).slice(2,8),
+                title, time, notes, notifications,
+                created: new Date().toISOString()
+            };
+
+            if (!events[date]) events[date] = [];
+            events[date].push(event);
+            localStorage.setItem('khloesmoon_events', JSON.stringify(events));
+
+            // Schedule notifications
+            scheduleEventNotifications(date, event);
+
+            closeEventModal();
+            renderCalendar();
+            if (selectedDay === date) showDayInfo(date);
+        }
+
+        function deleteEvent(dateStr, idx) {
+            if (!confirm(_('confirm_delete_event'))) return;
+            if (!events[dateStr]) return;
+            const removed = events[dateStr].splice(idx, 1)[0];
+            if (events[dateStr].length === 0) delete events[dateStr];
+            localStorage.setItem('khloesmoon_events', JSON.stringify(events));
+            // Clear any pending timers for this event
+            if (removed && removed.id && pendingTimers[removed.id]) {
+                pendingTimers[removed.id].forEach(t => clearTimeout(t));
+                delete pendingTimers[removed.id];
+            }
+            renderCalendar();
+            showDayInfo(dateStr);
+        }
+
+        // ============ NOTIFICATIONS ============
+        let pendingTimers = {};
+
+        async function requestNotificationPermission() {
+            if (!('Notification' in window)) return false;
+            if (Notification.permission === 'granted') return true;
+            if (Notification.permission === 'denied') return false;
+            try {
+                const result = await Notification.requestPermission();
+                return result === 'granted';
+            } catch (e) { return false; }
+        }
+
+        function scheduleEventNotifications(dateStr, event) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            if (!event.notifications || event.notifications.length === 0) return;
+
+            const eventDateTime = new Date(`${dateStr}T${event.time || '09:00'}:00`);
+            if (isNaN(eventDateTime.getTime())) return;
+
+            pendingTimers[event.id] = pendingTimers[event.id] || [];
+
+            event.notifications.forEach(minsBefore => {
+                const fireAt = new Date(eventDateTime.getTime() - minsBefore * 60000);
+                const delay = fireAt.getTime() - Date.now();
+                if (delay <= 0) return; // Past — skip
+                // setTimeout max ~24.8 days; for longer delays, re-schedule on load
+                if (delay > 2147483647) return;
+
+                const timerId = setTimeout(() => {
+                    fireNotification(event, minsBefore);
+                }, delay);
+                pendingTimers[event.id].push(timerId);
+            });
+        }
+
+        function fireNotification(event, minsBefore) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            let body = event.title;
+            if (minsBefore === 0) body += ' — ' + _('notif_exact').toLowerCase();
+            else if (minsBefore < 60) body += ` — ${_('in_days').replace('{0} días', minsBefore + ' min')}`;
+            else if (minsBefore < 1440) body += ` — ${minsBefore/60}h`;
+            else body += ` — ${minsBefore/1440}d`;
+            if (event.time) body += ' @ ' + event.time;
+            if (event.notes) body += '\n' + event.notes;
+
+            try {
+                new Notification(_('notification_title'), {
+                    body,
+                    icon: 'icon-192.png',
+                    badge: 'icon-192.png',
+                    tag: event.id + '_' + minsBefore,
+                    requireInteraction: false
+                });
+            } catch (e) {}
+        }
+
+        function rescheduleAllNotifications() {
+            // Clear existing timers
+            Object.values(pendingTimers).forEach(timers => timers.forEach(t => clearTimeout(t)));
+            pendingTimers = {};
+            // Re-schedule everything in storage
+            Object.keys(events).forEach(dateStr => {
+                (events[dateStr] || []).forEach(ev => {
+                    if (ev && ev.id && ev.notifications && ev.notifications.length > 0) {
+                        scheduleEventNotifications(dateStr, ev);
+                    }
+                });
+            });
         }
 
         // ============ LOG SCREEN ============
@@ -2985,6 +3382,12 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             if (saveKeyBtn) saveKeyBtn.textContent = _('save_key');
             const hint = document.getElementById('api-key-hint');
             if (hint) hint.textContent = _('api_key_hint');
+            const forceBtn = document.getElementById('force-update-btn');
+            if (forceBtn) forceBtn.textContent = _('force_update');
+            const versionLabel = document.getElementById('version-label');
+            if (versionLabel) versionLabel.textContent = _('version');
+            const resetBtn = document.getElementById('reset-data-btn');
+            if (resetBtn) resetBtn.textContent = _('reset_data');
         }
 
         function changeLanguage() {
@@ -2998,6 +3401,20 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
                 localStorage.clear();
                 location.reload();
             }
+        }
+
+        async function forceUpdate() {
+            try {
+                if ('caches' in window) {
+                    const names = await caches.keys();
+                    await Promise.all(names.map(n => caches.delete(n)));
+                }
+                if ('serviceWorker' in navigator) {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(regs.map(r => r.unregister()));
+                }
+            } catch (e) {}
+            location.reload(true);
         }
 
         function toggleCollapsible(btn) {
