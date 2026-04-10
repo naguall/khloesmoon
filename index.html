@@ -444,8 +444,17 @@
             color: var(--border);
         }
         .calendar-day.today {
-            font-weight: 600;
-            color: var(--wine);
+            font-weight: 700;
+            color: var(--white);
+            background: var(--wine);
+            box-shadow: 0 0 0 2px var(--wine);
+            z-index: 1;
+        }
+        .calendar-day.today .moon-icon {
+            color: var(--white);
+        }
+        .calendar-day.today .event-indicators .dot {
+            background: var(--white) !important;
         }
         .calendar-day.menstrual {
             border-left-color: var(--menstrual);
@@ -461,6 +470,46 @@
         }
         .calendar-day.selected {
             background: var(--border);
+        }
+        .calendar-day .moon-icon {
+            position: absolute;
+            top: 1px;
+            right: 2px;
+            font-size: 10px;
+            line-height: 1;
+        }
+        .calendar-day .event-indicators {
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2px;
+        }
+        .calendar-day .event-indicators .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+        }
+        .calendar-day .event-indicators .dot.log {
+            background: var(--wine);
+        }
+        .calendar-day .event-indicators .dot.event {
+            background: #3498db;
+        }
+        .calendar-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 10px;
+            color: var(--secondary);
+            padding: 8px 4px;
+            justify-content: center;
+        }
+        .calendar-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
         }
         .day-info {
             background: var(--white);
@@ -2670,6 +2719,30 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
         }
 
         // ============ CALENDAR ============
+        // Returns emoji only if this date is an exact moon phase perfection day
+        // (new, first quarter, full, last quarter) — checks if today's phase index
+        // differs from yesterday's, meaning we crossed the threshold.
+        function getMoonPhaseMarker(date) {
+            const today = getMoonPhase(date);
+            const yesterday = getMoonPhase(new Date(date.getTime() - 86400000));
+            const keyPhases = ['new_moon', 'first_quarter', 'full_moon', 'last_quarter'];
+            if (keyPhases.includes(today.phaseName) && today.phaseName !== yesterday.phaseName) {
+                if (today.phaseName === 'new_moon') return '🌑';
+                if (today.phaseName === 'first_quarter') return '🌓';
+                if (today.phaseName === 'full_moon') return '🌕';
+                if (today.phaseName === 'last_quarter') return '🌗';
+            }
+            return null;
+        }
+
+        function getMoonKeyForMarker(emoji) {
+            if (emoji === '🌑') return 'new_moon';
+            if (emoji === '🌓') return 'first_quarter';
+            if (emoji === '🌕') return 'full_moon';
+            if (emoji === '🌗') return 'last_quarter';
+            return 'new_moon';
+        }
+
         function renderCalendar() {
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
@@ -2703,9 +2776,38 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
                 const cycleInfo = getCycleDay(date);
 
                 el.className = 'calendar-day ' + cycleInfo.phase;
-                el.textContent = i;
+
+                // Day number
+                const num = document.createElement('span');
+                num.textContent = i;
+                el.appendChild(num);
 
                 if (date.toDateString() === new Date().toDateString()) el.classList.add('today');
+
+                // Moon phase perfection marker (new, first quarter, full, last quarter)
+                const moonMarker = getMoonPhaseMarker(date);
+                if (moonMarker) {
+                    const moonEl = document.createElement('span');
+                    moonEl.className = 'moon-icon';
+                    moonEl.textContent = moonMarker;
+                    moonEl.title = _('moon_phases.' + getMoonKeyForMarker(moonMarker));
+                    el.appendChild(moonEl);
+                }
+
+                // Event and log indicators
+                const indicators = document.createElement('span');
+                indicators.className = 'event-indicators';
+                if (logs[dateStr]) {
+                    const d = document.createElement('span');
+                    d.className = 'dot log';
+                    indicators.appendChild(d);
+                }
+                if (events[dateStr] && events[dateStr].length > 0) {
+                    const d = document.createElement('span');
+                    d.className = 'dot event';
+                    indicators.appendChild(d);
+                }
+                if (indicators.children.length > 0) el.appendChild(indicators);
 
                 el.onclick = () => {
                     selectedDay = dateStr;
@@ -2749,15 +2851,34 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dateObj.getDay()];
             document.getElementById('day-info-title').textContent = `${dayName}, ${months[dateObj.getMonth()]} ${dateObj.getDate()}`;
 
-            let content = `<strong>${cycleInfo.phaseName}</strong> (${_('cycle_day_of', cycleInfo.day, profile.cycleLength || 28)})`;
+            const moonInfo = getMoonPhase(date);
+            const moonMarker = getMoonPhaseMarker(date);
+            const moonName = _('moon_phases.' + moonInfo.phaseName);
+
+            let content = `<strong>${cycleInfo.phaseName}</strong> (${_replace('cycle_day_of', cycleInfo.day, profile.cycleLength || 28)})`;
+            content += `<br/>${getMoonEmoji(moonInfo.phase)} ${moonName} • ${moonInfo.illumination}% ${_('illuminated')}`;
+            if (moonMarker) {
+                content += ` <strong style="color: var(--wine);">★</strong>`;
+            }
+
+            const dayEvents = events[dateStr] || [];
+            if (dayEvents.length > 0) {
+                content += `<br/><br/><strong>${_('today_events')}:</strong>`;
+                dayEvents.forEach(ev => {
+                    content += `<br/>• ${ev.title || ev}`;
+                });
+            }
 
             if (log) {
-                content += `<br/>Flow: ${log.flow || '-'}<br/>Mood: ${log.mood || '-'}<br/>Energy: ${log.energy || '-'}`;
+                content += `<br/><br/><strong>${_('diary')}:</strong>`;
+                content += `<br/>${_('period_flow')}: ${log.flow || '-'}`;
+                content += `<br/>${_('mood')}: ${log.mood || '-'}`;
+                content += `<br/>${_('energy_level')}: ${log.energy || '-'}`;
                 if (log.symptoms && log.symptoms.length > 0) {
-                    content += `<br/>Symptoms: ${log.symptoms.join(', ')}`;
+                    content += `<br/>${_('symptoms')}: ${log.symptoms.join(', ')}`;
                 }
                 if (log.notes) {
-                    content += `<br/>Notes: ${log.notes}`;
+                    content += `<br/>${_('notes')}: ${log.notes}`;
                 }
             }
 
