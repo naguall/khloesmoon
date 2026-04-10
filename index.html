@@ -10,6 +10,10 @@
     <title>Khloe's Moon</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='96' fill='%23FAF6F0'/><circle cx='96' cy='96' r='70' fill='%238E44AD'/></svg>">
+    <!-- Firebase (shared project: astroconnect-463b3, same as Moon Tracker / AstroConnect) -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -210,8 +214,8 @@
         /* HOME SCREEN */
         .app-header {
             position: relative;
-            margin: -16px -16px 20px -16px;
-            padding: 28px 20px 22px 20px;
+            margin: -16px -16px 12px -16px;
+            padding: 16px 16px 14px 16px;
             background: linear-gradient(135deg, #6D2E46 0%, #8E44AD 55%, #D47F93 100%);
             color: var(--white);
             border-radius: 0 0 28px 28px;
@@ -248,14 +252,14 @@
             gap: 14px;
         }
         .app-logo {
-            width: 52px;
-            height: 52px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             background: radial-gradient(circle at 35% 35%, #F4E9D8 0%, #D4B796 45%, #8B6F52 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 22px;
             box-shadow: 0 0 20px rgba(255, 236, 179, 0.5), inset -4px -4px 10px rgba(0,0,0,0.15);
             flex-shrink: 0;
         }
@@ -264,7 +268,7 @@
             min-width: 0;
         }
         .app-title {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--white);
             letter-spacing: 0.5px;
@@ -273,28 +277,28 @@
             line-height: 1.1;
         }
         .app-tagline {
-            font-size: 11px;
+            font-size: 10px;
             color: rgba(255,255,255,0.85);
-            letter-spacing: 1.5px;
+            letter-spacing: 1.2px;
             text-transform: uppercase;
-            margin-top: 2px;
+            margin-top: 1px;
         }
         .greeting {
-            font-size: 14px;
+            font-size: 12px;
             color: rgba(255,255,255,0.95);
-            margin-top: 8px;
+            margin-top: 3px;
             font-style: italic;
         }
         .cycle-ring-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             position: relative;
         }
         .cycle-ring-wrapper {
             position: relative;
-            width: 120px;
-            height: 120px;
+            width: 110px;
+            height: 110px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -326,7 +330,7 @@
         }
         .cycle-info {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
         .cycle-info-main {
             font-size: 14px;
@@ -349,11 +353,11 @@
         }
         .moon-info {
             background: var(--white);
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text);
-            margin-bottom: 16px;
+            margin-bottom: 8px;
             text-align: center;
             border: 1px solid var(--border);
         }
@@ -361,11 +365,11 @@
             background: var(--white);
             border: 1px solid var(--border);
             border-radius: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             overflow: hidden;
         }
         .collapsible-header {
-            padding: 12px;
+            padding: 8px 10px;
             background: var(--white);
             border: none;
             width: 100%;
@@ -424,11 +428,11 @@
         }
         .today-events {
             background: var(--white);
-            padding: 12px;
+            padding: 8px 10px;
             border-radius: 8px;
             border: 1px solid var(--border);
-            font-size: 12px;
-            margin-bottom: 12px;
+            font-size: 11px;
+            margin-bottom: 8px;
         }
         .today-events-title {
             font-weight: 600;
@@ -1269,9 +1273,39 @@
                 </div>
 
                 <div class="settings-group">
+                    <div class="settings-group-title" id="friends-label">Conectar con amigas</div>
+                    <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-bottom: 8px;">
+                        <span id="share-explanation-label">Comparte tu código con tus amigas para conectarse y chatear</span>
+                    </div>
+                    <div class="settings-item" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                        <span style="font-size:11px;font-weight:600;">Cuenta:</span>
+                        <span id="fb-auth-status" style="font-size:11px;flex:1;">No conectada</span>
+                        <button class="settings-btn" id="fb-signin-btn" style="padding:6px 12px;margin:0;" onclick="signInGoogle()">Entrar con Google</button>
+                        <button class="settings-btn" id="fb-signout-btn" style="padding:6px 12px;margin:0;display:none;background:var(--secondary);" onclick="signOutGoogle()">Salir</button>
+                    </div>
+                    <div class="settings-item">
+                        <label class="settings-item-label" id="your-code-label">Tu código</label>
+                        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                            <input type="text" id="my-share-code" readonly style="flex:1;min-width:120px;font-family:monospace;font-weight:700;letter-spacing:1px;">
+                            <button class="settings-btn" style="padding:6px 12px;margin:0;" onclick="copyShareCode()" id="copy-code-btn">Copiar</button>
+                            <button class="settings-btn" style="padding:6px 12px;margin:0;" onclick="shareMyCode()" id="share-code-btn">📤</button>
+                        </div>
+                    </div>
+                    <div class="settings-item">
+                        <label class="settings-item-label" id="add-friend-label">Añadir amiga</label>
+                        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                            <input type="text" id="friend-code-input" placeholder="XXXX-XXXX" style="flex:1;min-width:120px;font-family:monospace;text-transform:uppercase;">
+                            <input type="text" id="friend-name-input" placeholder="Nombre" style="flex:1;min-width:90px;">
+                            <button class="settings-btn" style="padding:6px 12px;margin:0;" onclick="addFriend()" id="add-friend-btn">+</button>
+                        </div>
+                    </div>
+                    <div id="friends-list" style="margin-top:8px;"></div>
+                </div>
+
+                <div class="settings-group">
                     <button class="settings-btn" onclick="forceUpdate()" id="force-update-btn">Force Update</button>
                     <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-top: 6px;">
-                        <span id="version-label">Version</span>: <span id="app-version">v18</span>
+                        <span id="version-label">Version</span>: <span id="app-version">v21</span>
                     </div>
                 </div>
 
@@ -1332,6 +1366,22 @@
                     <button class="modal-btn secondary" id="ev-cancel-btn" onclick="closeEventModal()">Cancelar</button>
                     <button class="modal-btn primary" id="ev-save-btn" onclick="saveEvent()">Guardar</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- FRIEND CHAT MODAL -->
+        <div class="modal-overlay" id="friend-chat-modal">
+            <div class="modal" style="max-width:420px;display:flex;flex-direction:column;max-height:85vh;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <h3 id="friend-chat-title" style="margin:0;">Chat</h3>
+                    <button class="modal-btn secondary" style="padding:4px 10px;margin:0;" onclick="closeFriendChat()">✕</button>
+                </div>
+                <div id="friend-chat-messages" style="flex:1;overflow-y:auto;background:var(--cream);padding:10px;border-radius:8px;min-height:240px;max-height:50vh;display:flex;flex-direction:column;gap:6px;"></div>
+                <div style="display:flex;gap:6px;margin-top:10px;">
+                    <input type="text" id="friend-chat-input" placeholder="Escribe un mensaje..." style="flex:1;" onkeypress="if(event.key==='Enter')sendFriendMessage()">
+                    <button class="modal-btn primary" style="margin:0;" onclick="sendFriendMessage()">→</button>
+                </div>
+                <div style="font-size:10px;color:var(--secondary);margin-top:6px;text-align:center;" id="friend-chat-note">Los mensajes se envían vía WhatsApp/SMS y se guardan localmente</div>
             </div>
         </div>
 
@@ -2643,6 +2693,126 @@
         let currentMonth = new Date();
         let selectedDay = null;
 
+        // ============ FIREBASE (shared with AstroConnect/Moon Tracker) ============
+        const FIRE_CFG = {
+            apiKey: 'AIzaSyBNuBOj2CTvPziuQxzvEYKjPj86xiynCW4',
+            authDomain: 'astroconnect-463b3.firebaseapp.com',
+            projectId: 'astroconnect-463b3',
+            storageBucket: 'astroconnect-463b3.firebasestorage.app',
+            messagingSenderId: '76894737615',
+            appId: '1:76894737615:web:c85b551b921715d2c213ba'
+        };
+        let _fireApp = null, _db = null, _auth = null, _fbUser = null;
+        let _chatUnsub = null;
+        let _friendsMetaUnsub = null;
+        let _fbInitialized = false;
+
+        function initFirebase() {
+            if (_fbInitialized) return true;
+            try {
+                if (typeof firebase === 'undefined') {
+                    console.warn('Firebase SDK not loaded');
+                    return false;
+                }
+                // Use a NAMED Firebase app so we never collide with another
+                // Khloe's Moon / AstroConnect instance that may coexist in the
+                // same page (iframe, embed, etc.). Each app has its own auth
+                // state and firestore handle.
+                const APP_NAME = 'khloesmoon';
+                const existing = firebase.apps.find(a => a.name === APP_NAME);
+                if (existing) {
+                    _fireApp = existing;
+                } else {
+                    _fireApp = firebase.initializeApp(FIRE_CFG, APP_NAME);
+                }
+                _db = _fireApp.firestore();
+                _auth = _fireApp.auth();
+                _auth.onAuthStateChanged(function(user) {
+                    _fbUser = user;
+                    if (user) {
+                        // Ensure user has a Khloe's Moon profile doc with shareCode
+                        ensureShareCode();
+                        _db.collection('khloesmoon_users').doc(user.uid).set({
+                            shareCode: profile.shareCode,
+                            name: profile.name || user.displayName || 'Amiga',
+                            email: user.email || null,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true }).catch(function(e) { console.warn('profile save:', e); });
+                        // Backfill friends' uids from their share codes
+                        backfillFriendUids().then(subscribeToAllFriendChats);
+                    } else {
+                        if (_chatUnsub) { _chatUnsub(); _chatUnsub = null; }
+                        if (_friendsMetaUnsub) { _friendsMetaUnsub(); _friendsMetaUnsub = null; }
+                    }
+                    updateFirebaseAuthUI();
+                });
+                _fbInitialized = true;
+                return true;
+            } catch(e) {
+                console.error('Firebase init error:', e);
+                return false;
+            }
+        }
+
+        function signInGoogle() {
+            if (!initFirebase()) { alert('Firebase no disponible'); return; }
+            const provider = new firebase.auth.GoogleAuthProvider();
+            _auth.signInWithPopup(provider).catch(function(e) { alert('Error: ' + e.message); });
+        }
+
+        function signOutGoogle() {
+            if (_auth) _auth.signOut();
+            if (_chatUnsub) { _chatUnsub(); _chatUnsub = null; }
+            if (_friendsMetaUnsub) { _friendsMetaUnsub(); _friendsMetaUnsub = null; }
+        }
+
+        function updateFirebaseAuthUI() {
+            const statusEl = document.getElementById('fb-auth-status');
+            const signInBtn = document.getElementById('fb-signin-btn');
+            const signOutBtn = document.getElementById('fb-signout-btn');
+            if (!statusEl) return;
+            if (_fbUser) {
+                statusEl.textContent = '✓ ' + (_fbUser.displayName || _fbUser.email || 'Conectada');
+                statusEl.style.color = '#27ae60';
+                if (signInBtn) signInBtn.style.display = 'none';
+                if (signOutBtn) signOutBtn.style.display = 'inline-block';
+            } else {
+                statusEl.textContent = 'No conectada';
+                statusEl.style.color = 'var(--secondary)';
+                if (signInBtn) signInBtn.style.display = 'inline-block';
+                if (signOutBtn) signOutBtn.style.display = 'none';
+            }
+        }
+
+        // Look up a friend's UID by their share code
+        function findFriendByShareCode(code) {
+            if (!_db) return Promise.resolve(null);
+            return _db.collection('khloesmoon_users').where('shareCode', '==', code).limit(1).get()
+                .then(function(snap) {
+                    if (snap.empty) return null;
+                    const doc = snap.docs[0];
+                    return { uid: doc.id, ...doc.data() };
+                });
+        }
+
+        // Deterministic chat id between two uids
+        function chatIdFor(uidA, uidB) {
+            return uidA < uidB ? uidA + '_' + uidB : uidB + '_' + uidA;
+        }
+
+        // Resolve uids for any friends that were added before signing in
+        function backfillFriendUids() {
+            if (!_db || !_fbUser) return Promise.resolve();
+            const pending = friends.filter(f => !f.uid);
+            if (pending.length === 0) return Promise.resolve();
+            return Promise.all(pending.map(f => findFriendByShareCode(f.code).then(found => {
+                if (found && found.uid !== _fbUser.uid) f.uid = found.uid;
+            }).catch(() => {}))).then(() => {
+                localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+                renderFriendsList();
+            });
+        }
+
         let currentLog = {
             flow: '',
             mood: '',
@@ -2652,22 +2822,30 @@
         };
 
         // ============ MOON PHASE CALCULATION ============
+        // Calibrated to known new moon: April 17, 2026 at 11:52 UTC (approx).
+        // For Costa Rica (UTC-6), we anchor at noon local time = 18:00 UTC.
+        // Using noon of each date as reference gives a stable per-day phase that
+        // matches local observations and moves phases to the correct calendar day.
         function getMoonPhase(date) {
-            const epochDate = new Date('2000-01-06');
             const synodicMonth = 29.53058867;
-            const daysSinceEpoch = Math.floor((date - epochDate) / 86400000);
-            const moonAge = (daysSinceEpoch % synodicMonth);
+            // Reference new moon: April 17 2026, noon Costa Rica (UTC-6) = 18:00 UTC
+            const epochMs = Date.UTC(2026, 3, 17, 18, 0, 0);
+            // Use noon local time of the given date as the representative moment
+            const localNoon = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0).getTime();
+            const daysDiff = (localNoon - epochMs) / 86400000;
+            let moonAge = daysDiff % synodicMonth;
+            if (moonAge < 0) moonAge += synodicMonth;
             const illumination = Math.round(100 * (1 - Math.cos(2 * Math.PI * moonAge / synodicMonth)) / 2);
             const phase = (moonAge / synodicMonth) * 100;
             let phaseName = 'new_moon';
-            if (phase > 1.5 && phase <= 23.5) phaseName = 'waxing_crescent';
+            if (phase > 1.8 && phase <= 23.5) phaseName = 'waxing_crescent';
             else if (phase > 23.5 && phase <= 26.5) phaseName = 'first_quarter';
             else if (phase > 26.5 && phase <= 48.5) phaseName = 'waxing_gibbous';
             else if (phase > 48.5 && phase <= 51.5) phaseName = 'full_moon';
             else if (phase > 51.5 && phase <= 73.5) phaseName = 'waning_gibbous';
             else if (phase > 73.5 && phase <= 76.5) phaseName = 'last_quarter';
-            else if (phase > 76.5 && phase <= 98.5) phaseName = 'waning_crescent';
-            return { illumination, phase, phaseName, lunarDay: Math.ceil(moonAge) };
+            else if (phase > 76.5 && phase <= 98.2) phaseName = 'waning_crescent';
+            return { illumination, phase, phaseName, lunarDay: Math.ceil(moonAge) + 1 };
         }
 
         // ============ CYCLE CALCULATION ============
@@ -2704,6 +2882,23 @@
             // Re-schedule any pending notifications from saved events
             if ('Notification' in window && Notification.permission === 'granted') {
                 rescheduleAllNotifications();
+            }
+
+            // Initialize Firebase for real-time friend chat (async, non-blocking)
+            try {
+                if (initFirebase()) {
+                    // Subscribe to friend chat updates once auth state resolves
+                    setTimeout(function() {
+                        if (_fbUser) subscribeToAllFriendChats();
+                    }, 1500);
+                }
+            } catch(e) { console.warn('Firebase init skipped:', e); }
+
+            // Request notification permission proactively so friend-chat notifs work
+            if ('Notification' in window && Notification.permission === 'default') {
+                setTimeout(function() {
+                    try { Notification.requestPermission(); } catch(e) {}
+                }, 3000);
             }
         }
 
@@ -3077,7 +3272,10 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const prevLastDay = new Date(year, month, 0).getDate();
-            const nextDays = 7 - lastDay.getDay();
+            // Dynamic row count: only add enough trailing days to complete the last week
+            const totalCells = firstDay.getDay() + lastDay.getDate();
+            const rowsNeeded = Math.ceil(totalCells / 7);
+            const nextDays = (rowsNeeded * 7) - totalCells;
 
             const grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
@@ -3183,8 +3381,15 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             const moonMarker = getMoonPhaseMarker(date);
             const moonName = _('moon_phases.' + moonInfo.phaseName);
 
-            let content = `<strong>${cycleInfo.phaseName}</strong> (${_replace('cycle_day_of', cycleInfo.day, profile.cycleLength || 28)})`;
-            content += `<br/>${getMoonEmoji(moonInfo.phase)} ${moonName} • ${moonInfo.illumination}% ${_('illuminated')}`;
+            const phaseColors = {
+                'menstrual': '#D47F93',
+                'follicular': '#F4B6C2',
+                'ovulation': '#E8A87C',
+                'luteal': '#8E44AD'
+            };
+            const phaseBg = phaseColors[cycleInfo.phase] || '#6D2E46';
+            let content = `<div class="phase-badge" style="background:${phaseBg};color:#fff;padding:12px 14px;border-radius:14px;margin-bottom:10px;text-align:center;box-shadow:0 2px 8px rgba(109,46,70,0.15);"><div style="font-size:0.75rem;opacity:0.9;text-transform:uppercase;letter-spacing:0.5px;">${_('menstrual_phase_label') || 'Fase'}</div><div style="font-size:1.3rem;font-weight:700;margin-top:2px;">${cycleInfo.phaseName}</div><div style="font-size:0.85rem;opacity:0.95;margin-top:3px;">${_replace('cycle_day_of', cycleInfo.day, profile.cycleLength || 28)}</div></div>`;
+            content += `${getMoonEmoji(moonInfo.phase)} ${moonName} • ${moonInfo.illumination}% ${_('illuminated')}`;
             if (moonMarker) {
                 content += ` <strong style="color: var(--wine);">★</strong>`;
             }
@@ -3557,6 +3762,306 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             if (versionLabel) versionLabel.textContent = _('version');
             const resetBtn = document.getElementById('reset-data-btn');
             if (resetBtn) resetBtn.textContent = _('reset_data');
+            // Friends section
+            ensureShareCode();
+            const friendsLabel = document.getElementById('friends-label');
+            if (friendsLabel) friendsLabel.textContent = _('share_with_friends') || 'Conectar con amigas';
+            const shareExp = document.getElementById('share-explanation-label');
+            if (shareExp) shareExp.textContent = _('share_explanation') || 'Comparte tu código con tus amigas para conectarse';
+            const yourCodeLbl = document.getElementById('your-code-label');
+            if (yourCodeLbl) yourCodeLbl.textContent = _('your_code') || 'Tu código';
+            const addFriendLbl = document.getElementById('add-friend-label');
+            if (addFriendLbl) addFriendLbl.textContent = _('add') ? (_('friend_code') || 'Código de amiga') : 'Añadir amiga';
+            const copyBtn = document.getElementById('copy-code-btn');
+            if (copyBtn) copyBtn.textContent = _('copy') || 'Copiar';
+            const addBtn = document.getElementById('add-friend-btn');
+            if (addBtn) addBtn.textContent = '+';
+            document.getElementById('my-share-code').value = profile.shareCode;
+            renderFriendsList();
+        }
+
+        // ============ FRIENDS SYSTEM ============
+        function ensureShareCode() {
+            if (!profile.shareCode) {
+                const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+                let code = '';
+                for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+                code += '-';
+                for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+                profile.shareCode = code;
+                localStorage.setItem('khloesmoon_profile', JSON.stringify(profile));
+            }
+        }
+
+        function copyShareCode() {
+            ensureShareCode();
+            const code = profile.shareCode;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert((_('copy') || 'Copiado') + ': ' + code);
+                });
+            } else {
+                const input = document.getElementById('my-share-code');
+                input.select();
+                document.execCommand('copy');
+                alert('Copiado: ' + code);
+            }
+        }
+
+        function shareMyCode() {
+            ensureShareCode();
+            const text = `¡Conéctate conmigo en Khloe's Moon! 🌙\nMi código: ${profile.shareCode}\nhttps://naguall.github.io/khloesmoon/`;
+            if (navigator.share) {
+                navigator.share({ title: "Khloe's Moon", text: text }).catch(() => {});
+            } else {
+                copyShareCode();
+            }
+        }
+
+        function addFriend() {
+            const codeInput = document.getElementById('friend-code-input');
+            const nameInput = document.getElementById('friend-name-input');
+            const code = (codeInput.value || '').toUpperCase().trim();
+            const name = (nameInput.value || '').trim();
+            if (!code || !name) {
+                alert('Ingresa código y nombre');
+                return;
+            }
+            if (friends.some(f => f.code === code)) {
+                alert('Esta amiga ya está añadida');
+                return;
+            }
+            // If signed in, try to resolve code → uid via Firestore for real-time chat
+            if (_fbUser && _db) {
+                findFriendByShareCode(code).then(function(found) {
+                    if (!found) {
+                        if (!confirm('No se encontró a nadie con ese código en la nube. ¿Agregar igual (solo local)?')) return;
+                        friends.push({ code, name, uid: null, messages: [], unread: 0 });
+                    } else if (found.uid === _fbUser.uid) {
+                        alert('Ese es tu propio código 😊');
+                        return;
+                    } else {
+                        friends.push({ code, name, uid: found.uid, messages: [], unread: 0 });
+                    }
+                    localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+                    codeInput.value = '';
+                    nameInput.value = '';
+                    renderFriendsList();
+                    subscribeToAllFriendChats();
+                }).catch(function(e) {
+                    console.error(e);
+                    alert('Error buscando amiga: ' + e.message);
+                });
+            } else {
+                friends.push({ code, name, uid: null, messages: [], unread: 0 });
+                localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+                codeInput.value = '';
+                nameInput.value = '';
+                renderFriendsList();
+            }
+        }
+
+        function removeFriend(code) {
+            if (!confirm('¿Eliminar esta amiga?')) return;
+            friends = friends.filter(f => f.code !== code);
+            localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+            renderFriendsList();
+        }
+
+        function renderFriendsList() {
+            const list = document.getElementById('friends-list');
+            if (!list) return;
+            if (friends.length === 0) {
+                list.innerHTML = '<div style="font-size:11px;color:var(--secondary);text-align:center;padding:8px;">Aún no has añadido amigas</div>';
+                return;
+            }
+            list.innerHTML = friends.map(f => {
+                const unreadBadge = f.unread > 0 ? `<span style="background:#D47F93;color:#fff;border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;margin-left:6px;">${f.unread}</span>` : '';
+                return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--cream);border-radius:8px;margin-bottom:6px;">
+                    <div style="flex:1;min-width:0;cursor:pointer;" onclick="openFriendChat('${f.code}')">
+                        <div style="font-weight:600;font-size:13px;">${escapeHtml(f.name)} ${unreadBadge}</div>
+                        <div style="font-size:10px;color:var(--secondary);font-family:monospace;">${f.code}</div>
+                    </div>
+                    <button class="settings-btn" style="padding:4px 8px;margin:0;background:transparent;color:var(--secondary);" onclick="openFriendChat('${f.code}')" title="Chat">💬</button>
+                    <button class="settings-btn" style="padding:4px 8px;margin:0;background:transparent;color:#c0392b;" onclick="removeFriend('${f.code}')" title="Eliminar">✕</button>
+                </div>`;
+            }).join('');
+        }
+
+        // ============ FRIEND CHAT (Firestore real-time) ============
+        let currentChatFriend = null;
+        let _openChatUnsub = null;
+
+        function openFriendChat(code) {
+            const friend = friends.find(f => f.code === code);
+            if (!friend) return;
+            currentChatFriend = code;
+            friend.unread = 0;
+            localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+            renderFriendsList();
+            document.getElementById('friend-chat-title').textContent = friend.name;
+
+            // Firestore real-time listener if both users are authenticated & matched
+            if (_openChatUnsub) { _openChatUnsub(); _openChatUnsub = null; }
+            if (_fbUser && _db && friend.uid) {
+                const cid = chatIdFor(_fbUser.uid, friend.uid);
+                _openChatUnsub = _db.collection('khloesmoon_chats').doc(cid).collection('messages')
+                    .orderBy('createdAt', 'asc').limitToLast(200)
+                    .onSnapshot(function(snap) {
+                        const msgs = [];
+                        snap.forEach(function(doc) {
+                            const d = doc.data();
+                            msgs.push({
+                                from: d.senderUid === _fbUser.uid ? 'me' : 'friend',
+                                text: d.text,
+                                at: d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate().getTime() : Date.now()) : Date.now()
+                            });
+                        });
+                        friend.messages = msgs;
+                        localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+                        renderFriendChatMessages();
+                    }, function(err) {
+                        console.error('chat listen err', err);
+                    });
+                // Also ensure chat doc exists
+                _db.collection('khloesmoon_chats').doc(cid).set({
+                    participants: [_fbUser.uid, friend.uid],
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }).catch(function() {});
+                const note = document.getElementById('friend-chat-note');
+                if (note) note.textContent = '✓ Chat en tiempo real (Firebase)';
+            } else {
+                const note = document.getElementById('friend-chat-note');
+                if (note) note.textContent = _fbUser
+                    ? 'Esta amiga no está en Firebase — conéctate con Google primero'
+                    : 'Inicia sesión con Google en Ajustes para chat en tiempo real';
+            }
+            renderFriendChatMessages();
+            document.getElementById('friend-chat-modal').classList.add('active');
+            document.getElementById('friend-chat-input').focus();
+        }
+
+        function closeFriendChat() {
+            document.getElementById('friend-chat-modal').classList.remove('active');
+            if (_openChatUnsub) { _openChatUnsub(); _openChatUnsub = null; }
+            currentChatFriend = null;
+        }
+
+        function renderFriendChatMessages() {
+            const friend = friends.find(f => f.code === currentChatFriend);
+            if (!friend) return;
+            const box = document.getElementById('friend-chat-messages');
+            const msgs = friend.messages || [];
+            if (msgs.length === 0) {
+                box.innerHTML = '<div style="text-align:center;color:var(--secondary);font-size:11px;padding:20px;">No hay mensajes aún. ¡Envía el primero!</div>';
+                return;
+            }
+            box.innerHTML = msgs.map(m => {
+                const isMe = m.from === 'me';
+                const bg = isMe ? '#D47F93' : '#fff';
+                const color = isMe ? '#fff' : 'var(--text)';
+                const align = isMe ? 'flex-end' : 'flex-start';
+                const time = new Date(m.at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+                return `<div style="align-self:${align};max-width:80%;background:${bg};color:${color};padding:8px 12px;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                    <div style="font-size:13px;">${escapeHtml(m.text)}</div>
+                    <div style="font-size:9px;opacity:0.75;text-align:right;margin-top:2px;">${time}</div>
+                </div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function sendFriendMessage() {
+            const input = document.getElementById('friend-chat-input');
+            const text = (input.value || '').trim();
+            if (!text || !currentChatFriend) return;
+            const friend = friends.find(f => f.code === currentChatFriend);
+            if (!friend) return;
+            input.value = '';
+
+            // Firestore path (real-time)
+            if (_fbUser && _db && friend.uid) {
+                const cid = chatIdFor(_fbUser.uid, friend.uid);
+                const msgRef = _db.collection('khloesmoon_chats').doc(cid).collection('messages').doc();
+                const batch = _db.batch();
+                batch.set(msgRef, {
+                    senderUid: _fbUser.uid,
+                    senderName: profile.name || _fbUser.displayName || 'Amiga',
+                    text: text,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    read: false
+                });
+                batch.set(_db.collection('khloesmoon_chats').doc(cid), {
+                    participants: [_fbUser.uid, friend.uid],
+                    lastMessage: text.substring(0, 100),
+                    lastSenderUid: _fbUser.uid,
+                    lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                batch.commit().catch(function(e) { console.error('send err', e); alert('Error enviando: ' + e.message); });
+                // Snapshot listener will update the UI
+                return;
+            }
+
+            // Fallback: local + Web Share
+            if (!friend.messages) friend.messages = [];
+            friend.messages.push({ from: 'me', text, at: Date.now() });
+            localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+            renderFriendChatMessages();
+            const shareText = `[Khloe's Moon ${profile.shareCode || ''}] ${text}`;
+            if (navigator.share) {
+                navigator.share({ text: shareText }).catch(() => {});
+            }
+        }
+
+        // Background subscription: listens for new messages across all friend chats
+        // so notifications fire even when a specific chat isn't open.
+        function subscribeToAllFriendChats() {
+            if (!_fbUser || !_db) return;
+            if (_friendsMetaUnsub) { _friendsMetaUnsub(); _friendsMetaUnsub = null; }
+            _friendsMetaUnsub = _db.collection('khloesmoon_chats')
+                .where('participants', 'array-contains', _fbUser.uid)
+                .onSnapshot(function(snap) {
+                    snap.docChanges().forEach(function(change) {
+                        const data = change.doc.data();
+                        if (!data || !data.lastMessageAt || !data.lastSenderUid) return;
+                        if (data.lastSenderUid === _fbUser.uid) return; // mine
+                        // Find friend
+                        const otherUid = (data.participants || []).find(p => p !== _fbUser.uid);
+                        const friend = friends.find(f => f.uid === otherUid);
+                        if (!friend) return;
+                        // Skip if this chat is currently open
+                        if (currentChatFriend === friend.code) return;
+                        friend.unread = (friend.unread || 0) + 1;
+                        localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+                        renderFriendsList();
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            new Notification(friend.name, {
+                                body: data.lastMessage || 'Nuevo mensaje',
+                                icon: './icon-192.png',
+                                tag: 'friend-' + friend.code
+                            });
+                        }
+                    });
+                }, function(err) { console.warn('meta listen err', err); });
+        }
+
+        // Simulate receiving a message (for testing) - also callable from URL hash handler
+        function receiveFriendMessage(code, text) {
+            const friend = friends.find(f => f.code === code);
+            if (!friend) return;
+            if (!friend.messages) friend.messages = [];
+            friend.messages.push({ from: 'friend', text, at: Date.now() });
+            friend.unread = (friend.unread || 0) + 1;
+            localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+            if (currentChatFriend === code) {
+                friend.unread = 0;
+                localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+                renderFriendChatMessages();
+            }
+            renderFriendsList();
+            // Local notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(friend.name, { body: text, icon: './icon-192.png' });
+            }
         }
 
         function changeLanguage() {
