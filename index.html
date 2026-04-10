@@ -70,20 +70,135 @@
             border: none;
             background: transparent;
             color: var(--secondary);
-            font-size: 12px;
+            font-size: 10px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 2px;
+            padding: 0 2px;
             transition: color 0.2s;
         }
         .tab-btn.active {
             color: var(--wine);
         }
-        .tab-btn span {
-            font-size: 20px;
+        .tab-btn > span:first-child {
+            font-size: 18px;
+        }
+        .tab-label {
+            font-size: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        /* CHAT SCREEN */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 56px - 60px);
+            padding: 12px;
+        }
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .chat-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--wine);
+        }
+        .chat-clear-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--secondary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            background: var(--cream, #faf8f5);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .chat-msg {
+            max-width: 85%;
+            padding: 10px 12px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .chat-msg.user {
+            align-self: flex-end;
+            background: var(--wine);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-msg.ai {
+            align-self: flex-start;
+            background: white;
+            color: var(--text, #333);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+        .chat-msg.system {
+            align-self: center;
+            background: transparent;
+            color: var(--secondary);
+            font-size: 12px;
+            font-style: italic;
+        }
+        .chat-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .chat-suggestion {
+            background: white;
+            border: 1px solid var(--wine);
+            color: var(--wine);
+            padding: 6px 10px;
+            border-radius: 14px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .chat-input-row {
+            display: flex;
+            gap: 6px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+        }
+        .chat-send-btn {
+            background: var(--wine);
+            color: white;
+            border: none;
+            padding: 0 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .screen {
             display: none;
@@ -873,7 +988,37 @@
                 </div>
 
                 <div class="settings-group">
+                    <div class="settings-group-title" id="ai-label">AI Assistant</div>
+                    <div class="settings-item">
+                        <label class="settings-item-label" id="api-key-label">Gemini API Key</label>
+                    </div>
+                    <div class="settings-item">
+                        <input type="password" id="gemini-api-key" placeholder="AIza..." style="width: 100%;">
+                    </div>
+                    <button class="settings-btn" onclick="saveApiKey()" id="save-api-key-btn">Save Key</button>
+                    <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-top: 6px;">
+                        <span id="api-key-hint">Get a free key at aistudio.google.com/app/apikey</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
                     <button class="settings-btn danger" onclick="resetData()" id="reset-data-btn">Reset All Data</button>
+                </div>
+            </div>
+
+            <!-- CHAT SCREEN -->
+            <div id="chat-screen" class="screen">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h2 id="chat-title">Chat AI</h2>
+                        <button class="chat-clear-btn" onclick="clearChat()" id="chat-clear-btn">Clear</button>
+                    </div>
+                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="chat-suggestions" id="chat-suggestions"></div>
+                    <div class="chat-input-row">
+                        <input type="text" class="chat-input" id="chat-input" placeholder="Pregúntame algo..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+                        <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">→</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -894,6 +1039,10 @@
             <button class="tab-btn" id="tab-insights" onclick="switchScreen('insights-screen')">
                 <span>📊</span>
                 <span class="tab-label" data-key="insights">Estadísticas</span>
+            </button>
+            <button class="tab-btn" id="tab-chat" onclick="switchScreen('chat-screen')">
+                <span>💬</span>
+                <span class="tab-label" data-key="chat">Chat</span>
             </button>
             <button class="tab-btn" id="tab-settings" onclick="switchScreen('settings-screen')">
                 <span>⚙️</span>
@@ -963,10 +1112,28 @@
                 times: 'veces',
                 phase_dist: 'Distribución de fases',
                 recent_logs: 'Registros recientes',
-                home: 'Home',
+                home: 'Inicio',
                 calendar: 'Calendario',
                 log: 'Registro',
                 insights: 'Estadísticas',
+                chat: 'Chat',
+                chat_title: 'Asistente AI',
+                chat_placeholder: 'Pregúntame algo...',
+                chat_clear: 'Limpiar',
+                chat_send: 'Enviar',
+                chat_welcome: '¡Hola! Soy tu asistente de bienestar. Pregúntame sobre tu ciclo, síntomas, nutrición o bienestar emocional.',
+                chat_no_key: 'Para activar el chat, añade tu clave de Gemini en Ajustes.',
+                chat_thinking: 'Pensando...',
+                chat_error: 'Error al conectar con Gemini. Verifica tu clave API.',
+                ai_assistant: 'Asistente AI',
+                api_key: 'Clave API de Gemini',
+                save_key: 'Guardar clave',
+                api_key_hint: 'Obtén una clave gratis en aistudio.google.com/app/apikey',
+                key_saved: 'Clave guardada',
+                suggestion_1: '¿Qué puedo comer en mi fase actual?',
+                suggestion_2: '¿Por qué tengo estos síntomas?',
+                suggestion_3: 'Ejercicios para hoy',
+                suggestion_4: 'Conexión luna-ciclo',
                 today_events: 'Eventos de hoy',
                 days: 'días',
                 months: 'meses',
@@ -1096,6 +1263,24 @@
                 calendar: 'Calendar',
                 log: 'Log',
                 insights: 'Insights',
+                chat: 'Chat',
+                chat_title: 'AI Assistant',
+                chat_placeholder: 'Ask me anything...',
+                chat_clear: 'Clear',
+                chat_send: 'Send',
+                chat_welcome: 'Hi! I am your wellness assistant. Ask me about your cycle, symptoms, nutrition, or emotional wellbeing.',
+                chat_no_key: 'To use chat, add your Gemini API key in Settings.',
+                chat_thinking: 'Thinking...',
+                chat_error: 'Error connecting to Gemini. Check your API key.',
+                ai_assistant: 'AI Assistant',
+                api_key: 'Gemini API Key',
+                save_key: 'Save Key',
+                api_key_hint: 'Get a free key at aistudio.google.com/app/apikey',
+                key_saved: 'Key saved',
+                suggestion_1: 'What should I eat in my current phase?',
+                suggestion_2: 'Why am I having these symptoms?',
+                suggestion_3: 'Exercises for today',
+                suggestion_4: 'Moon-cycle connection',
                 today_events: "Today's Events",
                 days: 'days',
                 months: 'months',
@@ -2068,15 +2253,21 @@
             }
         };
 
-        // Translation function
+        // Translation function (falls back to English if missing)
         function _(key) {
             const keys = key.split('.');
-            let value = T[currentLanguage];
-            for (let k of keys) {
-                if (value && typeof value === 'object') value = value[k];
-                else return key;
-            }
-            return value || key;
+            const lookup = (root) => {
+                let v = root;
+                for (let k of keys) {
+                    if (v && typeof v === 'object') v = v[k];
+                    else return undefined;
+                }
+                return v;
+            };
+            let value = lookup(T[currentLanguage]);
+            if (value === undefined && currentLanguage !== 'en') value = lookup(T.en);
+            if (value === undefined && currentLanguage !== 'es') value = lookup(T.es);
+            return (value === undefined || value === null) ? key : value;
         }
 
         function _replace(key, ...args) {
@@ -2314,7 +2505,7 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            const tabMap = {'home-screen':'tab-home','calendar-screen':'tab-calendar','log-screen':'tab-log','insights-screen':'tab-insights','settings-screen':'tab-settings'};
+            const tabMap = {'home-screen':'tab-home','calendar-screen':'tab-calendar','log-screen':'tab-log','insights-screen':'tab-insights','chat-screen':'tab-chat','settings-screen':'tab-settings'};
             const tabId = tabMap[screenId];
             if (tabId) document.getElementById(tabId).classList.add('active');
 
@@ -2322,6 +2513,160 @@
             else if (screenId === 'calendar-screen') renderCalendar();
             else if (screenId === 'insights-screen') updateInsights();
             else if (screenId === 'settings-screen') loadSettings();
+            else if (screenId === 'chat-screen') initChat();
+        }
+
+        // ============ GEMINI AI CHAT ============
+        let chatHistory = JSON.parse(localStorage.getItem('khloesmoon_chat_history') || '[]');
+
+        function getApiKey() {
+            return localStorage.getItem('khloesmoon_gemini_key') || '';
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('gemini-api-key').value.trim();
+            localStorage.setItem('khloesmoon_gemini_key', key);
+            const btn = document.getElementById('save-api-key-btn');
+            const orig = btn.textContent;
+            btn.textContent = _('key_saved');
+            setTimeout(() => { btn.textContent = orig; }, 1500);
+        }
+
+        function initChat() {
+            document.getElementById('chat-title').textContent = _('chat_title');
+            document.getElementById('chat-clear-btn').textContent = _('chat_clear');
+            document.getElementById('chat-input').placeholder = _('chat_placeholder');
+
+            const suggestionsEl = document.getElementById('chat-suggestions');
+            suggestionsEl.innerHTML = '';
+            ['suggestion_1','suggestion_2','suggestion_3','suggestion_4'].forEach(k => {
+                const btn = document.createElement('button');
+                btn.className = 'chat-suggestion';
+                btn.textContent = _(k);
+                btn.onclick = () => {
+                    document.getElementById('chat-input').value = _(k);
+                    sendChatMessage();
+                };
+                suggestionsEl.appendChild(btn);
+            });
+
+            renderChatMessages();
+        }
+
+        function renderChatMessages() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = '';
+            if (chatHistory.length === 0) {
+                const welcome = document.createElement('div');
+                welcome.className = 'chat-msg ai';
+                welcome.textContent = _('chat_welcome');
+                container.appendChild(welcome);
+            } else {
+                chatHistory.forEach(msg => {
+                    const el = document.createElement('div');
+                    el.className = 'chat-msg ' + msg.role;
+                    el.textContent = msg.text;
+                    container.appendChild(el);
+                });
+            }
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearChat() {
+            chatHistory = [];
+            localStorage.setItem('khloesmoon_chat_history', '[]');
+            renderChatMessages();
+        }
+
+        function getCycleContext() {
+            const today = new Date();
+            const cycle = getCycleDay(today);
+            const moon = getMoonPhase(today);
+            const phaseName = _('phases.' + cycle.phase);
+            const moonName = _('moon_phases.' + moon.phaseName);
+            const lang = currentLanguage;
+            const todayKey = today.toISOString().split('T')[0];
+            const todayLog = logs[todayKey] || {};
+            const recentSymptoms = (todayLog.symptoms || []).join(', ') || 'none';
+
+            return `User context (respond in language code: ${lang}):
+- Cycle day: ${cycle.day} of ${profile.cycleLength}
+- Current phase: ${phaseName}
+- Moon phase: ${moonName} (${moon.illumination}% illuminated)
+- Today's symptoms: ${recentSymptoms}
+- Today's mood: ${todayLog.mood || 'not logged'}
+- Today's energy: ${todayLog.energy || 'not logged'}
+
+You are a warm, knowledgeable wellness assistant specialized in menstrual health, lunar cycles, and feminine wellbeing. Base your advice on evidence-based sources like Flo, Clue, Natural Cycles, and Ovia. Be concise (under 150 words), practical, and compassionate. Always respond in the user's language (${lang}). Never give medical diagnoses — recommend consulting a healthcare provider for serious concerns.`;
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('chat-send-btn');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                chatHistory.push({ role: 'user', text });
+                chatHistory.push({ role: 'system', text: _('chat_no_key') });
+                renderChatMessages();
+                input.value = '';
+                return;
+            }
+
+            chatHistory.push({ role: 'user', text });
+            input.value = '';
+            sendBtn.disabled = true;
+            renderChatMessages();
+
+            // Thinking indicator
+            const container = document.getElementById('chat-messages');
+            const thinking = document.createElement('div');
+            thinking.className = 'chat-msg ai';
+            thinking.textContent = _('chat_thinking');
+            thinking.id = 'chat-thinking';
+            container.appendChild(thinking);
+            container.scrollTop = container.scrollHeight;
+
+            try {
+                const systemContext = getCycleContext();
+                const conversationContents = chatHistory
+                    .filter(m => m.role === 'user' || m.role === 'ai')
+                    .map(m => ({
+                        role: m.role === 'ai' ? 'model' : 'user',
+                        parts: [{ text: m.text }]
+                    }));
+
+                const body = {
+                    systemInstruction: { parts: [{ text: systemContext }] },
+                    contents: conversationContents,
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 400 }
+                };
+
+                const res = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+                    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+                );
+
+                const thinkingEl = document.getElementById('chat-thinking');
+                if (thinkingEl) thinkingEl.remove();
+
+                if (!res.ok) throw new Error('API error');
+                const data = await res.json();
+                const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || _('chat_error');
+
+                chatHistory.push({ role: 'ai', text: reply });
+                localStorage.setItem('khloesmoon_chat_history', JSON.stringify(chatHistory.slice(-30)));
+                renderChatMessages();
+            } catch (err) {
+                const thinkingEl = document.getElementById('chat-thinking');
+                if (thinkingEl) thinkingEl.remove();
+                chatHistory.push({ role: 'system', text: _('chat_error') });
+                renderChatMessages();
+            } finally {
+                sendBtn.disabled = false;
+            }
         }
 
         // ============ CALENDAR ============
@@ -2510,6 +2855,15 @@
 
         function loadSettings() {
             document.getElementById('language-select').value = currentLanguage;
+            document.getElementById('gemini-api-key').value = getApiKey();
+            const aiLabel = document.getElementById('ai-label');
+            if (aiLabel) aiLabel.textContent = _('ai_assistant');
+            const apiKeyLabel = document.getElementById('api-key-label');
+            if (apiKeyLabel) apiKeyLabel.textContent = _('api_key');
+            const saveKeyBtn = document.getElementById('save-api-key-btn');
+            if (saveKeyBtn) saveKeyBtn.textContent = _('save_key');
+            const hint = document.getElementById('api-key-hint');
+            if (hint) hint.textContent = _('api_key_hint');
         }
 
         function changeLanguage() {
