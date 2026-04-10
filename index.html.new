@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#FAF6F0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Khloe's Moon v2">
+    <meta name="description" content="Menstrual cycle & lunar tracking PWA - Your cycle, your power">
+    <meta name="version" content="v2.0">
+    <title>Khloe's Moon v2 - Cycle Tracking</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --cream: #FAF6F0;
+            --pink: #D47F93;
+            --wine: #6D2E46;
+            --text: #2D1B24;
+            --secondary: #7A5E6A;
+            --border: #ECE2D0;
+            --white: #FFFFFF;
+            --menstrual: #E74C3C;
+            --follicular: #F39C12;
+            --ovulation: #27AE60;
+            --luteal: #8E44AD;
+        }
+        html, body {
+            margin: 0; padding: 0;
+            height: 100vh; height: 100dvh;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--cream);
+            color: var(--text);
+        }
+        .app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+        .screens-container { flex: 1; position: relative; overflow: hidden; }
+        .screen {
+            position: absolute; width: 100%; height: 100%;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding-bottom: 80px; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .screen.active { opacity: 1; pointer-events: auto; }
+        .screen-content { padding: 16px; max-width: 500px; margin: 0 auto; }
+        .tab-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
+            background: var(--white); border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 100; padding-bottom: env(safe-area-inset-bottom);
+        }
+        .tab {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 4px; padding: 8px;
+            font-size: 12px; cursor: pointer; color: var(--secondary);
+            text-align: center; transition: color 0.2s;
+        }
+        .tab.active { color: var(--pink); font-weight: 600; }
+
+        /* Onboarding */
+        .onboarding {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 100%;
+            padding: 40px 20px; text-align: center;
+        }
+        .onboarding-logo { font-size: 64px; margin-bottom: 20px; }
+        .onboarding h1 {
+            font-size: 28px; margin: 0 0 8px 0; color: var(--wine);
+        }
+        .onboarding p {
+            color: var(--secondary); margin-bottom: 30px; font-size: 14px;
+        }
+        .form-group {
+            width: 100%; max-width: 300px; margin-bottom: 16px; text-align: left;
+        }
+        .form-group label {
+            display: block; font-size: 13px; font-weight: 600;
+            margin-bottom: 6px; color: var(--wine);
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%; padding: 10px; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 14px; font-family: inherit;
+        }
+        .btn-primary {
+            background: var(--pink); color: white;
+            border: none; padding: 12px 24px; border-radius: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            width: 100%; max-width: 300px; transition: background 0.2s;
+        }
+        .btn-primary:hover { background: var(--wine); }
+
+        /* Home Screen */
+        .greeting {
+            font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--wine);
+        }
+        .cycle-status {
+            font-size: 14px; color: var(--secondary); margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .phase-dot {
+            width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+        }
+        .cycle-ring { width: 100px; height: 100px; margin: 0 auto 16px; }
+        .moon-widget {
+            background: var(--white); padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border); font-size: 13px; color: var(--text);
+            margin-bottom: 12px; text-align: center;
+        }
+        .affirmation {
+            font-style: italic; color: var(--secondary); font-size: 13px;
+            margin-bottom: 12px; line-height: 1.4;
+        }
+        .wellness-card {
+            background: var(--white); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; margin-bottom: 12px;
+        }
+        .wellness-header {
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; padding: 4px 0;
+        }
+        .wellness-header h3 { font-size: 14px; margin: 0; color: var(--wine); }
+        .wellness-content {
+            display: none; margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .wellness-content.expanded { display: block; }
+        .wellness-item {
+            font-size: 12px; margin-bottom: 8px; padding: 6px;
+            background: var(--cream); border-radius: 4px;
+        }
+        .quick-actions {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;
+        }
+        .btn-secondary {
+            background: var(--wine); color: white; border: none;
+            padding: 10px; border-radius: 6px; font-size: 13px;
+            font-weight: 600; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-secondary:hover { background: var(--pink); }
+        .upcoming {
+            background: var(--white); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; margin-bottom: 20px;
+        }
+        .upcoming h3 { font-size: 14px; margin: 0 0 8px 0; color: var(--wine); }
+        .upcoming-item { font-size: 13px; margin-bottom: 6px; color: var(--text); }
+
+        /* Calendar Screen */
+        .month-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; padding: 0;
+        }
+        .month-nav button {
+            background: var(--pink); color: white; border: none;
+            width: 32px; height: 32px; border-radius: 4px;
+            cursor: pointer; font-weight: bold; transition: background 0.2s;
+        }
+        .month-nav button:hover { background: var(--wine); }
+        .month-nav h2 { margin: 0; font-size: 16px; flex: 1; text-align: center; }
+        .calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            gap: 2px; margin-bottom: 12px;
+        }
+        .day-header {
+            text-align: center; font-weight: 600; font-size: 12px;
+            color: var(--secondary); padding: 8px 0;
+        }
+        .calendar-day {
+            aspect-ratio: 1; min-height: 45px; border: 1px solid var(--border);
+            border-radius: 6px; padding: 4px; font-size: 13px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; position: relative; background: var(--cream);
+            transition: all 0.2s;
+        }
+        .calendar-day:hover {
+            border-color: var(--pink); background: rgba(212, 127, 147, 0.05);
+        }
+        .calendar-day.today { border: 2px solid var(--pink); font-weight: bold; }
+        .calendar-day.menstrual { background: rgba(231, 76, 60, 0.1); }
+        .calendar-day.follicular { background: rgba(243, 156, 18, 0.1); }
+        .calendar-day.ovulation { background: rgba(39, 174, 96, 0.1); }
+        .calendar-day.luteal { background: rgba(142, 68, 173, 0.1); }
+        .day-number { font-weight: bold; font-size: 13px; }
+        .day-moon { font-size: 10px; line-height: 1; }
+        .calendar-legend {
+            font-size: 11px; color: var(--secondary); text-align: center;
+            margin-bottom: 12px; padding: 6px; background: var(--cream);
+            border-radius: 4px;
+        }
+        .day-detail-panel {
+            background: var(--white); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; margin-bottom: 20px;
+            display: none;
+        }
+        .day-detail-panel.active { display: block; }
+        .detail-date {
+            font-weight: bold; color: var(--wine); font-size: 14px; margin-bottom: 8px;
+        }
+
+        /* Log Screen */
+        .log-title {
+            font-size: 16px; font-weight: 600; color: var(--wine); margin-bottom: 4px;
+        }
+        .log-date {
+            font-size: 12px; color: var(--secondary); margin-bottom: 12px;
+        }
+        .log-section { margin-bottom: 12px; }
+        .log-label {
+            font-size: 12px; font-weight: 600; color: var(--wine); margin-bottom: 6px;
+        }
+        .flow-buttons {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+        }
+        .flow-button {
+            padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+            background: var(--white); cursor: pointer; font-size: 12px;
+            transition: all 0.2s;
+        }
+        .flow-button.active {
+            background: var(--pink); color: white; border-color: var(--pink);
+        }
+        .mood-buttons {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+        }
+        .mood-button {
+            padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+            background: var(--white); cursor: pointer; font-size: 20px;
+            transition: all 0.2s;
+        }
+        .mood-button.active {
+            background: var(--pink); border-color: var(--pink);
+        }
+        .energy-buttons {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+        }
+        .energy-button {
+            padding: 8px; border: 1px solid var(--border); border-radius: 6px;
+            background: var(--white); cursor: pointer; font-size: 13px;
+            transition: all 0.2s;
+        }
+        .energy-button.active {
+            background: var(--pink); color: white; border-color: var(--pink);
+        }
+        .symptoms-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
+        }
+        .symptom-chip {
+            padding: 6px 8px; border: 1px solid var(--border);
+            border-radius: 16px; background: var(--white); cursor: pointer;
+            font-size: 11px; text-align: center; transition: all 0.2s;
+        }
+        .symptom-chip.active {
+            background: var(--pink); color: white; border-color: var(--pink);
+        }
+        .notes-textarea {
+            width: 100%; padding: 8px; border: 1px solid var(--border);
+            border-radius: 6px; font-family: inherit; font-size: 13px;
+            resize: vertical; min-height: 50px;
+        }
+        .btn-save {
+            width: 100%; background: var(--pink); color: white;
+            border: none; padding: 12px; border-radius: 6px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            margin-top: 8px; transition: background 0.2s;
+        }
+        .btn-save:hover { background: var(--wine); }
+
+        /* Insights Screen */
+        .insights-title {
+            font-size: 18px; font-weight: 600; color: var(--wine); margin-bottom: 12px;
+        }
+        .stats-row {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 8px; margin-bottom: 12px;
+        }
+        .stat-card {
+            background: var(--white); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; text-align: center;
+        }
+        .stat-label {
+            font-size: 11px; color: var(--secondary); margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 18px; font-weight: 700; color: var(--pink);
+        }
+        .phase-card {
+            background: var(--white); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; margin-bottom: 12px;
+        }
+        .phase-card h3 { margin: 0 0 8px 0; font-size: 14px; color: var(--wine); }
+        .phase-bar { height: 8px; border-radius: 4px; margin-bottom: 8px; }
+        .phase-desc {
+            font-size: 12px; color: var(--secondary); line-height: 1.4;
+        }
+        .empty-state {
+            text-align: center; padding: 24px 12px; color: var(--secondary);
+        }
+
+        /* Settings Screen */
+        .settings-section {
+            background: var(--white); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; margin-bottom: 12px;
+        }
+        .settings-section h3 {
+            font-size: 13px; font-weight: 600; color: var(--wine); margin: 0 0 8px 0;
+        }
+        .setting-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; font-size: 13px;
+        }
+        .setting-label { flex: 1; }
+        .setting-value { color: var(--secondary); font-size: 12px; }
+        .setting-input {
+            flex: 1; padding: 6px; border: 1px solid var(--border);
+            border-radius: 4px; font-size: 13px;
+        }
+        .setting-select {
+            padding: 6px; border: 1px solid var(--border); border-radius: 4px;
+            font-size: 13px; font-family: inherit; flex: 1; width: 100%;
+        }
+        .share-code {
+            background: var(--cream); border: 2px solid var(--pink);
+            border-radius: 8px; padding: 12px; text-align: center;
+            font-size: 24px; font-weight: bold; letter-spacing: 4px;
+            margin: 8px 0; font-family: monospace;
+        }
+        .btn-copy {
+            background: var(--pink); color: white; border: none;
+            padding: 8px 12px; border-radius: 6px; font-size: 12px;
+            cursor: pointer; margin-top: 6px; width: 100%;
+        }
+        .friend-list { margin-top: 8px; }
+        .friend-item {
+            background: var(--cream); padding: 8px; border-radius: 6px;
+            margin-bottom: 6px; font-size: 12px; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+        .add-friend-group {
+            display: flex; gap: 6px;
+        }
+        .add-friend-group input {
+            flex: 1; padding: 6px; border: 1px solid var(--border);
+            border-radius: 4px; font-size: 12px;
+        }
+        .add-friend-group button {
+            background: var(--pink); color: white; border: none;
+            padding: 6px 12px; border-radius: 4px; font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background: #E74C3C; color: white; border: none;
+            padding: 8px 12px; border-radius: 6px; font-size: 12px;
+            cursor: pointer; width: 100%; margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="screens-container" id="screensContainer">
+            <!-- Onboarding -->
+            <div id="onboardingScreen" class="screen active">
+                <div class="onboarding">
+                    <div class="onboarding-logo">🌙</div>
+                    <h1><span id="welcomeText"></span><br><span id="appNameText"></span></h1>
+                    <p id="welcomeDescText"></p>
+                    <div class="form-group">
+                        <label for="langSelect" id="languageLabel"></label>
+                        <select id="langSelect">
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                            <option value="fr">Français</option>
+                            <option value="pt">Português</option>
+                            <option value="de">Deutsch</option>
+                            <option value="it">Italiano</option>
+                            <option value="zh">中文</option>
+                            <option value="ja">日本語</option>
+                            <option value="ko">한국어</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="nameInput" id="yourNameLabel"></label>
+                        <input type="text" id="nameInput">
+                    </div>
+                    <div class="form-group">
+                        <label for="cycleLengthInput" id="cycleLengthLabel"></label>
+                        <input type="number" id="cycleLengthInput" min="20" max="40" value="28">
+                    </div>
+                    <div class="form-group">
+                        <label for="periodLengthInput" id="periodLengthLabel"></label>
+                        <input type="number" id="periodLengthInput" min="1" max="10" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="lastPeriodInput" id="lastPeriodLabel"></label>
+                        <input type="date" id="lastPeriodInput">
+                    </div>
+                    <button class="btn-primary" id="startBtn" onclick="startApp()"></button>
+                </div>
+            </div>
+
+            <!-- Home -->
+            <div id="homeScreen" class="screen">
+                <div class="screen-content">
+                    <div class="greeting" id="greetingText"></div>
+                    <div class="cycle-status" id="cycleStatusText"></div>
+                    <svg id="cycleRing" class="cycle-ring" viewBox="0 0 120 120"></svg>
+                    <div class="moon-widget" id="moonWidget"></div>
+                    <div class="affirmation" id="affirmationText"></div>
+                    <div class="wellness-card">
+                        <div class="wellness-header" onclick="toggleWellness()">
+                            <h3 id="wellnessTitle"></h3>
+                            <span class="toggle">▼</span>
+                        </div>
+                        <div class="wellness-content" id="wellnessContent"></div>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="btn-secondary" onclick="switchScreen('logScreen')" id="logTodayBtn"></button>
+                        <button class="btn-secondary" onclick="switchScreen('calendarScreen')" id="calendarBtn"></button>
+                    </div>
+                    <div class="upcoming" id="upcomingSection"></div>
+                </div>
+            </div>
+
+            <!-- Calendar -->
+            <div id="calendarScreen" class="screen">
+                <div class="screen-content">
+                    <div class="month-nav">
+                        <button onclick="previousMonth()">‹</button>
+                        <h2 id="monthYearText"></h2>
+                        <button onclick="nextMonth()">›</button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                    <div class="calendar-legend" id="calendarLegend"></div>
+                    <div class="day-detail-panel" id="dayDetailPanel"></div>
+                </div>
+            </div>
+
+            <!-- Log -->
+            <div id="logScreen" class="screen">
+                <div class="screen-content">
+                    <div class="log-title" id="logTitle"></div>
+                    <div class="log-date" id="logDate"></div>
+                    <div class="log-section">
+                        <div class="log-label" id="flowLabel"></div>
+                        <div class="flow-buttons" id="flowButtons"></div>
+                    </div>
+                    <div class="log-section">
+                        <div class="log-label" id="moodLabel"></div>
+                        <div class="mood-buttons" id="moodButtons"></div>
+                    </div>
+                    <div class="log-section">
+                        <div class="log-label" id="energyLabel"></div>
+                        <div class="energy-buttons" id="energyButtons"></div>
+                    </div>
+                    <div class="log-section">
+                        <div class="log-label" id="symptomsLabel"></div>
+                        <div class="symptoms-grid" id="symptomsGrid"></div>
+                    </div>
+                    <div class="log-section">
+                        <div class="log-label" id="notesLabel"></div>
+                        <textarea class="notes-textarea" id="notesInput"></textarea>
+                    </div>
+                    <button class="btn-save" id="saveEntryBtn" onclick="saveLogEntry()"></button>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            <div id="insightsScreen" class="screen">
+                <div class="screen-content">
+                    <div class="insights-title" id="insightsTitle"></div>
+                    <div class="stats-row" id="statsRow"></div>
+                    <div id="phaseCard"></div>
+                    <div id="predictionsCard"></div>
+                    <div id="symptomsCard"></div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div id="settingsScreen" class="screen">
+                <div class="screen-content" id="settingsContent"></div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab active" onclick="switchScreen('homeScreen')"><div style="font-size:20px">🏠</div><div id="tabHome"></div></div>
+            <div class="tab" onclick="switchScreen('calendarScreen')"><div style="font-size:20px">📅</div><div id="tabCal"></div></div>
+            <div class="tab" onclick="switchScreen('logScreen')"><div style="font-size:20px">✏️</div><div id="tabLog"></div></div>
+            <div class="tab" onclick="switchScreen('insightsScreen')"><div style="font-size:20px">📊</div><div id="tabIns"></div></div>
+            <div class="tab" onclick="switchScreen('settingsScreen')"><div style="font-size:20px">⚙️</div><div id="tabSet"></div></div>
+        </div>
+    </div>
+
+    <script>
+
+
+
+        let currentLang = localStorage.getItem('khloesmoon_lang') || 'es';
+        let profile = JSON.parse(localStorage.getItem('khloesmoon_profile')) || null;
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        function _(key) {
+            const lang = T[currentLang] || T['es'];
+            if (key.includes('.')) {
+                const parts = key.split('.');
+                let val = lang;
+                for (const p of parts) { val = val?.[p]; }
+                return val || key;
+            }
+            return lang[key] || key;
+        }
+
+        function getMoonPhase(date) {
+            const epoch = new Date(2000, 0, 6, 18, 14, 0);
+            const synodicMonth = 29.53058770576;
+            const diff = (date.getTime() - epoch.getTime()) / (1000*60*60*24);
+            const age = ((diff % synodicMonth) + synodicMonth) % synodicMonth;
+            const illumination = Math.round((1 - Math.cos(2*Math.PI*age/synodicMonth))/2 * 100);
+            const lunarDay = Math.floor(age) + 1;
+            let name, emoji;
+            if (age < 1.85) { name='new_moon'; emoji='🌑'; }
+            else if (age < 7.38) { name='waxing_crescent'; emoji='🌒'; }
+            else if (age < 9.23) { name='first_quarter'; emoji='🌓'; }
+            else if (age < 14.77) { name='waxing_gibbous'; emoji='🌔'; }
+            else if (age < 16.61) { name='full_moon'; emoji='🌕'; }
+            else if (age < 22.15) { name='waning_gibbous'; emoji='🌖'; }
+            else if (age < 23.99) { name='last_quarter'; emoji='🌗'; }
+            else { name='waning_crescent'; emoji='🌘'; }
+            return { age, illumination, lunarDay, name, emoji };
+        }
+
+        function getCycleDay(lastPeriod, targetDate = null) {
+            const last = new Date(lastPeriod);
+            const target = targetDate || new Date();
+            const diff = Math.floor((target - last) / (1000*60*60*24));
+            return ((diff % profile.cycleLength) + profile.cycleLength) % profile.cycleLength + 1;
+        }
+
+        function getPhase(day) {
+            const ov = profile.cycleLength - 14;
+            if (day <= profile.periodLength) return 'menstrual';
+            if (day < ov - 2) return 'follicular';
+            if (day <= ov + 1) return 'ovulation';
+            return 'luteal';
+        }
+
+        function getPhaseName(phaseKey) {
+            return _('phases.' + phaseKey + '.name');
+        }
+
+        function getPhaseColor(phaseKey) {
+            const colors = {
+                menstrual: 'var(--menstrual)',
+                follicular: 'var(--follicular)',
+                ovulation: 'var(--ovulation)',
+                luteal: 'var(--luteal)'
+            };
+            return colors[phaseKey] || '#999';
+        }
+
+        function getRawPhaseColor(phaseKey) {
+            const colors = {
+                menstrual: '#E74C3C',
+                follicular: '#F39C12',
+                ovulation: '#27AE60',
+                luteal: '#8E44AD'
+            };
+            return colors[phaseKey] || '#999';
+        }
+
+        function init() {
+            currentLang = localStorage.getItem('khloesmoon_lang') || 'es';
+            profile = JSON.parse(localStorage.getItem('khloesmoon_profile')) || null;
+
+            if (!profile) {
+                showOnboarding();
+            } else {
+                hideOnboarding();
+                renderHome();
+                updateTabLabels();
+            }
+        }
+
+        function updateTabLabels() {
+            document.getElementById('tabHome').textContent = _('home');
+            document.getElementById('tabCal').textContent = _('calendar');
+            document.getElementById('tabLog').textContent = _('log');
+            document.getElementById('tabIns').textContent = _('insights');
+            document.getElementById('tabSet').textContent = _('settings');
+        }
+
+        function showOnboarding() {
+            document.getElementById('onboardingScreen').classList.add('active');
+            document.getElementById('homeScreen').classList.remove('active');
+            updateOnboardingText();
+        }
+
+        function hideOnboarding() {
+            document.getElementById('onboardingScreen').classList.remove('active');
+            document.getElementById('homeScreen').classList.add('active');
+        }
+
+        function updateOnboardingText() {
+            document.getElementById('welcomeText').textContent = _('welcome');
+            document.getElementById('appNameText').textContent = _('app_name');
+            document.getElementById('welcomeDescText').textContent = _('welcome_desc');
+            document.getElementById('languageLabel').textContent = _('language');
+            document.getElementById('yourNameLabel').textContent = _('your_name');
+            document.getElementById('cycleLengthLabel').textContent = _('cycle_length');
+            document.getElementById('periodLengthLabel').textContent = _('period_length');
+            document.getElementById('lastPeriodLabel').textContent = _('last_period');
+            document.getElementById('startBtn').textContent = _('start');
+            document.getElementById('langSelect').value = currentLang;
+        }
+
+        function startApp() {
+            const name = document.getElementById('nameInput').value.trim();
+            const cycleLength = parseInt(document.getElementById('cycleLengthInput').value);
+            const periodLength = parseInt(document.getElementById('periodLengthInput').value);
+            const lastPeriod = document.getElementById('lastPeriodInput').value;
+
+            if (!name || !cycleLength || !periodLength || !lastPeriod) {
+                alert(_('fill_required'));
+                return;
+            }
+
+            profile = {
+                name: name,
+                cycleLength: cycleLength,
+                periodLength: periodLength,
+                lastPeriod: lastPeriod,
+                shareCode: Math.random().toString(36).substr(2, 6).toUpperCase()
+            };
+
+            localStorage.setItem('khloesmoon_profile', JSON.stringify(profile));
+            localStorage.setItem('khloesmoon_lang', currentLang);
+
+            hideOnboarding();
+            renderHome();
+            updateTabLabels();
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            const tabIndex = {
+                'homeScreen': 0,
+                'calendarScreen': 1,
+                'logScreen': 2,
+                'insightsScreen': 3,
+                'settingsScreen': 4
+            };
+            const tabs = document.querySelectorAll('.tab');
+            if (tabIndex[screenId] !== undefined) {
+                tabs[tabIndex[screenId]].classList.add('active');
+            }
+
+            if (screenId === 'homeScreen') renderHome();
+            else if (screenId === 'calendarScreen') renderCalendar();
+            else if (screenId === 'logScreen') renderLogScreen();
+            else if (screenId === 'insightsScreen') renderInsights();
+            else if (screenId === 'settingsScreen') renderSettings();
+        }
+
+        function renderHome() {
+            const today = new Date();
+            const cycleDay = getCycleDay(profile.lastPeriod);
+            const phase = getPhase(cycleDay);
+            const moon = getMoonPhase(today);
+
+            document.getElementById('greetingText').textContent = _('hello') + ', ' + profile.name + ' 🌙';
+
+            const phaseName = getPhaseName(phase);
+            const phaseColor = getRawPhaseColor(phase);
+            document.getElementById('cycleStatusText').innerHTML =
+                `<span class="phase-dot" style="background:${phaseColor}"></span>
+                ${_('cycle_day')} ${cycleDay} ${_('of')} ${profile.cycleLength} • ${phaseName}`;
+
+            const ringSvg = `
+                <circle cx="60" cy="60" r="55" fill="none" stroke="#ECE2D0" stroke-width="6"/>
+                <circle cx="60" cy="60" r="55" fill="none" stroke="${phaseColor}" stroke-width="6"
+                  stroke-dasharray="${(cycleDay/profile.cycleLength)*346}" stroke-dashoffset="0"/>
+                <text x="60" y="65" text-anchor="middle" font-size="24" font-weight="bold" fill="${phaseColor}">${cycleDay}</text>
+            `;
+            document.getElementById('cycleRing').innerHTML = ringSvg;
+
+            const illuminatedText = _('illuminated') || '%';
+            const lunarDayText = _('lunar_day') || 'Día lunar';
+            document.getElementById('moonWidget').textContent =
+                `${moon.emoji} ${_(moon.name)} • ${moon.illumination}% ${illuminatedText} • ${lunarDayText} ${moon.lunarDay}`;
+
+            document.getElementById('affirmationText').textContent = _('affirmations.' + phase);
+
+            document.getElementById('wellnessTitle').textContent = _('wellness');
+            const wellness = _('phases.' + phase + '.exercise');
+            const nutrition = _('phases.' + phase + '.foods');
+            const wellnessHtml = nutrition.map(f => `<div class="wellness-item">🥗 ${f}</div>`).join('') +
+                                 wellness.map(e => `<div class="wellness-item">🏃 ${e}</div>`).join('');
+            document.getElementById('wellnessContent').innerHTML = wellnessHtml;
+
+            document.getElementById('logTodayBtn').textContent = _('log_today');
+            document.getElementById('calendarBtn').textContent = _('view_calendar');
+
+            const lastPeriodDate = new Date(profile.lastPeriod);
+            const nextPeriodDate = new Date(lastPeriodDate.getTime() + profile.cycleLength * 24*60*60*1000);
+            const daysUntilPeriod = Math.ceil((nextPeriodDate - today) / (24*60*60*1000));
+
+            const ovulationDay = profile.cycleLength - 14;
+            const daysToOv = ovulationDay - cycleDay;
+            const nextOvulationDate = new Date(today.getTime() + Math.max(1, daysToOv) * 24*60*60*1000);
+            const nextFertileStart = new Date(nextOvulationDate.getTime() - 2*24*60*60*1000);
+            const nextFertileEnd = new Date(nextOvulationDate.getTime() + 24*60*60*1000);
+
+            const nextFullMoonDate = new Date(today.getTime() + (16 - moon.age) * 24*60*60*1000);
+            const nextNewMoonDate = new Date(today.getTime() + (29 - moon.age) * 24*60*60*1000);
+
+            const fmt = (d) => d.toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {month:'short', day:'numeric'});
+
+            const upcomingTitle = _('upcoming_events') || 'Upcoming';
+            const nextPeriodLabel = _('next_period') || 'Next Period';
+            const fertileLabel = _('fertile_window') || 'Fertile Window';
+            const fullMoonLabel = _('next_full_moon') || 'Next Full Moon';
+            const newMoonLabel = _('next_new_moon') || 'Next New Moon';
+            const inDaysLabel = _('in_days') || 'in';
+
+            document.getElementById('upcomingSection').innerHTML = `
+                <h3>${upcomingTitle}</h3>
+                <div class="upcoming-item">🔴 ${nextPeriodLabel}: ${fmt(nextPeriodDate)} (${daysUntilPeriod} ${inDaysLabel})</div>
+                <div class="upcoming-item">🟢 ${fertileLabel}: ${fmt(nextFertileStart)} - ${fmt(nextFertileEnd)}</div>
+                <div class="upcoming-item">🌕 ${fullMoonLabel}: ${fmt(nextFullMoonDate)}</div>
+                <div class="upcoming-item">🌑 ${newMoonLabel}: ${fmt(nextNewMoonDate)}</div>
+            `;
+        }
+
+        function toggleWellness() {
+            document.getElementById('wellnessContent').classList.toggle('expanded');
+        }
+
+        function renderCalendar() {
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+
+            document.getElementById('monthYearText').textContent =
+                _('months')[currentMonth] + ' ' + currentYear;
+
+            let html = '';
+            const daysShort = _('days_short');
+            daysShort.forEach(d => html += `<div class="day-header">${d}</div>`);
+
+            for (let i = firstDay.getDay() - 1; i >= 0; i--) {
+                html += '<div class="calendar-day" style="opacity:0.5"></div>';
+            }
+
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const cycleDay = getCycleDay(profile.lastPeriod, date);
+                const phase = getPhase(cycleDay);
+                const moon = getMoonPhase(date);
+                const isToday = date.toDateString() === new Date().toDateString();
+
+                html += `<div class="calendar-day ${phase} ${isToday ? 'today' : ''}" onclick="selectDay(${day})">
+                    <div class="day-number">${day}</div>
+                    <div class="day-moon">${moon.emoji}</div>
+                </div>`;
+            }
+
+            const nextDays = 42 - (lastDay.getDate() + firstDay.getDay());
+            for (let i = 1; i <= nextDays; i++) {
+                html += '<div class="calendar-day" style="opacity:0.5"></div>';
+            }
+
+            document.getElementById('calendarGrid').innerHTML = html;
+
+            document.getElementById('calendarLegend').textContent =
+                `🔴 ${getPhaseName('menstrual')} • 🟠 ${getPhaseName('follicular')} • 🟢 ${getPhaseName('ovulation')} • 🟣 ${getPhaseName('luteal')}`;
+        }
+
+        function previousMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+
+        function selectDay(day) {
+            const date = new Date(currentYear, currentMonth, day);
+            const cycleDay = getCycleDay(profile.lastPeriod, date);
+            const phase = getPhase(cycleDay);
+            const moon = getMoonPhase(date);
+
+            const fmt = date.toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {weekday:'long', month:'long', day:'numeric'});
+
+            document.getElementById('dayDetailPanel').classList.add('active');
+            document.getElementById('dayDetailPanel').innerHTML = `
+                <div class="detail-date">${fmt}</div>
+                <div style="font-size:12px; color:var(--secondary); margin-bottom:8px;">
+                    ${moon.emoji} ${_(moon.name)} • ${getPhaseName(phase)} (Day ${cycleDay})
+                </div>
+            `;
+        }
+
+        function renderLogScreen() {
+            const today = new Date();
+            const dateStr = today.toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', {month:'long', day:'numeric'});
+
+            document.getElementById('logTitle').textContent = _('how_feeling') || 'How are you?';
+            document.getElementById('logDate').textContent = dateStr;
+            document.getElementById('flowLabel').textContent = _('period_flow') || 'Flow';
+            document.getElementById('moodLabel').textContent = _('mood') || 'Mood';
+            document.getElementById('energyLabel').textContent = _('energy_level') || 'Energy';
+            document.getElementById('symptomsLabel').textContent = _('symptoms') || 'Symptoms';
+            document.getElementById('notesLabel').textContent = _('notes') || 'Notes';
+            document.getElementById('saveEntryBtn').textContent = _('save_entry') || 'Save';
+
+            let flowHtml = '';
+            flowHtml += `<button class="flow-button" onclick="selectFlow(0)">-</button>`;
+            flowHtml += `<button class="flow-button" onclick="selectFlow(1)">💧</button>`;
+            flowHtml += `<button class="flow-button" onclick="selectFlow(2)">💧💧</button>`;
+            flowHtml += `<button class="flow-button" onclick="selectFlow(3)">💧💧💧</button>`;
+            document.getElementById('flowButtons').innerHTML = flowHtml;
+
+            let moodHtml = '';
+            ['😢', '😐', '😊', '😄', '🤩'].forEach((mood, i) => {
+                moodHtml += `<button class="mood-button" onclick="selectMood(${i})">${mood}</button>`;
+            });
+            document.getElementById('moodButtons').innerHTML = moodHtml;
+
+            let energyHtml = '';
+            for (let i = 1; i <= 5; i++) {
+                energyHtml += `<button class="energy-button" onclick="selectEnergy(${i})">${i}</button>`;
+            }
+            document.getElementById('energyButtons').innerHTML = energyHtml;
+
+            const symptoms = _('symptom_names');
+            let sympHtml = '';
+            symptoms.forEach((s, i) => {
+                sympHtml += `<button class="symptom-chip" onclick="toggleSymptom(${i})">${s}</button>`;
+            });
+            document.getElementById('symptomsGrid').innerHTML = sympHtml;
+
+            document.getElementById('notesInput').placeholder = _('notes') || '';
+        }
+
+        function selectFlow(level) {
+            document.querySelectorAll('#flowButtons .flow-button').forEach((b, i) => {
+                b.classList.toggle('active', i === level);
+            });
+        }
+
+        function selectMood(level) {
+            document.querySelectorAll('#moodButtons .mood-button').forEach((b, i) => {
+                b.classList.toggle('active', i === level);
+            });
+        }
+
+        function selectEnergy(level) {
+            document.querySelectorAll('#energyButtons .energy-button').forEach((b, i) => {
+                b.classList.toggle('active', i + 1 === level);
+            });
+        }
+
+        function toggleSymptom(index) {
+            const buttons = document.querySelectorAll('#symptomsGrid .symptom-chip');
+            buttons[index].classList.toggle('active');
+        }
+
+        function saveLogEntry() {
+            const flow = document.querySelectorAll('#flowButtons .flow-button').findIndex(b => b.classList.contains('active'));
+            const mood = document.querySelectorAll('#moodButtons .mood-button').findIndex(b => b.classList.contains('active'));
+            const energy = document.querySelectorAll('#energyButtons .energy-button').findIndex(b => b.classList.contains('active')) + 1;
+            const symptoms = Array.from(document.querySelectorAll('#symptomsGrid .symptom-chip'))
+                .map((b, i) => b.classList.contains('active') ? i : -1)
+                .filter(i => i >= 0);
+            const notes = document.getElementById('notesInput').value;
+
+            const logs = JSON.parse(localStorage.getItem('khloesmoon_logs')) || [];
+            logs.push({
+                date: new Date().toISOString().split('T')[0],
+                flow: flow,
+                mood: mood,
+                energy: energy,
+                symptoms: symptoms,
+                notes: notes
+            });
+            localStorage.setItem('khloesmoon_logs', JSON.stringify(logs));
+
+            alert(_('saved_ok') || 'Saved!');
+        }
+
+        function renderInsights() {
+            const tuCicloText = _('insights') || 'Insights';
+            document.getElementById('insightsTitle').textContent = tuCicloText;
+
+            const avgCycleLabel = _('avg_cycle') || 'Avg Cycle';
+            const avgPeriodLabel = _('avg_period') || 'Avg Period';
+            const trackedMonthsLabel = _('tracked_months') || 'Months';
+
+            let statsHtml = `
+                <div class="stat-card">
+                    <div class="stat-label">${avgCycleLabel}</div>
+                    <div class="stat-value">${profile.cycleLength}d</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">${avgPeriodLabel}</div>
+                    <div class="stat-value">${profile.periodLength}d</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">${trackedMonthsLabel}</div>
+                    <div class="stat-value">1</div>
+                </div>
+            `;
+            document.getElementById('statsRow').innerHTML = statsHtml;
+
+            const cycleDay = getCycleDay(profile.lastPeriod);
+            const phase = getPhase(cycleDay);
+            const phaseColor = getRawPhaseColor(phase);
+
+            let phaseHtml = `
+                <div class="phase-card">
+                    <h3>${getPhaseName(phase)}</h3>
+                    <div class="phase-bar" style="background:${phaseColor}"></div>
+                    <div class="phase-desc">${_('phases.' + phase + '.desc')}</div>
+                </div>
+            `;
+            document.getElementById('phaseCard').innerHTML = phaseHtml;
+
+            const predictionsText = _('predictions') || 'Predictions';
+            let predHtml = `
+                <div class="phase-card">
+                    <h3>${predictionsText}</h3>
+                    <div style="font-size:12px; color:var(--secondary);">No predictions yet</div>
+                </div>
+            `;
+            document.getElementById('predictionsCard').innerHTML = predHtml;
+
+            const noDataText = _('no_data_yet') || 'Log data to see patterns';
+            let sympHtml = `
+                <div class="empty-state">${noDataText}</div>
+            `;
+            document.getElementById('symptomsCard').innerHTML = sympHtml;
+        }
+
+        function renderSettings() {
+            const profileLabel = _('profile') || 'Profile';
+            const editProfileBtn = _('edit_profile') || 'Edit';
+            const languageLabel = _('language') || 'Language';
+            const shareLabel = _('share_with_friends') || 'Share';
+            const shareDesc = _('share_explanation') || 'Share code with friend';
+            const yourCodeLabel = _('your_code') || 'Your Code';
+            const copyBtn = _('copy') || 'Copy';
+            const friendsLabel = _('friends') || 'Friends';
+            const addBtn = _('add') || 'Add';
+            const friendCodeLabel = _('friend_code') || 'Friend Code';
+            const resetBtn = _('reset_data') || 'Reset';
+
+            let settingsHtml = `
+                <div class="settings-section">
+                    <h3>${profileLabel}</h3>
+                    <div class="setting-row">
+                        <span class="setting-label">${_('your_name')}:</span>
+                        <span class="setting-value">${profile.name}</span>
+                    </div>
+                    <button class="btn-secondary" onclick="editProfile()" style="width:100%; margin-top:8px;">${editProfileBtn}</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>${languageLabel}</h3>
+                    <select class="setting-select" onchange="changeLanguage(this.value)">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                        <option value="pt">Português</option>
+                        <option value="de">Deutsch</option>
+                        <option value="it">Italiano</option>
+                        <option value="zh">中文</option>
+                        <option value="ja">日本語</option>
+                        <option value="ko">한국어</option>
+                    </select>
+                </div>
+
+                <div class="settings-section">
+                    <h3>${shareLabel}</h3>
+                    <p style="font-size:12px; color:var(--secondary); margin:0 0 8px 0;">${shareDesc}</p>
+                    <div class="share-code">${profile.shareCode}</div>
+                    <button class="btn-copy" onclick="copyCode()">${copyBtn}</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>${friendsLabel}</h3>
+                    <div class="add-friend-group">
+                        <input type="text" placeholder="${friendCodeLabel}" id="friendCodeInput">
+                        <button onclick="addFriend()">+ ${addBtn}</button>
+                    </div>
+                    <div class="friend-list" id="friendsList"></div>
+                </div>
+
+                <div class="settings-section">
+                    <button class="btn-danger" onclick="resetApp()">${resetBtn}</button>
+                </div>
+            `;
+            document.getElementById('settingsContent').innerHTML = settingsHtml;
+
+            document.querySelector('.setting-select').value = currentLang;
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('khloesmoon_lang', lang);
+            updateOnboardingText();
+            updateTabLabels();
+            renderHome();
+            renderSettings();
+        }
+
+        function editProfile() {
+            alert('Edit profile - coming soon');
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(profile.shareCode);
+            alert('Copied!');
+        }
+
+        function addFriend() {
+            const code = document.getElementById('friendCodeInput').value.trim().toUpperCase();
+            if (!code) return;
+
+            const friends = JSON.parse(localStorage.getItem('khloesmoon_friends')) || [];
+            if (friends.find(f => f.code === code)) {
+                alert('Friend already added');
+                return;
+            }
+
+            const names = ['Sofia', 'Maria', 'Emma', 'Ana', 'Laura', 'Lucia', 'Rosa', 'Elena'];
+            friends.push({
+                code: code,
+                name: names[Math.floor(Math.random() * names.length)],
+                cycleDay: Math.floor(Math.random() * 28) + 1
+            });
+            localStorage.setItem('khloesmoon_friends', JSON.stringify(friends));
+            document.getElementById('friendCodeInput').value = '';
+            renderSettings();
+        }
+
+        function resetApp() {
+            if (confirm('Are you sure? This will erase all data.')) {
+                localStorage.clear();
+                profile = null;
+                location.reload();
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                reg.update();
+                reg.addEventListener('updatefound', () => {
+                    const nw = reg.installing;
+                    nw.addEventListener('statechange', () => {
+                        if (nw.state === 'activated') location.reload();
+                    });
+                });
+            }).catch(e => console.log('SW:', e));
+        }
+
+        init();
+    </script>
+</body>
+</html>
