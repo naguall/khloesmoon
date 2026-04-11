@@ -1260,15 +1260,18 @@
 
                 <div class="settings-group">
                     <div class="settings-group-title" id="ai-label">AI Assistant</div>
-                    <div class="settings-item">
-                        <label class="settings-item-label" id="api-key-label">Gemini API Key</label>
+                    <div class="settings-item" style="font-size:11px;color:var(--secondary);margin-bottom:6px;">
+                        <span id="ai-shared-info">✨ El asistente está activo y listo para usar. Si prefieres usar tu propia cuenta de Gemini, puedes pegar tu API key abajo (opcional).</span>
                     </div>
                     <div class="settings-item">
-                        <input type="password" id="gemini-api-key" placeholder="AIza..." style="width: 100%;">
+                        <label class="settings-item-label" id="api-key-label">Gemini API Key (opcional)</label>
+                    </div>
+                    <div class="settings-item">
+                        <input type="password" id="gemini-api-key" placeholder="Dejar vacío para usar el asistente compartido" style="width: 100%;">
                     </div>
                     <button class="settings-btn" onclick="saveApiKey()" id="save-api-key-btn">Save Key</button>
                     <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-top: 6px;">
-                        <span id="api-key-hint">Get a free key at aistudio.google.com/app/apikey</span>
+                        <span id="api-key-hint">Para usar tu propia cuenta: aistudio.google.com/app/apikey</span>
                     </div>
                 </div>
 
@@ -3089,10 +3092,16 @@
         }
 
         // ============ GEMINI AI CHAT ============
+        // Shared proxy (key hidden server-side, same as Moon Tracker / AstroConnect)
+        const AI_PROXY_URL = 'https://moon-sync-ai.bearman-ux.workers.dev';
         let chatHistory = JSON.parse(localStorage.getItem('khloesmoon_chat_history') || '[]');
 
         function getApiKey() {
             return localStorage.getItem('khloesmoon_gemini_key') || '';
+        }
+
+        function aiIsAvailable() {
+            return !!(AI_PROXY_URL || getApiKey());
         }
 
         function saveApiKey() {
@@ -3178,8 +3187,9 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             const text = input.value.trim();
             if (!text) return;
 
-            const apiKey = getApiKey();
-            if (!apiKey) {
+            const personalKey = getApiKey();
+            // If no personal key AND no proxy available, block.
+            if (!personalKey && !AI_PROXY_URL) {
                 chatHistory.push({ role: 'user', text });
                 chatHistory.push({ role: 'system', text: _('chat_no_key') });
                 renderChatMessages();
@@ -3216,8 +3226,13 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
                     generationConfig: { temperature: 0.7, maxOutputTokens: 400 }
                 };
 
+                // Prefer personal key if provided; otherwise use shared proxy
+                const apiUrl = personalKey
+                    ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(personalKey)}`
+                    : AI_PROXY_URL;
+
                 const res = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+                    apiUrl,
                     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
                 );
 
