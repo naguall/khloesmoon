@@ -1,8 +1,10 @@
-const CACHE_NAME = 'khloesmoon-v22';
+const CACHE_NAME = 'khloesmoon-v24';
 const ASSETS = [
   './',
   './index.html',
+  './partner.html',
   './manifest.json',
+  './partner-manifest.json',
   './icon-192.png',
   './icon-512.png'
 ];

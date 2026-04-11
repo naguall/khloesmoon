@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Khloe's Moon · Partner</title>
+<meta name="theme-color" content="#D47F93">
+<link rel="manifest" href="partner-manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script>
+// Pre-declare edition BEFORE loading the main app so it boots in partner mode.
+window.APP_EDITION = 'partner';
+// Redirect to index.html with a flag the main app detects.
+// We use sessionStorage so the main app can read it before anything else runs.
+try {
+    sessionStorage.setItem('khloesmoon_edition', 'partner');
+    localStorage.setItem('khloesmoon_role', 'partner');
+} catch(e) {}
+location.replace('index.html?edition=partner');
+</script>
+<style>
+  body{margin:0;background:linear-gradient(135deg,#F4B6C2,#D47F93);color:#fff;font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:24px;}
+  .loader{font-size:54px;animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+</style>
+</head>
+<body>
+<div>
+  <div class="loader">💕</div>
+  <h1 style="margin:12px 0 4px;font-size:1.4rem;">Khloe's Moon · Partner</h1>
+  <div style="opacity:0.85;font-size:0.9rem;">Cargando modo pareja…</div>
+</div>
+</body>
+</html>

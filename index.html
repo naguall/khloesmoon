@@ -1017,6 +1017,27 @@
     </style>
 </head>
 <body>
+    <!-- ROLE SELECTION OVERLAY (shown on first open) -->
+    <div id="role-overlay" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#6D2E46,#8E44AD);z-index:9999;padding:24px;color:#fff;overflow-y:auto;">
+        <div style="max-width:380px;margin:40px auto 0;text-align:center;">
+            <div style="font-size:54px;margin-bottom:8px;">🌙</div>
+            <h1 style="margin:0 0 4px;font-size:1.6rem;font-weight:800;">Khloe's Moon</h1>
+            <div style="opacity:0.85;font-size:0.9rem;margin-bottom:28px;" id="role-tagline">¿Cómo vas a usar esta app?</div>
+
+            <button id="role-woman-btn" onclick="selectRole('woman')" style="width:100%;padding:16px;background:#fff;color:#6D2E46;border:none;border-radius:16px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,0.15);text-align:left;">
+                <div style="font-size:1.4rem;margin-bottom:4px;">🌸 <span id="role-woman-title">Rastrear mi ciclo</span></div>
+                <div style="font-size:0.78rem;font-weight:500;opacity:0.7;" id="role-woman-sub">Soy la persona que menstrúa. Quiero registrar mi ciclo, síntomas, humor y luna.</div>
+            </button>
+
+            <button id="role-partner-btn" onclick="selectRole('partner')" style="width:100%;padding:16px;background:linear-gradient(135deg,#F4B6C2,#D47F93);color:#fff;border:none;border-radius:16px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.15);text-align:left;">
+                <div style="font-size:1.4rem;margin-bottom:4px;">💕 <span id="role-partner-title">Acompañar a mi pareja</span></div>
+                <div style="font-size:0.78rem;font-weight:500;opacity:0.92;" id="role-partner-sub">Quiero entender en qué fase está y aprender cómo apoyarla mejor cada día.</div>
+            </button>
+
+            <div style="font-size:0.72rem;opacity:0.7;margin-top:14px;" id="role-footer">Puedes cambiar esto después en Ajustes</div>
+        </div>
+    </div>
+
     <div class="app-container">
         <div class="content" id="content">
             <!-- HOME SCREEN -->
@@ -1053,6 +1074,11 @@
                 </div>
 
                 <div class="moon-info" id="moon-info">🌖 40% illuminated • Lunar day 24</div>
+
+                <div style="margin:10px 14px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="settings-btn" style="flex:1;min-width:140px;margin:0;background:linear-gradient(135deg,#F4B6C2,#D47F93);color:#fff;font-weight:700;" onclick="switchScreen('partner-screen')" id="home-partner-btn">💕 Guía para tu Pareja</button>
+                    <button class="settings-btn" style="flex:1;min-width:140px;margin:0;background:linear-gradient(135deg,#B8D8E8,#6D9BC7);color:#fff;font-weight:700;" onclick="exportToCalendar()" id="home-calendar-btn">📅 Google Calendar</button>
+                </div>
 
                 <div class="today-events" id="today-events-container">
                     <div class="today-events-title" id="today-events-label">Today's Events</div>
@@ -1306,14 +1332,93 @@
                 </div>
 
                 <div class="settings-group">
+                    <div class="settings-group-title" id="partner-label">💕 Modo Pareja</div>
+                    <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-bottom: 8px;">
+                        <span id="partner-settings-explain">Abre la Guía para Pareja o envíale el enlace para que vea tu fase en tiempo real.</span>
+                    </div>
+                    <div class="settings-item" style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="settings-btn" style="flex:1;min-width:130px;margin:0;" onclick="switchScreen('partner-screen')" id="open-partner-btn">Abrir guía</button>
+                        <button class="settings-btn" style="flex:1;min-width:130px;margin:0;" onclick="sharePartnerLink()" id="share-partner-btn">📤 Enviar enlace</button>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-group-title" id="calendar-label">📅 Google Calendar</div>
+                    <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-bottom: 8px;">
+                        <span id="calendar-settings-explain">Exporta tus fechas (período, ovulación, ventana fértil y eventos) a un archivo .ics que puedes importar en Google Calendar.</span>
+                    </div>
+                    <button class="settings-btn" style="margin:0;" onclick="exportToCalendar()" id="export-calendar-btn">Exportar a Google Calendar</button>
+                </div>
+
+                <div class="settings-group">
                     <button class="settings-btn" onclick="forceUpdate()" id="force-update-btn">Force Update</button>
                     <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-top: 6px;">
-                        <span id="version-label">Version</span>: <span id="app-version">v21</span>
+                        <span id="version-label">Version</span>: <span id="app-version">v23</span>
                     </div>
                 </div>
 
                 <div class="settings-group">
                     <button class="settings-btn danger" onclick="resetData()" id="reset-data-btn">Reset All Data</button>
+                </div>
+            </div>
+
+            <!-- PARTNER GUIDE SCREEN -->
+            <div id="partner-screen" class="screen">
+                <div style="padding:16px 14px 8px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                        <button class="modal-btn secondary" style="padding:6px 10px;margin:0;font-size:14px;" onclick="switchScreen('home-screen')">←</button>
+                        <h2 id="partner-screen-title" style="margin:0;font-size:1.15rem;color:var(--primary);flex:1;">💕 Guía para tu Pareja</h2>
+                    </div>
+                    <div id="partner-subtitle" style="font-size:12px;color:var(--secondary);margin-top:4px;">Entiende su fase actual y aprende a apoyarla mejor</div>
+                </div>
+
+                <div id="partner-link-banner" style="margin:0 14px 12px;padding:10px 12px;background:linear-gradient(135deg,#F4B6C2,#D47F93);border-radius:12px;color:#fff;font-size:12px;display:none;">
+                    <div style="font-weight:700;margin-bottom:2px;">🔗 <span id="partner-linked-name">Viendo datos de:</span></div>
+                    <div id="partner-linked-info" style="opacity:0.95;">—</div>
+                </div>
+
+                <div id="partner-phase-card" style="margin:0 14px 12px;padding:16px;border-radius:16px;background:#6D2E46;color:#fff;box-shadow:0 4px 16px rgba(109,46,70,0.18);">
+                    <div style="font-size:11px;opacity:0.85;text-transform:uppercase;letter-spacing:0.5px;">Fase actual</div>
+                    <div id="partner-phase-name" style="font-size:1.6rem;font-weight:800;margin-top:3px;">—</div>
+                    <div id="partner-phase-day" style="font-size:0.9rem;opacity:0.95;margin-top:2px;">—</div>
+                    <div id="partner-phase-mood" style="margin-top:10px;font-size:0.92rem;font-style:italic;opacity:0.95;">—</div>
+                </div>
+
+                <!-- CONFLICT PREDICTION CARD -->
+                <div id="partner-friction-card" style="margin:0 14px 12px;padding:14px;border-radius:14px;background:#FFEBEE;border-left:4px solid #C62828;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#C62828;font-size:0.95rem;">⚠️ <span id="partner-friction-title">Riesgo de fricción hoy</span></div>
+                        <span id="partner-friction-badge" style="background:#C62828;color:#fff;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:700;text-transform:uppercase;">—</span>
+                    </div>
+                    <div id="partner-friction-reason" style="font-size:0.82rem;color:#555;margin-bottom:8px;font-style:italic;">—</div>
+                    <div style="font-weight:700;color:#333;font-size:0.85rem;margin-bottom:4px;" id="partner-tactics-label">Tácticas para hoy:</div>
+                    <ul id="partner-friction-tactics" style="margin:0;padding-left:20px;color:#333;font-size:0.85rem;line-height:1.5;"></ul>
+                    <div id="partner-next-high" style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(0,0,0,0.1);font-size:0.78rem;color:#666;">—</div>
+                </div>
+
+                <div style="margin:0 14px 12px;padding:14px;border-radius:14px;background:#E8F5E9;border-left:4px solid #4CAF50;">
+                    <div style="font-weight:700;color:#2E7D32;margin-bottom:8px;font-size:0.95rem;">✅ <span id="partner-dos-title">Qué hacer</span></div>
+                    <ul id="partner-dos-list" style="margin:0;padding-left:20px;color:#1B5E20;font-size:0.88rem;line-height:1.55;"></ul>
+                </div>
+
+                <div style="margin:0 14px 12px;padding:14px;border-radius:14px;background:#FFEBEE;border-left:4px solid #E53935;">
+                    <div style="font-weight:700;color:#C62828;margin-bottom:8px;font-size:0.95rem;">⛔ <span id="partner-donts-title">Qué evitar</span></div>
+                    <ul id="partner-donts-list" style="margin:0;padding-left:20px;color:#B71C1C;font-size:0.88rem;line-height:1.55;"></ul>
+                </div>
+
+                <div style="margin:0 14px 12px;padding:14px;border-radius:14px;background:linear-gradient(135deg,#FFF3E0,#FFE0B2);">
+                    <div style="font-weight:700;color:#E65100;margin-bottom:6px;font-size:0.95rem;">💡 <span id="partner-tip-title">Tip del día</span></div>
+                    <div id="partner-tip-text" style="color:#BF360C;font-size:0.88rem;line-height:1.5;">—</div>
+                </div>
+
+                <div style="margin:0 14px 14px;padding:14px;border-radius:14px;background:#F3E5F5;">
+                    <div style="font-weight:700;color:#6A1B9A;margin-bottom:8px;font-size:0.95rem;">📅 <span id="partner-upcoming-title">Próximamente</span></div>
+                    <div id="partner-upcoming-text" style="color:#4A148C;font-size:0.88rem;line-height:1.55;">—</div>
+                </div>
+
+                <div style="margin:0 14px 18px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="settings-btn" style="flex:1;min-width:140px;" onclick="sharePartnerLink()" id="partner-share-btn">📤 Enviar a mi pareja</button>
+                    <button class="settings-btn" style="flex:1;min-width:140px;" onclick="unlinkPartner()" id="partner-unlink-btn" style="display:none;">Desvincular</button>
                 </div>
             </div>
 
@@ -2689,12 +2794,744 @@
 
         // ============ STATE & STORAGE ============
         let currentLanguage = localStorage.getItem('khloesmoon_lang') || 'es';
-        let profile = JSON.parse(localStorage.getItem('khloesmoon_profile')) || { name: '', cycleLength: 28, periodLength: 5, lastPeriod: '', shareCode: '' };
+        let profile = JSON.parse(localStorage.getItem('khloesmoon_profile')) || { name: '', cycleLength: 28, periodLength: 5, lastPeriod: '', shareCode: '', role: '' };
+        // Normalize: older profiles without role
+        if (!profile.role) profile.role = localStorage.getItem('khloesmoon_role') || '';
+        // If this HTML file pre-declared APP_EDITION='partner' (partner.html), force role
+        if (typeof window.APP_EDITION !== 'undefined' && window.APP_EDITION === 'partner') {
+            profile.role = 'partner';
+            localStorage.setItem('khloesmoon_role', 'partner');
+        }
+        // Also detect partner edition via ?edition=partner query param or sessionStorage flag (set by partner.html)
+        try {
+            const _params = new URLSearchParams(location.search);
+            if (_params.get('edition') === 'partner' || sessionStorage.getItem('khloesmoon_edition') === 'partner') {
+                window.APP_EDITION = 'partner';
+                profile.role = 'partner';
+                localStorage.setItem('khloesmoon_role', 'partner');
+            }
+        } catch(e) {}
         let logs = JSON.parse(localStorage.getItem('khloesmoon_logs')) || {};
         let events = JSON.parse(localStorage.getItem('khloesmoon_events')) || {};
         let friends = JSON.parse(localStorage.getItem('khloesmoon_friends')) || [];
         let currentMonth = new Date();
         let selectedDay = null;
+
+        // ============ PARTNER GUIDE ============
+        // Multilingual advice per phase. Rooted in validated sources (Flo, Clue,
+        // cycle-syncing nutrition literature) but written in plain partner-friendly language.
+        const PARTNER_ADVICE = {
+            es: {
+                menstrual: {
+                    label: 'Fase Menstrual',
+                    mood: 'Puede sentirse cansada, sensible o con cólicos. Necesita descanso, calor y comprensión.',
+                    dos: [
+                        'Ofrece una bolsa de agua caliente o una manta suave',
+                        'Prepárale algo cálido: té, caldo, sopa',
+                        'Dale espacio para descansar sin hacerla sentir culpable',
+                        'Pregúntale cómo está sin juzgar la respuesta',
+                        'Ayuda con tareas del hogar sin que tenga que pedirlo'
+                    ],
+                    donts: [
+                        'No digas "estás exagerando" o "es solo tu período"',
+                        'No la presiones para salir o hacer planes sociales',
+                        'No hagas bromas sobre su estado de ánimo',
+                        'No le ofrezcas soluciones rápidas cuando solo quiere ser escuchada'
+                    ],
+                    tip: 'Los días 1-2 son los más intensos físicamente. Hoy vale más un abrazo y un rato de silencio que intentar "arreglar" nada.'
+                },
+                follicular: {
+                    label: 'Fase Folicular',
+                    mood: 'Su energía está subiendo. Se siente optimista, curiosa y con ganas de hacer cosas nuevas.',
+                    dos: [
+                        'Propón planes o salidas: está receptiva a aventuras',
+                        'Es buen momento para conversaciones importantes y decisiones',
+                        'Apóyala en nuevos proyectos — su creatividad está en alza',
+                        'Invítala a hacer ejercicio juntos (caminar, bailar, deporte)',
+                        'Disfruten de tiempo de calidad fuera de casa'
+                    ],
+                    donts: [
+                        'No canceles planes de último momento — puede sentirlo mucho',
+                        'No asumas que todavía está "delicada" como la semana pasada',
+                        'No seas pesimista con sus ideas nuevas'
+                    ],
+                    tip: 'Esta es la mejor fase para probar algo juntos: un restaurante nuevo, una excursión, un proyecto. Su apertura está en su punto más alto.'
+                },
+                ovulation: {
+                    label: 'Fase Ovulación',
+                    mood: 'Está en su pico de energía, confianza y deseo. Se siente social, atractiva y conectada.',
+                    dos: [
+                        'Dale cumplidos genuinos — los recibirá plenamente',
+                        'Es un gran momento para la intimidad y el contacto físico',
+                        'Propón una cita romántica o algo especial',
+                        'Escucha y participa en conversaciones profundas',
+                        'Apoya sus ambiciones — se siente capaz de todo'
+                    ],
+                    donts: [
+                        'No minimices sus logros o sus ideas grandes',
+                        'No estés distante o distraído con el teléfono',
+                        'No ignores señales de conexión física'
+                    ],
+                    tip: 'Hoy la química está al máximo. Una cena, una mirada, un mensaje bonito a media tarde pueden significar mucho más de lo normal.'
+                },
+                luteal: {
+                    label: 'Fase Lútea',
+                    mood: 'Su energía va bajando. Puede sentirse irritable, ansiosa o sensible (SPM). Necesita paciencia y cuidado.',
+                    dos: [
+                        'Anticipa sus necesidades: agua, chocolate oscuro, snacks',
+                        'Dale más espacio emocional del habitual',
+                        'Valida sus emociones sin intentar solucionarlas',
+                        'Ayuda con responsabilidades antes de que se sobrecargue',
+                        'Planes tranquilos: peli, baño, masaje en los pies'
+                    ],
+                    donts: [
+                        'No discutas por temas menores — no vale la pena',
+                        'No digas "¿estás con la regla?" cuando esté molesta',
+                        'No la critiques ni le hagas comentarios sobre el cuerpo',
+                        'No planifiques eventos sociales grandes sin consultarle'
+                    ],
+                    tip: 'La semana antes del período es la más delicada. Un "¿cómo te puedo ayudar?" sincero vale oro. Reduce conflicto, aumenta paciencia.'
+                }
+            },
+            en: {
+                menstrual: {
+                    label: 'Menstrual Phase',
+                    mood: 'She may feel tired, sensitive, or have cramps. She needs rest, warmth and understanding.',
+                    dos: [
+                        'Offer a hot water bottle or a soft blanket',
+                        'Make something warm: tea, broth, soup',
+                        'Give her space to rest without guilt',
+                        'Ask how she is without judging the answer',
+                        'Help with chores without being asked'
+                    ],
+                    donts: [
+                        'Don\'t say "you\'re exaggerating" or "it\'s just your period"',
+                        'Don\'t pressure her to go out or socialize',
+                        'Don\'t joke about her mood',
+                        'Don\'t offer quick fixes when she just wants to be heard'
+                    ],
+                    tip: 'Days 1-2 are physically the toughest. Today, a hug and some quiet time mean more than trying to "fix" anything.'
+                },
+                follicular: {
+                    label: 'Follicular Phase',
+                    mood: 'Her energy is rising. She feels optimistic, curious and ready for new things.',
+                    dos: [
+                        'Suggest plans or outings: she\'s open to adventure',
+                        'Good time for important conversations and decisions',
+                        'Support her new projects — creativity is peaking',
+                        'Invite her to exercise together',
+                        'Enjoy quality time outside the house'
+                    ],
+                    donts: [
+                        'Don\'t cancel plans last minute',
+                        'Don\'t assume she\'s still "delicate" like last week',
+                        'Don\'t be pessimistic about her new ideas'
+                    ],
+                    tip: 'This is the best phase to try something new together. Her openness is at its peak.'
+                },
+                ovulation: {
+                    label: 'Ovulation Phase',
+                    mood: 'She\'s at her peak in energy, confidence and desire. She feels social, attractive and connected.',
+                    dos: [
+                        'Give genuine compliments — she\'ll receive them fully',
+                        'Great time for intimacy and physical connection',
+                        'Plan a romantic date or something special',
+                        'Engage in deep conversations',
+                        'Support her ambitions'
+                    ],
+                    donts: [
+                        'Don\'t minimize her achievements or big ideas',
+                        'Don\'t be distant or distracted by your phone',
+                        'Don\'t ignore signals for physical connection'
+                    ],
+                    tip: 'Today chemistry is at its max. A dinner, a glance, a sweet message can mean much more than usual.'
+                },
+                luteal: {
+                    label: 'Luteal Phase',
+                    mood: 'Her energy is dropping. She may feel irritable, anxious or sensitive (PMS). She needs patience and care.',
+                    dos: [
+                        'Anticipate her needs: water, dark chocolate, snacks',
+                        'Give more emotional space than usual',
+                        'Validate her feelings without trying to fix them',
+                        'Help with responsibilities before she gets overwhelmed',
+                        'Chill plans: movie, bath, foot massage'
+                    ],
+                    donts: [
+                        'Don\'t argue over small things',
+                        'Don\'t say "are you on your period?" when she\'s upset',
+                        'Don\'t criticize or comment on her body',
+                        'Don\'t plan big social events without checking in'
+                    ],
+                    tip: 'The week before her period is the most delicate. A sincere "how can I help?" is worth gold.'
+                }
+            }
+        };
+
+        // ============ CONFLICT PREDICTION (VibeCheck-style) ============
+        // Given a cycle day + phase + cycleLength, classify friction risk and give tactical advice.
+        const CONFLICT_WINDOWS = {
+            es: {
+                high: {
+                    label: 'Alto',
+                    color: '#C62828',
+                    bg: '#FFEBEE'
+                },
+                medium: {
+                    label: 'Medio',
+                    color: '#E65100',
+                    bg: '#FFF3E0'
+                },
+                low: {
+                    label: 'Bajo',
+                    color: '#2E7D32',
+                    bg: '#E8F5E9'
+                },
+                reasons: {
+                    pms: 'Fase lútea tardía (SPM): mayor sensibilidad emocional e irritabilidad',
+                    period_day1: 'Primeros días de período: dolor físico y cansancio',
+                    period_day2: 'Período activo: fatiga y sensibilidad aún presentes',
+                    ovulation_peak: 'Pico ovulatorio: emociones más intensas aunque positivas',
+                    follicular: 'Fase folicular: mejor momento del ciclo para hablar sin fricción',
+                    luteal_mid: 'Fase lútea media: energía bajando, requiere más paciencia'
+                },
+                tactics: {
+                    high: [
+                        'Evita discutir temas importantes o financieros hoy',
+                        'Si sientes tensión, da espacio en lugar de insistir',
+                        'Valida sus sentimientos antes de dar soluciones',
+                        'Pospone decisiones grandes 2-3 días si es posible',
+                        'Baja el volumen literal y figurado: voz calma, menos estímulos'
+                    ],
+                    medium: [
+                        'Sé atento pero no invasivo',
+                        'Pregúntale cómo quiere el día en vez de asumir',
+                        'Mantén planes ligeros y flexibles',
+                        'Si surge roce, respira y no respondas inmediatamente'
+                    ],
+                    low: [
+                        'Gran momento para conversaciones importantes',
+                        'Hoy es perfecto para planes nuevos y citas',
+                        'Aprovecha para hablar de temas que hayas evitado',
+                        'Disfruten actividades sociales juntos'
+                    ]
+                },
+                nextHighLabel: 'Próxima ventana de fricción alta'
+            },
+            en: {
+                high: { label: 'High', color: '#C62828', bg: '#FFEBEE' },
+                medium: { label: 'Medium', color: '#E65100', bg: '#FFF3E0' },
+                low: { label: 'Low', color: '#2E7D32', bg: '#E8F5E9' },
+                reasons: {
+                    pms: 'Late luteal phase (PMS): heightened emotional sensitivity and irritability',
+                    period_day1: 'First days of period: physical pain and fatigue',
+                    period_day2: 'Active period: fatigue and sensitivity still present',
+                    ovulation_peak: 'Ovulation peak: more intense emotions, often positive',
+                    follicular: 'Follicular phase: best cycle moment for low-friction conversations',
+                    luteal_mid: 'Mid-luteal: energy dropping, more patience needed'
+                },
+                tactics: {
+                    high: [
+                        'Avoid discussing important or financial topics today',
+                        'If tension rises, give space instead of pushing',
+                        'Validate her feelings before offering solutions',
+                        'Postpone big decisions 2-3 days if possible',
+                        'Lower the volume — literal and figurative'
+                    ],
+                    medium: [
+                        'Be attentive but not invasive',
+                        'Ask how she wants the day to go',
+                        'Keep plans light and flexible',
+                        'If friction arises, breathe before responding'
+                    ],
+                    low: [
+                        'Great moment for important conversations',
+                        'Perfect day for new plans and dates',
+                        'Bring up topics you\'ve been avoiding',
+                        'Enjoy social activities together'
+                    ]
+                },
+                nextHighLabel: 'Next high-friction window'
+            }
+        };
+
+        function computeFrictionForDay(dayInCycle, cycleLength, periodLength) {
+            // Returns { level: 'high'|'medium'|'low', reasonKey: string, phase: string }
+            const cl = cycleLength || 28;
+            const pl = periodLength || 5;
+            const halfCycle = Math.floor(cl / 2);
+            const pmsStart = cl - 6; // last 6 days of cycle = PMS window
+
+            if (dayInCycle === 1 || dayInCycle === 2) {
+                return { level: 'high', reasonKey: dayInCycle === 1 ? 'period_day1' : 'period_day2', phase: 'menstrual' };
+            }
+            if (dayInCycle <= pl) {
+                return { level: 'medium', reasonKey: 'period_day2', phase: 'menstrual' };
+            }
+            if (dayInCycle <= halfCycle - 1) {
+                return { level: 'low', reasonKey: 'follicular', phase: 'follicular' };
+            }
+            if (dayInCycle >= halfCycle && dayInCycle <= halfCycle + 2) {
+                return { level: 'medium', reasonKey: 'ovulation_peak', phase: 'ovulation' };
+            }
+            if (dayInCycle >= pmsStart) {
+                return { level: 'high', reasonKey: 'pms', phase: 'luteal' };
+            }
+            return { level: 'medium', reasonKey: 'luteal_mid', phase: 'luteal' };
+        }
+
+        function daysUntilNextHighFriction(dayInCycle, cycleLength) {
+            const cl = cycleLength || 28;
+            const pmsStart = cl - 6;
+            if (dayInCycle >= pmsStart || dayInCycle <= 2) return 0;
+            // Next high window starts at pmsStart
+            return pmsStart - dayInCycle;
+        }
+
+        // Partner view state: may be linked to a specific friend/partner by shareCode
+        let linkedPartnerCode = localStorage.getItem('khloesmoon_linked_partner') || '';
+        let linkedPartnerData = null; // cached data from Firestore
+        let _linkedPartnerUnsub = null; // active onSnapshot unsubscribe
+
+        function getPartnerLang() {
+            const lang = (typeof currentLanguage !== 'undefined' && currentLanguage) ? currentLanguage : 'es';
+            return PARTNER_ADVICE[lang] ? lang : (PARTNER_ADVICE.es ? 'es' : 'en');
+        }
+
+        function daysUntil(date) {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const d = new Date(date); d.setHours(0,0,0,0);
+            return Math.round((d - today) / 86400000);
+        }
+
+        function predictNextPeriodFromProfile(p) {
+            if (!p || !p.lastPeriod) return null;
+            const last = new Date(p.lastPeriod);
+            const cl = p.cycleLength || 28;
+            const today = new Date();
+            let next = new Date(last);
+            while (next <= today) next = new Date(next.getTime() + cl * 86400000);
+            return next;
+        }
+
+        function renderPartnerScreen() {
+            const lang = getPartnerLang();
+            const advice = PARTNER_ADVICE[lang];
+            const banner = document.getElementById('partner-link-banner');
+            let phase, day, cycleLen, nextPeriod, displayName;
+
+            if (linkedPartnerData && linkedPartnerData.profile) {
+                const p = linkedPartnerData.profile;
+                const ci = getCycleDayFor(new Date(), p);
+                phase = ci.phase;
+                day = ci.day;
+                cycleLen = p.cycleLength || 28;
+                nextPeriod = predictNextPeriodFromProfile(p);
+                displayName = linkedPartnerData.name || p.name || 'Pareja';
+                banner.style.display = 'block';
+                document.getElementById('partner-linked-name').textContent = (lang === 'es' ? 'Viendo datos de:' : 'Viewing data of:');
+                document.getElementById('partner-linked-info').textContent = displayName + ' · ' + (lang === 'es' ? 'en vivo' : 'live');
+                document.getElementById('partner-unlink-btn').style.display = '';
+            } else {
+                const ci = getCycleDay(new Date());
+                phase = ci.phase;
+                day = ci.day;
+                cycleLen = profile.cycleLength || 28;
+                nextPeriod = predictNextPeriodFromProfile(profile);
+                displayName = profile.name || (lang === 'es' ? 'tu pareja' : 'your partner');
+                banner.style.display = 'none';
+                document.getElementById('partner-unlink-btn').style.display = 'none';
+            }
+
+            const data = advice[phase] || advice.follicular;
+            document.getElementById('partner-phase-name').textContent = data.label;
+            document.getElementById('partner-phase-day').textContent = (lang === 'es' ? 'Día ' : 'Day ') + day + (lang === 'es' ? ' de ' : ' of ') + cycleLen;
+            document.getElementById('partner-phase-mood').textContent = data.mood;
+
+            const dosUl = document.getElementById('partner-dos-list');
+            dosUl.innerHTML = '';
+            data.dos.forEach(function(t) { const li = document.createElement('li'); li.textContent = t; dosUl.appendChild(li); });
+
+            const dontsUl = document.getElementById('partner-donts-list');
+            dontsUl.innerHTML = '';
+            data.donts.forEach(function(t) { const li = document.createElement('li'); li.textContent = t; dontsUl.appendChild(li); });
+
+            document.getElementById('partner-tip-text').textContent = data.tip;
+
+            // Upcoming section
+            let upcoming = '';
+            if (nextPeriod) {
+                const du = daysUntil(nextPeriod);
+                if (du <= 0) upcoming = (lang === 'es' ? 'Período en curso' : 'Period in progress');
+                else if (du === 1) upcoming = (lang === 'es' ? 'Próximo período: mañana' : 'Next period: tomorrow');
+                else upcoming = (lang === 'es' ? 'Próximo período en ' : 'Next period in ') + du + (lang === 'es' ? ' días' : ' days');
+            } else {
+                upcoming = (lang === 'es' ? 'Sin datos suficientes para predecir' : 'Not enough data to predict');
+            }
+            document.getElementById('partner-upcoming-text').textContent = upcoming;
+
+            // ===== Conflict Prediction =====
+            const sourceProfile = (linkedPartnerData && linkedPartnerData.profile) ? linkedPartnerData.profile : profile;
+            const friction = computeFrictionForDay(day, sourceProfile.cycleLength || 28, sourceProfile.periodLength || 5);
+            const cw = CONFLICT_WINDOWS[lang] || CONFLICT_WINDOWS.es;
+            const level = cw[friction.level];
+            const frictionCard = document.getElementById('partner-friction-card');
+            frictionCard.style.background = level.bg;
+            frictionCard.style.borderLeftColor = level.color;
+            const title = document.getElementById('partner-friction-title');
+            title.style.color = level.color;
+            title.textContent = (lang === 'es' ? 'Riesgo de fricción hoy' : 'Today\'s friction risk');
+            const badge = document.getElementById('partner-friction-badge');
+            badge.textContent = level.label;
+            badge.style.background = level.color;
+            document.getElementById('partner-friction-reason').textContent = cw.reasons[friction.reasonKey] || '';
+            document.getElementById('partner-tactics-label').textContent = (lang === 'es' ? 'Tácticas para hoy:' : 'Tactics for today:');
+            const tacticsUl = document.getElementById('partner-friction-tactics');
+            tacticsUl.innerHTML = '';
+            (cw.tactics[friction.level] || []).forEach(function(t) {
+                const li = document.createElement('li');
+                li.textContent = t;
+                tacticsUl.appendChild(li);
+            });
+            // Next high-friction window
+            const nh = daysUntilNextHighFriction(day, sourceProfile.cycleLength || 28);
+            const nhEl = document.getElementById('partner-next-high');
+            if (friction.level === 'high') {
+                nhEl.textContent = (lang === 'es' ? '🔴 En ventana alta ahora mismo' : '🔴 Currently in high-friction window');
+            } else if (nh === 0) {
+                nhEl.textContent = (lang === 'es' ? '🔴 En ventana alta ahora' : '🔴 Currently high-friction');
+            } else {
+                nhEl.textContent = '📅 ' + cw.nextHighLabel + ': ' + (lang === 'es' ? 'en ' : 'in ') + nh + (lang === 'es' ? ' días' : ' days');
+            }
+
+            // Localized titles
+            document.getElementById('partner-screen-title').textContent = (lang === 'es' ? '💕 Guía para tu Pareja' : '💕 Partner Guide');
+            document.getElementById('partner-subtitle').textContent = (lang === 'es' ? 'Entiende su fase actual y aprende a apoyarla mejor' : 'Understand her current phase and learn how to support her');
+            document.getElementById('partner-dos-title').textContent = (lang === 'es' ? 'Qué hacer' : 'What to do');
+            document.getElementById('partner-donts-title').textContent = (lang === 'es' ? 'Qué evitar' : 'What to avoid');
+            document.getElementById('partner-tip-title').textContent = (lang === 'es' ? 'Tip del día' : 'Today\'s tip');
+            document.getElementById('partner-upcoming-title').textContent = (lang === 'es' ? 'Próximamente' : 'Upcoming');
+            document.getElementById('partner-share-btn').textContent = (lang === 'es' ? '📤 Enviar a mi pareja' : '📤 Send to my partner');
+            document.getElementById('partner-unlink-btn').textContent = (lang === 'es' ? 'Desvincular' : 'Unlink');
+            document.getElementById('home-partner-btn').textContent = (lang === 'es' ? '💕 Guía para tu Pareja' : '💕 Partner Guide');
+            document.getElementById('home-calendar-btn').textContent = (lang === 'es' ? '📅 Google Calendar' : '📅 Google Calendar');
+        }
+
+        // getCycleDay variant that accepts an explicit profile (for partner view)
+        function getCycleDayFor(date, p) {
+            if (!p || !p.lastPeriod) return { day: 1, phase: 'follicular' };
+            const lastPeriodDate = new Date(p.lastPeriod);
+            const diff = Math.floor((date - lastPeriodDate) / 86400000);
+            const cycleLength = p.cycleLength || 28;
+            const dayInCycle = ((diff % cycleLength) + cycleLength) % cycleLength + 1;
+            const periodLen = p.periodLength || 5;
+            let phase = 'follicular';
+            if (dayInCycle <= periodLen) phase = 'menstrual';
+            else if (dayInCycle <= Math.floor(cycleLength / 2)) phase = 'follicular';
+            else if (dayInCycle <= Math.floor(cycleLength / 2) + 2) phase = 'ovulation';
+            else phase = 'luteal';
+            return { day: dayInCycle, phase };
+        }
+
+        // Share this guide with partner
+        function sharePartnerLink() {
+            const lang = getPartnerLang();
+            const baseUrl = (location.origin + location.pathname).replace(/\/$/, '/');
+            // If user has shareCode, include it so partner sees her live data
+            const code = profile.shareCode || '';
+            const url = code ? (baseUrl + '?partner=' + encodeURIComponent(code)) : baseUrl;
+            const title = 'Khloe\'s Moon — ' + (lang === 'es' ? 'Guía para Pareja' : 'Partner Guide');
+            const msg = (lang === 'es'
+                ? 'Hola mi amor 💕 Descargá Khloe\'s Moon y sabé cómo apoyarme según mi fase del ciclo. Abrí este enlace:\n\n'
+                : 'Hi love 💕 Download Khloe\'s Moon and learn how to support me based on my cycle phase. Open this link:\n\n') + url;
+            if (navigator.share) {
+                navigator.share({ title: title, text: msg, url: url }).catch(function(){});
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(msg).then(function(){
+                    alert(lang === 'es' ? 'Enlace copiado al portapapeles' : 'Link copied to clipboard');
+                });
+            } else {
+                prompt(lang === 'es' ? 'Copia este enlace:' : 'Copy this link:', url);
+            }
+        }
+
+        function unlinkPartner() {
+            linkedPartnerCode = '';
+            linkedPartnerData = null;
+            localStorage.removeItem('khloesmoon_linked_partner');
+            renderPartnerScreen();
+        }
+
+        // Check URL for ?partner=CODE and link automatically
+        function checkPartnerUrlParam() {
+            try {
+                const params = new URLSearchParams(location.search);
+                const code = params.get('partner');
+                if (code) {
+                    linkedPartnerCode = code.toUpperCase();
+                    localStorage.setItem('khloesmoon_linked_partner', linkedPartnerCode);
+                    // Remove query param from URL without reload
+                    if (history.replaceState) history.replaceState({}, '', location.pathname);
+                    // Open partner screen after short delay
+                    setTimeout(function() {
+                        fetchLinkedPartnerData();
+                        switchScreen('partner-screen');
+                    }, 800);
+                } else if (linkedPartnerCode) {
+                    // Already linked: refresh data
+                    setTimeout(fetchLinkedPartnerData, 1500);
+                }
+            } catch(e) { console.warn('partner url parse failed', e); }
+        }
+
+        function fetchLinkedPartnerData() {
+            if (!linkedPartnerCode || !_db) return;
+            // Prefer live listener; fall back to one-shot if listener fails
+            if (_linkedPartnerUnsub) { try { _linkedPartnerUnsub(); } catch(e){} _linkedPartnerUnsub = null; }
+            try {
+                _linkedPartnerUnsub = _db.collection('khloesmoon_users')
+                    .where('shareCode', '==', linkedPartnerCode)
+                    .limit(1)
+                    .onSnapshot(function(snap) {
+                        if (!snap.empty) {
+                            const data = snap.docs[0].data();
+                            linkedPartnerData = data;
+                            // Notify partner if cycle data just changed
+                            try { notifyCycleUpdateIfChanged(data); } catch(e){}
+                            if (document.getElementById('partner-screen').classList.contains('active')) {
+                                renderPartnerScreen();
+                            }
+                            if (profile.role === 'partner' && document.getElementById('home-screen').classList.contains('active')) {
+                                updateHome();
+                            }
+                        }
+                    }, function(err) { console.warn('partner snapshot err', err); });
+            } catch(e) { console.warn('partner listener failed, fallback one-shot', e);
+                _db.collection('khloesmoon_users').where('shareCode','==',linkedPartnerCode).limit(1).get()
+                    .then(function(snap){ if(!snap.empty){ linkedPartnerData = snap.docs[0].data(); if(document.getElementById('partner-screen').classList.contains('active')) renderPartnerScreen(); } })
+                    .catch(function(e){ console.warn('fallback fetch failed', e); });
+            }
+        }
+
+        // ============ LIVE UPDATE NOTIFICATION (partner side) ============
+        let _lastPartnerPeriodSeen = localStorage.getItem('khloesmoon_partner_last_period_seen') || '';
+        function notifyCycleUpdateIfChanged(data) {
+            if (profile.role !== 'partner') return;
+            if (!data || !data.profile) return;
+            const lp = data.profile.lastPeriod || '';
+            if (!lp || lp === _lastPartnerPeriodSeen) return;
+            // Update cached marker
+            if (_lastPartnerPeriodSeen) {
+                // Not the first fetch — she actually updated her cycle
+                const lang = getPartnerLang();
+                const name = (linkedPartnerData && (linkedPartnerData.name || (linkedPartnerData.profile && linkedPartnerData.profile.name))) || (lang === 'es' ? 'Tu pareja' : 'Your partner');
+                const title = name;
+                const body = lang === 'es' ? 'Actualizó las fechas de su ciclo' : 'Updated her cycle dates';
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    try { new Notification(title, { body: body, icon: './icon-192.png', tag: 'partner-cycle-update' }); } catch(e){}
+                }
+            }
+            _lastPartnerPeriodSeen = lp;
+            localStorage.setItem('khloesmoon_partner_last_period_seen', lp);
+        }
+
+        // ============ ROLE SELECTION ============
+        function showRoleOverlayIfNeeded() {
+            if (profile.role === 'woman' || profile.role === 'partner') {
+                applyRoleUI();
+                return;
+            }
+            document.getElementById('role-overlay').style.display = 'block';
+        }
+
+        function selectRole(role) {
+            profile.role = role;
+            localStorage.setItem('khloesmoon_role', role);
+            localStorage.setItem('khloesmoon_profile', JSON.stringify(profile));
+            document.getElementById('role-overlay').style.display = 'none';
+            applyRoleUI();
+            if (role === 'partner') {
+                // Open partner screen immediately so the man lands on his dashboard
+                setTimeout(function() { switchScreen('partner-screen'); }, 200);
+                // Prompt him to paste her code if not already linked
+                if (!linkedPartnerCode) {
+                    setTimeout(function() {
+                        const lang = getPartnerLang();
+                        const code = prompt(lang === 'es' ? 'Pega aquí el código de tu pareja (te lo envía desde su app):' : 'Paste your partner\'s code (she sends it from her app):');
+                        if (code && code.trim()) {
+                            linkedPartnerCode = code.trim().toUpperCase();
+                            localStorage.setItem('khloesmoon_linked_partner', linkedPartnerCode);
+                            if (_db) fetchLinkedPartnerData();
+                            renderPartnerScreen();
+                        }
+                    }, 600);
+                }
+            }
+        }
+
+        function applyRoleUI() {
+            const isPartner = profile.role === 'partner';
+            // Hide women-only tabs in partner mode
+            const hide = function(id) { const el = document.getElementById(id); if (el) el.style.display = isPartner ? 'none' : ''; };
+            hide('tab-log');
+            hide('tab-insights');
+            // Calendar stays visible (useful for partner to see her fertile window too) but becomes read-only in logic
+            // Settings visible for both
+            // Chat visible for both (AI assistant is useful for partner too)
+            // Rebrand home tagline for partner
+            if (isPartner) {
+                const tagline = document.getElementById('app-tagline');
+                if (tagline) tagline.textContent = 'Partner Edition';
+                const greeting = document.getElementById('greeting');
+                if (greeting && !greeting.textContent.toLowerCase().includes('partner')) {
+                    // Keep greeting subtle
+                }
+                // Hide the "Log today" style home cards if any
+                const calendarHomeBtn = document.getElementById('home-calendar-btn');
+                if (calendarHomeBtn) calendarHomeBtn.style.display = 'none';
+            } else {
+                const calendarHomeBtn = document.getElementById('home-calendar-btn');
+                if (calendarHomeBtn) calendarHomeBtn.style.display = '';
+            }
+        }
+
+        function changeRole() {
+            // Triggered from Settings
+            const lang = getPartnerLang();
+            const msg = lang === 'es' ? '¿Cambiar de modo? Te preguntaremos de nuevo al recargar.' : 'Change mode? You\'ll be asked again on reload.';
+            if (confirm(msg)) {
+                profile.role = '';
+                localStorage.removeItem('khloesmoon_role');
+                localStorage.setItem('khloesmoon_profile', JSON.stringify(profile));
+                location.reload();
+            }
+        }
+
+        // Publish own profile to Firestore so linked partners can read it (requires sign-in)
+        function publishProfileForPartner() {
+            if (!_fbUser || !_db) return;
+            try {
+                _db.collection('khloesmoon_users').doc(_fbUser.uid).set({
+                    shareCode: profile.shareCode || '',
+                    name: profile.name || _fbUser.displayName || 'Amiga',
+                    profile: {
+                        name: profile.name || '',
+                        cycleLength: profile.cycleLength || 28,
+                        periodLength: profile.periodLength || 5,
+                        lastPeriod: profile.lastPeriod || ''
+                    },
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch(e) { console.warn('publishProfileForPartner:', e); }
+        }
+
+        // ============ GOOGLE CALENDAR (ICS export) ============
+        function pad2(n){ return n < 10 ? '0'+n : ''+n; }
+        function icsDate(date) {
+            return date.getUTCFullYear() + pad2(date.getUTCMonth()+1) + pad2(date.getUTCDate()) +
+                'T' + pad2(date.getUTCHours()) + pad2(date.getUTCMinutes()) + pad2(date.getUTCSeconds()) + 'Z';
+        }
+        function icsAllDay(date) {
+            return date.getFullYear() + pad2(date.getMonth()+1) + pad2(date.getDate());
+        }
+
+        function buildIcs() {
+            const lang = getPartnerLang();
+            const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Khloe\'s Moon//Cycle Calendar//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Khloe\'s Moon','X-WR-TIMEZONE:America/Costa_Rica'];
+            const now = new Date();
+            const nowStamp = icsDate(now);
+            if (!profile.lastPeriod) {
+                lines.push('END:VCALENDAR');
+                return lines.join('\r\n');
+            }
+            const cl = profile.cycleLength || 28;
+            const pl = profile.periodLength || 5;
+            const last = new Date(profile.lastPeriod);
+
+            // Generate 6 upcoming cycles
+            for (let i = 0; i < 6; i++) {
+                const periodStart = new Date(last.getTime() + i * cl * 86400000);
+                const periodEnd = new Date(periodStart.getTime() + pl * 86400000);
+                const ovulationDay = new Date(periodStart.getTime() + Math.floor(cl/2) * 86400000);
+                const fertileStart = new Date(ovulationDay.getTime() - 5 * 86400000);
+                const fertileEnd = new Date(ovulationDay.getTime() + 1 * 86400000);
+
+                // Period (all-day multi-day event)
+                lines.push('BEGIN:VEVENT');
+                lines.push('UID:khloesmoon-period-' + icsAllDay(periodStart) + '@khloesmoon.app');
+                lines.push('DTSTAMP:' + nowStamp);
+                lines.push('DTSTART;VALUE=DATE:' + icsAllDay(periodStart));
+                lines.push('DTEND;VALUE=DATE:' + icsAllDay(periodEnd));
+                lines.push('SUMMARY:🔴 ' + (lang === 'es' ? 'Período menstrual' : 'Menstrual period'));
+                lines.push('DESCRIPTION:' + (lang === 'es' ? 'Predicción de Khloe\'s Moon' : 'Khloe\'s Moon prediction'));
+                lines.push('END:VEVENT');
+
+                // Fertile window
+                lines.push('BEGIN:VEVENT');
+                lines.push('UID:khloesmoon-fertile-' + icsAllDay(fertileStart) + '@khloesmoon.app');
+                lines.push('DTSTAMP:' + nowStamp);
+                lines.push('DTSTART;VALUE=DATE:' + icsAllDay(fertileStart));
+                lines.push('DTEND;VALUE=DATE:' + icsAllDay(fertileEnd));
+                lines.push('SUMMARY:🌸 ' + (lang === 'es' ? 'Ventana fértil' : 'Fertile window'));
+                lines.push('END:VEVENT');
+
+                // Ovulation (single day)
+                const ovEnd = new Date(ovulationDay.getTime() + 86400000);
+                lines.push('BEGIN:VEVENT');
+                lines.push('UID:khloesmoon-ov-' + icsAllDay(ovulationDay) + '@khloesmoon.app');
+                lines.push('DTSTAMP:' + nowStamp);
+                lines.push('DTSTART;VALUE=DATE:' + icsAllDay(ovulationDay));
+                lines.push('DTEND;VALUE=DATE:' + icsAllDay(ovEnd));
+                lines.push('SUMMARY:✨ ' + (lang === 'es' ? 'Ovulación' : 'Ovulation'));
+                lines.push('END:VEVENT');
+            }
+
+            // Add user-created events from khloesmoon events store
+            try {
+                Object.keys(events || {}).forEach(function(dateKey) {
+                    const dayEvents = events[dateKey] || [];
+                    dayEvents.forEach(function(ev, idx) {
+                        const d = new Date(dateKey + 'T' + (ev.time || '09:00') + ':00');
+                        if (isNaN(d.getTime())) return;
+                        const dEnd = new Date(d.getTime() + 3600000);
+                        lines.push('BEGIN:VEVENT');
+                        lines.push('UID:khloesmoon-ev-' + dateKey + '-' + idx + '@khloesmoon.app');
+                        lines.push('DTSTAMP:' + nowStamp);
+                        lines.push('DTSTART:' + icsDate(d));
+                        lines.push('DTEND:' + icsDate(dEnd));
+                        lines.push('SUMMARY:' + (ev.title || 'Evento').replace(/[\r\n,;]/g,' '));
+                        if (ev.notes) lines.push('DESCRIPTION:' + String(ev.notes).replace(/[\r\n,;]/g,' '));
+                        lines.push('END:VEVENT');
+                    });
+                });
+            } catch(e) { console.warn('ics events merge failed', e); }
+
+            lines.push('END:VCALENDAR');
+            return lines.join('\r\n');
+        }
+
+        function exportToCalendar() {
+            const lang = getPartnerLang();
+            if (!profile.lastPeriod) {
+                alert(lang === 'es' ? 'Primero registra tu último período en Ajustes.' : 'First set your last period in Settings.');
+                return;
+            }
+            const ics = buildIcs();
+            const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'khloesmoon.ics';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() {
+                URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                const msg = lang === 'es'
+                    ? 'Archivo khloesmoon.ics descargado.\n\nPara importar a Google Calendar:\n1. Abre calendar.google.com\n2. Click en "+" junto a "Otros calendarios"\n3. Elige "Importar"\n4. Sube el archivo khloesmoon.ics'
+                    : 'khloesmoon.ics downloaded.\n\nTo import to Google Calendar:\n1. Open calendar.google.com\n2. Click "+" next to "Other calendars"\n3. Choose "Import"\n4. Upload khloesmoon.ics';
+                alert(msg);
+            }, 500);
+        }
 
         // ============ FIREBASE (shared with AstroConnect/Moon Tracker) ============
         const FIRE_CFG = {
@@ -2878,6 +3715,9 @@
             loadSettings();
             updateHome();
 
+            // Show role selection overlay on first open (or apply role UI if already set)
+            try { showRoleOverlayIfNeeded(); } catch(e) { console.warn('role overlay', e); }
+
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             }
@@ -2892,10 +3732,16 @@
                 if (initFirebase()) {
                     // Subscribe to friend chat updates once auth state resolves
                     setTimeout(function() {
-                        if (_fbUser) subscribeToAllFriendChats();
+                        if (_fbUser) {
+                            subscribeToAllFriendChats();
+                            publishProfileForPartner();
+                        }
                     }, 1500);
                 }
             } catch(e) { console.warn('Firebase init skipped:', e); }
+
+            // Check if opened via ?partner=CODE deep link
+            try { checkPartnerUrlParam(); } catch(e) { console.warn('partner param check failed', e); }
 
             // Request notification permission proactively so friend-chat notifs work
             if ('Notification' in window && Notification.permission === 'default') {
@@ -3089,6 +3935,7 @@
             else if (screenId === 'insights-screen') updateInsights();
             else if (screenId === 'settings-screen') loadSettings();
             else if (screenId === 'chat-screen') initChat();
+            else if (screenId === 'partner-screen') renderPartnerScreen();
         }
 
         // ============ GEMINI AI CHAT ============
@@ -3756,6 +4603,8 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             profile.periodLength = parseInt(document.getElementById('profile-period').value) || 5;
             profile.lastPeriod = document.getElementById('profile-last-period').value;
             localStorage.setItem('khloesmoon_profile', JSON.stringify(profile));
+            // Republish to Firestore so linked partner sees updated cycle data
+            try { publishProfileForPartner(); } catch(e) {}
             updateHome();
             alert(_('save'));
         }
