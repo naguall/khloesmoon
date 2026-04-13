@@ -14,6 +14,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+    <!-- Google Identity Services (OAuth2 for Google Calendar sync) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * {
             margin: 0;
@@ -1077,7 +1079,7 @@
 
                 <div style="margin:10px 14px;display:flex;gap:8px;flex-wrap:wrap;">
                     <button class="settings-btn" style="flex:1;min-width:140px;margin:0;background:linear-gradient(135deg,#F4B6C2,#D47F93);color:#fff;font-weight:700;" onclick="switchScreen('partner-screen')" id="home-partner-btn">💕 Guía para tu Pareja</button>
-                    <button class="settings-btn" style="flex:1;min-width:140px;margin:0;background:linear-gradient(135deg,#B8D8E8,#6D9BC7);color:#fff;font-weight:700;" onclick="exportToCalendar()" id="home-calendar-btn">📅 Google Calendar</button>
+                    <button class="settings-btn" style="flex:1;min-width:140px;margin:0;background:linear-gradient(135deg,#B8D8E8,#6D9BC7);color:#fff;font-weight:700;" onclick="gcalIsConnected()?gcalPushCycleEvents(this):gcalSignIn()" id="home-calendar-btn">📅 Google Calendar</button>
                 </div>
 
                 <div class="today-events" id="today-events-container">
@@ -1342,18 +1344,35 @@
                     </div>
                 </div>
 
-                <div class="settings-group">
+                <div class="settings-group" id="gcal-settings-group">
                     <div class="settings-group-title" id="calendar-label">📅 Google Calendar</div>
-                    <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-bottom: 8px;">
-                        <span id="calendar-settings-explain">Exporta tus fechas (período, ovulación, ventana fértil y eventos) a un archivo .ics que puedes importar en Google Calendar.</span>
+                    <div id="gcal-connected-ui" style="display:none;">
+                        <div style="font-size:0.78rem;color:var(--secondary);margin-bottom:8px;">
+                            ✅ <span id="gcal-status-text">Conectado</span>
+                            <span id="gcal-last-sync" style="display:block;margin-top:2px;opacity:0.7;"></span>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button class="settings-btn" style="flex:1;min-width:110px;margin:0;background:linear-gradient(135deg,#B8D8E8,#6D9BC7);color:#fff;font-weight:700;" onclick="gcalPushCycleEvents(this)" id="gcal-push-btn">🔄 Enviar ciclo</button>
+                            <button class="settings-btn" style="flex:1;min-width:90px;margin:0;" onclick="gcalFetchEvents();this.textContent='✓';" id="gcal-sync-btn">🔄 Sync</button>
+                            <button class="settings-btn" style="margin:0;color:#C62828;border-color:#C62828;" onclick="gcalSignOut()" id="gcal-disconnect-btn">Desconectar</button>
+                        </div>
+                        <button class="settings-btn" style="margin:6px 0 0;font-size:0.72rem;color:#C62828;opacity:0.7;" onclick="gcalDeleteCycleEvents(this)" id="gcal-delete-btn">🗑 Borrar eventos de KM en GCal</button>
                     </div>
-                    <button class="settings-btn" style="margin:0;" onclick="exportToCalendar()" id="export-calendar-btn">Exportar a Google Calendar</button>
+                    <div id="gcal-disconnected-ui" style="display:none;">
+                        <div style="font-size:0.78rem;color:var(--secondary);margin-bottom:8px;" id="gcal-explain-text">
+                            Conecta tu Google Calendar para sincronizar automáticamente tu ciclo, período, ovulación y ventana fértil.
+                        </div>
+                        <button class="settings-btn" style="margin:0;background:linear-gradient(135deg,#4285f4,#356AC3);color:#fff;font-weight:700;" onclick="gcalSignIn()" id="gcal-connect-btn">🔗 Conectar Google Calendar</button>
+                    </div>
+                    <div style="margin-top:8px;border-top:1px dashed var(--border);padding-top:8px;">
+                        <button class="settings-btn" style="margin:0;font-size:0.78rem;opacity:0.7;" onclick="exportToCalendar()" id="export-calendar-btn">📥 Exportar .ics (alternativa manual)</button>
+                    </div>
                 </div>
 
                 <div class="settings-group">
                     <button class="settings-btn" onclick="forceUpdate()" id="force-update-btn">Force Update</button>
                     <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-top: 6px;">
-                        <span id="version-label">Version</span>: <span id="app-version">v23</span>
+                        <span id="version-label">Version</span>: <span id="app-version">v24</span>
                     </div>
                 </div>
 
@@ -1513,6 +1532,10 @@
             <button class="tab-btn" id="tab-chat" onclick="switchScreen('chat-screen')">
                 <span>💬</span>
                 <span class="tab-label" data-key="chat">Chat</span>
+            </button>
+            <button class="tab-btn" id="tab-partner" onclick="switchScreen('partner-screen')">
+                <span>💕</span>
+                <span class="tab-label" data-key="partner">Pareja</span>
             </button>
             <button class="tab-btn" id="tab-settings" onclick="switchScreen('settings-screen')">
                 <span>⚙️</span>
@@ -3533,6 +3556,283 @@
             }, 500);
         }
 
+        // ============ GOOGLE CALENDAR OAuth2 SYNC (same pattern as Moon Tracker) ============
+        const GCAL_CLIENT_ID = '615080090784-dclmeamdenaohp13pf2r51hav6727u9e.apps.googleusercontent.com';
+        const GCAL_SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+        let gcalTokenClient = null;
+        let gcalAccessToken = localStorage.getItem('khloesmoon_gcalAccessToken') || '';
+        let gcalTokenExpiry = parseInt(localStorage.getItem('khloesmoon_gcalTokenExpiry') || '0');
+        let gcalEvents = {};
+        let gcalSyncInProgress = false;
+        let gcalAutoSyncInterval = null;
+        const GCAL_SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+
+        function gcalIsConnected() {
+            return !!gcalAccessToken && Date.now() < gcalTokenExpiry;
+        }
+
+        function initGoogleCalendar() {
+            if (typeof google === 'undefined' || !google.accounts) {
+                console.log('📅 GCal: waiting for GIS library');
+                return;
+            }
+            try {
+                gcalTokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: GCAL_CLIENT_ID,
+                    scope: GCAL_SCOPES,
+                    callback: handleGcalTokenResponse
+                });
+                console.log('✅ GCal token client ready');
+                if (gcalIsConnected()) {
+                    gcalFetchEvents();
+                    gcalStartAutoSync();
+                } else if (localStorage.getItem('khloesmoon_gcalAccessToken')) {
+                    // Token expired — try silent refresh
+                    try { gcalTokenClient.requestAccessToken({prompt: ''}); }
+                    catch(e) {
+                        localStorage.removeItem('khloesmoon_gcalAccessToken');
+                        localStorage.removeItem('khloesmoon_gcalTokenExpiry');
+                    }
+                }
+            } catch(e) { console.error('GCal init error:', e); }
+        }
+
+        function handleGcalTokenResponse(response) {
+            if (response.error) { console.error('GCal auth error:', response); return; }
+            gcalAccessToken = response.access_token;
+            gcalTokenExpiry = Date.now() + (response.expires_in * 1000);
+            localStorage.setItem('khloesmoon_gcalAccessToken', gcalAccessToken);
+            localStorage.setItem('khloesmoon_gcalTokenExpiry', gcalTokenExpiry.toString());
+            console.log('✅ Google Calendar connected');
+            gcalFetchEvents();
+            gcalStartAutoSync();
+            // Refresh settings UI if visible
+            if (document.getElementById('settings-screen').classList.contains('active')) loadSettings();
+        }
+
+        function gcalSignIn() {
+            if (!gcalTokenClient) initGoogleCalendar();
+            if (gcalTokenClient) {
+                gcalTokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                const lang = getPartnerLang();
+                alert(lang === 'es' ? 'Error: la librería de Google no cargó. Verifica tu conexión.' : 'Error: Google library didn\'t load. Check your connection.');
+            }
+        }
+
+        function gcalSignOut() {
+            if (gcalAccessToken) {
+                try { google.accounts.oauth2.revoke(gcalAccessToken, function(){}); } catch(e) {}
+            }
+            gcalAccessToken = '';
+            gcalTokenExpiry = 0;
+            gcalEvents = {};
+            if (gcalAutoSyncInterval) { clearInterval(gcalAutoSyncInterval); gcalAutoSyncInterval = null; }
+            localStorage.removeItem('khloesmoon_gcalAccessToken');
+            localStorage.removeItem('khloesmoon_gcalTokenExpiry');
+            localStorage.removeItem('khloesmoon_gcalEvents');
+            console.log('📅 GCal disconnected');
+            if (document.getElementById('settings-screen').classList.contains('active')) loadSettings();
+        }
+
+        function gcalStartAutoSync() {
+            if (gcalAutoSyncInterval) clearInterval(gcalAutoSyncInterval);
+            gcalAutoSyncInterval = setInterval(function() {
+                if (gcalIsConnected()) gcalFetchEvents();
+            }, GCAL_SYNC_INTERVAL_MS);
+        }
+
+        // Fetch Google Calendar events (read FROM Google → show in app)
+        function gcalFetchEvents() {
+            if (!gcalIsConnected() || gcalSyncInProgress) return;
+            gcalSyncInProgress = true;
+            var now = new Date();
+            var timeMin = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString();
+            var timeMax = new Date(now.getFullYear(), now.getMonth() + 4, 0).toISOString();
+            var url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events?' +
+                'timeMin=' + encodeURIComponent(timeMin) + '&timeMax=' + encodeURIComponent(timeMax) +
+                '&singleEvents=true&orderBy=startTime&maxResults=500';
+
+            fetch(url, { headers: { 'Authorization': 'Bearer ' + gcalAccessToken } })
+            .then(function(resp) {
+                if (resp.status === 401) {
+                    gcalAccessToken = '';
+                    localStorage.removeItem('khloesmoon_gcalAccessToken');
+                    if (gcalAutoSyncInterval) clearInterval(gcalAutoSyncInterval);
+                    gcalSyncInProgress = false;
+                    return null;
+                }
+                return resp.json();
+            })
+            .then(function(data) {
+                if (!data) return;
+                gcalEvents = {};
+                if (data.items) {
+                    data.items.forEach(function(item) {
+                        var startRaw = (item.start && item.start.dateTime) || (item.start && item.start.date);
+                        if (!startRaw) return;
+                        var isAllDay = !(item.start && item.start.dateTime);
+                        var startDate;
+                        if (isAllDay && /^\d{4}-\d{2}-\d{2}$/.test(startRaw)) {
+                            var sp = startRaw.split('-');
+                            startDate = new Date(parseInt(sp[0]), parseInt(sp[1]) - 1, parseInt(sp[2]));
+                        } else {
+                            startDate = new Date(startRaw);
+                        }
+                        var key = startDate.getFullYear() + '-' + String(startDate.getMonth()+1).padStart(2,'0') + '-' + String(startDate.getDate()).padStart(2,'0');
+                        if (!gcalEvents[key]) gcalEvents[key] = [];
+                        gcalEvents[key].push({
+                            title: item.summary || '(Sin título)',
+                            time: (item.start && item.start.dateTime) ? startDate.toLocaleTimeString(currentLanguage || 'es', {hour:'2-digit',minute:'2-digit'}) : '',
+                            gcalId: item.id,
+                            gcalLink: item.htmlLink,
+                            isGoogleEvent: true
+                        });
+                    });
+                }
+                localStorage.setItem('khloesmoon_gcalEvents', JSON.stringify(gcalEvents));
+                localStorage.setItem('khloesmoon_gcalLastSync', new Date().toISOString());
+                console.log('✅ GCal synced:', Object.keys(gcalEvents).length, 'dates');
+                gcalSyncInProgress = false;
+                // Re-render calendar if visible
+                if (document.getElementById('calendar-screen').classList.contains('active')) renderCalendar();
+            })
+            .catch(function(e) { console.error('GCal fetch error:', e); gcalSyncInProgress = false; });
+        }
+
+        // Push cycle events TO Google Calendar (period, fertile window, ovulation for 6 cycles)
+        function gcalPushCycleEvents(btn) {
+            if (!gcalIsConnected()) {
+                var lang = getPartnerLang();
+                alert(lang === 'es' ? 'Conecta Google Calendar primero.' : 'Connect Google Calendar first.');
+                return;
+            }
+            if (!profile.lastPeriod) {
+                var lang2 = getPartnerLang();
+                alert(lang2 === 'es' ? 'Primero registra tu último período en Ajustes.' : 'First set your last period in Settings.');
+                return;
+            }
+            var origText = btn ? btn.textContent : '';
+            if (btn) { btn.textContent = '⏳...'; btn.disabled = true; }
+            var lang = getPartnerLang();
+            var L = lang === 'es';
+            var cl = profile.cycleLength || 28;
+            var pl = profile.periodLength || 5;
+            var last = new Date(profile.lastPeriod);
+            var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            var eventsToCreate = [];
+
+            for (var i = 0; i < 6; i++) {
+                var periodStart = new Date(last.getTime() + i * cl * 86400000);
+                var periodEnd = new Date(periodStart.getTime() + pl * 86400000);
+                var ovDay = new Date(periodStart.getTime() + Math.floor(cl/2) * 86400000);
+                var fertileStart = new Date(ovDay.getTime() - 5 * 86400000);
+                var fertileEnd = new Date(ovDay.getTime() + 1 * 86400000);
+
+                var dateKey = function(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+                var nextDay = function(d) { var n = new Date(d); n.setDate(n.getDate()+1); return n; };
+
+                // Period
+                eventsToCreate.push({
+                    summary: '🔴 ' + (L ? 'Período menstrual' : 'Menstrual period'),
+                    description: '[KhloesMoon]',
+                    start: { date: dateKey(periodStart) },
+                    end: { date: dateKey(periodEnd) },
+                    colorId: '4', // flamingo
+                    reminders: { useDefault: false, overrides: [] },
+                    transparency: 'transparent'
+                });
+                // Fertile window
+                eventsToCreate.push({
+                    summary: '🌸 ' + (L ? 'Ventana fértil' : 'Fertile window'),
+                    description: '[KhloesMoon]',
+                    start: { date: dateKey(fertileStart) },
+                    end: { date: dateKey(nextDay(fertileEnd)) },
+                    colorId: '2', // sage
+                    reminders: { useDefault: false, overrides: [] },
+                    transparency: 'transparent'
+                });
+                // Ovulation
+                eventsToCreate.push({
+                    summary: '✨ ' + (L ? 'Ovulación' : 'Ovulation'),
+                    description: '[KhloesMoon]',
+                    start: { date: dateKey(ovDay) },
+                    end: { date: dateKey(nextDay(ovDay)) },
+                    colorId: '5', // banana
+                    reminders: { useDefault: false, overrides: [] },
+                    transparency: 'transparent'
+                });
+            }
+
+            var created = 0;
+            var idx = 0;
+            function pushNext() {
+                if (idx >= eventsToCreate.length) {
+                    if (btn) {
+                        btn.textContent = '✅ ' + created + (L ? ' eventos creados' : ' events created');
+                        btn.style.opacity = '0.8';
+                        setTimeout(function() { btn.textContent = origText; btn.disabled = false; btn.style.opacity = ''; }, 3500);
+                    }
+                    setTimeout(function() { gcalFetchEvents(); }, 1000);
+                    return;
+                }
+                fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + gcalAccessToken, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(eventsToCreate[idx])
+                }).then(function(resp) {
+                    if (resp.ok) created++;
+                    idx++;
+                    if (btn) btn.textContent = '⏳ ' + created + '/' + eventsToCreate.length;
+                    setTimeout(pushNext, 180);
+                }).catch(function() { idx++; setTimeout(pushNext, 180); });
+            }
+            pushNext();
+        }
+
+        // Delete all KhloesMoon events from Google Calendar
+        function gcalDeleteCycleEvents(btn) {
+            if (!gcalIsConnected()) return;
+            var lang = getPartnerLang();
+            var L = lang === 'es';
+            if (!confirm(L ? '¿Borrar todos los eventos de Khloe\'s Moon de Google Calendar?' : 'Delete all Khloe\'s Moon events from Google Calendar?')) return;
+            var origText = btn ? btn.textContent : '';
+            if (btn) { btn.textContent = '⏳...'; btn.disabled = true; }
+
+            fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=500&q=' + encodeURIComponent('[KhloesMoon]') + '&timeMin=2024-01-01T00:00:00Z&timeMax=2028-01-01T00:00:00Z', {
+                headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                var ids = [];
+                if (data.items) data.items.forEach(function(ev) {
+                    if (ev.description && ev.description.indexOf('[KhloesMoon]') !== -1) ids.push(ev.id);
+                });
+                var deleted = 0;
+                var di = 0;
+                function delNext() {
+                    if (di >= ids.length) {
+                        if (btn) {
+                            btn.textContent = '✅ ' + deleted + (L ? ' borrados' : ' deleted');
+                            setTimeout(function() { btn.textContent = origText; btn.disabled = false; }, 3000);
+                        }
+                        setTimeout(function() { gcalFetchEvents(); }, 1000);
+                        return;
+                    }
+                    fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/' + ids[di], {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+                    }).then(function(r) { if (r.ok || r.status===204) deleted++; di++; setTimeout(delNext,150); })
+                    .catch(function() { di++; setTimeout(delNext,150); });
+                }
+                delNext();
+            }).catch(function(e) { console.error('GCal delete error', e); if(btn) btn.disabled = false; });
+        }
+
+        // Load cached events on startup
+        try {
+            var saved = localStorage.getItem('khloesmoon_gcalEvents');
+            if (saved) gcalEvents = JSON.parse(saved);
+        } catch(e) { gcalEvents = {}; }
+
         // ============ FIREBASE (shared with AstroConnect/Moon Tracker) ============
         const FIRE_CFG = {
             apiKey: 'AIzaSyBNuBOj2CTvPziuQxzvEYKjPj86xiynCW4',
@@ -3726,6 +4026,9 @@
             if ('Notification' in window && Notification.permission === 'granted') {
                 rescheduleAllNotifications();
             }
+
+            // Initialize Google Calendar OAuth2 sync (delayed so GIS script loads)
+            setTimeout(function() { try { initGoogleCalendar(); } catch(e) { console.warn('GCal init', e); } }, 1500);
 
             // Initialize Firebase for real-time friend chat (async, non-blocking)
             try {
@@ -3926,7 +4229,7 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            const tabMap = {'home-screen':'tab-home','calendar-screen':'tab-calendar','log-screen':'tab-log','insights-screen':'tab-insights','chat-screen':'tab-chat','settings-screen':'tab-settings'};
+            const tabMap = {'home-screen':'tab-home','calendar-screen':'tab-calendar','log-screen':'tab-log','insights-screen':'tab-insights','chat-screen':'tab-chat','partner-screen':'tab-partner','settings-screen':'tab-settings'};
             const tabId = tabMap[screenId];
             if (tabId) document.getElementById(tabId).classList.add('active');
 
@@ -4642,6 +4945,24 @@ You are a warm, knowledgeable wellness assistant specialized in menstrual health
             if (addBtn) addBtn.textContent = '+';
             document.getElementById('my-share-code').value = profile.shareCode;
             renderFriendsList();
+
+            // Google Calendar connected/disconnected UI toggle
+            var gcalConnUI = document.getElementById('gcal-connected-ui');
+            var gcalDiscUI = document.getElementById('gcal-disconnected-ui');
+            if (gcalConnUI && gcalDiscUI) {
+                if (gcalIsConnected()) {
+                    gcalConnUI.style.display = 'block';
+                    gcalDiscUI.style.display = 'none';
+                    var lastSync = localStorage.getItem('khloesmoon_gcalLastSync');
+                    var syncEl = document.getElementById('gcal-last-sync');
+                    if (syncEl && lastSync) {
+                        try { syncEl.textContent = 'Última sync: ' + new Date(lastSync).toLocaleString(currentLanguage || 'es'); } catch(e) {}
+                    }
+                } else {
+                    gcalConnUI.style.display = 'none';
+                    gcalDiscUI.style.display = 'block';
+                }
+            }
         }
 
         // ============ FRIENDS SYSTEM ============
