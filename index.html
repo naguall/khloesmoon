@@ -58,6 +58,25 @@
             padding: 16px;
             padding-bottom: 60px;
         }
+        .wisdom-filter {
+            padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--white);color:var(--secondary);font-size:0.72rem;font-weight:600;cursor:pointer;white-space:nowrap;
+        }
+        .wisdom-filter.active {
+            background:var(--wine);color:#fff;border-color:var(--wine);
+        }
+        .wisdom-card {
+            background:var(--white);border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);
+        }
+        .wisdom-card h3 { margin:0 0 4px;font-size:0.92rem;color:var(--wine); }
+        .wisdom-card .wc-culture { font-size:0.72rem;color:var(--pink);font-weight:600;margin-bottom:6px; }
+        .wisdom-card .wc-body { font-size:0.82rem;color:var(--text);line-height:1.5; }
+        .wisdom-card .wc-phase { display:inline-block;font-size:0.65rem;padding:2px 8px;border-radius:10px;background:rgba(142,68,173,0.1);color:#8E44AD;margin-top:6px; }
+        .fm-card {
+            background:var(--white);border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);
+        }
+        .fm-card h3 { margin:0 0 6px;font-size:0.92rem;color:var(--wine); }
+        .fm-card .fm-body { font-size:0.82rem;color:var(--text);line-height:1.55; }
+        .fm-card .fm-tip { margin-top:8px;padding:8px 10px;border-radius:10px;background:linear-gradient(135deg,rgba(244,182,194,0.15),rgba(212,127,147,0.1));font-size:0.78rem;color:var(--wine);line-height:1.4; }
         .tab-bar {
             position: fixed;
             bottom: 0;
@@ -1441,6 +1460,49 @@
                 </div>
             </div>
 
+            <!-- WISDOM SCREEN: Traditions, Rituals & Sacred Stories -->
+            <div id="wisdom-screen" class="screen">
+                <div style="padding:16px 14px 8px;">
+                    <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--wine);" id="wisdom-title">🌙 Sabiduría Ancestral</h2>
+                    <p style="font-size:0.78rem;color:var(--secondary);margin:0 0 12px;" id="wisdom-subtitle">Tradiciones, rituales y filosofía del ciclo sagrado</p>
+                    <!-- Phase filter pills -->
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="wisdom-filters">
+                        <button class="wisdom-filter active" onclick="filterWisdom('all')" data-cat="all" id="wf-all">Todas</button>
+                        <button class="wisdom-filter" onclick="filterWisdom('menstrual')" data-cat="menstrual">🔴 Menstrual</button>
+                        <button class="wisdom-filter" onclick="filterWisdom('follicular')" data-cat="follicular">🌱 Folicular</button>
+                        <button class="wisdom-filter" onclick="filterWisdom('ovulatory')" data-cat="ovulatory">✨ Ovulación</button>
+                        <button class="wisdom-filter" onclick="filterWisdom('luteal')" data-cat="luteal">🌘 Lútea</button>
+                        <button class="wisdom-filter" onclick="filterWisdom('moon')" data-cat="moon">🌕 Luna</button>
+                    </div>
+                </div>
+                <div id="wisdom-cards" style="padding:0 14px 80px;"></div>
+                <!-- AI deepdive button -->
+                <div style="padding:0 14px 16px;">
+                    <button class="settings-btn" style="width:100%;background:linear-gradient(135deg,#8E44AD,#6D2E46);color:#fff;font-weight:700;padding:12px;border-radius:14px;" onclick="wisdomAiDeepDive()" id="wisdom-ai-btn">🔮 Pregúntale a la Luna (IA)</button>
+                </div>
+            </div>
+
+            <!-- FIRST MOON SCREEN: Guide for young girls -->
+            <div id="firstmoon-screen" class="screen">
+                <div style="padding:16px 14px 8px;">
+                    <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--wine);" id="fm-title">🌸 Mi Primera Luna</h2>
+                    <p style="font-size:0.78rem;color:var(--secondary);margin:0 0 12px;" id="fm-subtitle">Guía para tu camino a ser mujer joven</p>
+                    <!-- Topic pills -->
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="fm-filters">
+                        <button class="wisdom-filter active" onclick="filterFirstMoon('all')" data-cat="all">Todo</button>
+                        <button class="wisdom-filter" onclick="filterFirstMoon('body')" data-cat="body">🦋 Mi Cuerpo</button>
+                        <button class="wisdom-filter" onclick="filterFirstMoon('emotions')" data-cat="emotions">💜 Emociones</button>
+                        <button class="wisdom-filter" onclick="filterFirstMoon('practical')" data-cat="practical">🎒 Práctico</button>
+                        <button class="wisdom-filter" onclick="filterFirstMoon('power')" data-cat="power">⚡ Poder</button>
+                        <button class="wisdom-filter" onclick="filterFirstMoon('rituals')" data-cat="rituals">🎉 Rituales</button>
+                    </div>
+                </div>
+                <div id="fm-cards" style="padding:0 14px 80px;"></div>
+                <div style="padding:0 14px 16px;">
+                    <button class="settings-btn" style="width:100%;background:linear-gradient(135deg,#F4B6C2,#D47F93);color:#fff;font-weight:700;padding:12px;border-radius:14px;" onclick="firstMoonAiAsk()" id="fm-ai-btn">💬 Pregúntale a tu Guía (IA)</button>
+                </div>
+            </div>
+
             <!-- CHAT SCREEN -->
             <div id="chat-screen" class="screen">
                 <div class="chat-container">
@@ -1532,6 +1594,14 @@
             <button class="tab-btn" id="tab-chat" onclick="switchScreen('chat-screen')">
                 <span>💬</span>
                 <span class="tab-label" data-key="chat">Chat</span>
+            </button>
+            <button class="tab-btn" id="tab-wisdom" onclick="switchScreen('wisdom-screen')">
+                <span>🌙</span>
+                <span class="tab-label" data-key="wisdom" style="font-size:0.58rem;">Sabiduría</span>
+            </button>
+            <button class="tab-btn" id="tab-firstmoon" onclick="switchScreen('firstmoon-screen')">
+                <span>🌸</span>
+                <span class="tab-label" data-key="firstmoon" style="font-size:0.58rem;">1ra Luna</span>
             </button>
             <button class="tab-btn" id="tab-partner" onclick="switchScreen('partner-screen')">
                 <span>💕</span>
@@ -3457,6 +3527,200 @@
             return date.getFullYear() + pad2(date.getMonth()+1) + pad2(date.getDate());
         }
 
+        // ============ WISDOM: SACRED TRADITIONS & STORIES ============
+        var WISDOM_DATA = {
+            es: [
+                {title:'Ayuno de la Baya',culture:'Ojibwe (Norteamérica)',phase:'menstrual',emoji:'🍓',body:'Cuando una joven comienza a menstruar, ayuna de comer fresas durante un año completo. Al final, la comunidad celebra un festín honrando su transición a mujer, donde da y recibe regalos reconociendo su nuevo estatus.'},
+                {title:'Ceremonia del Amanecer',culture:'Apache Mescalero',phase:'menstrual',emoji:'🌅',body:'Celebración sagrada de cuatro días que marca la transición de una joven a mujer, con festines familiares, danza, bendiciones y rituales que honran su transformación espiritual y física.'},
+                {title:'Danza de la Flor (Ch\'iwa:l)',culture:'Hupa (California)',phase:'menstrual',emoji:'🌺',body:'Ritual de 3-10 días que celebra la menstruación como espiritualmente poderosa. Las jóvenes corren ceremonialmente, y cómo corren simboliza cómo vivirán sus vidas. La ceremonia une a la comunidad con la salud de la Tierra.'},
+                {title:'Kinaaldá',culture:'Diné (Navajo)',phase:'menstrual',emoji:'🏜️',body:'Familias y comunidades se reúnen para cocinar, bailar, reír y compartir historias cuando una joven menstrúa por primera vez, transmitiendo conocimiento ancestral y honrando la menstruación como tiempo de poder espiritual.'},
+                {title:'Intonjane',culture:'Xhosa (Sudáfrica)',phase:'menstrual',emoji:'💎',body:'Al tener su primera menstruación, la madre coloca joyas de hierba alrededor del cuello y cintura de la joven como símbolos de su paso a la mujer adulta. Un ritual comunitario celebra su fertilidad y nuevo estatus.'},
+                {title:'Altares Caminantes',culture:'Dagara (África Occidental)',phase:'menstrual',emoji:'🕯️',body:'Las mujeres menstruantes eran vistas como "altares caminantes" con poder espiritual elevado. Las ancianas entrenaban a las jóvenes en interpretación de sueños y adivinación durante la menstruación, honrándola como portal al mundo espiritual.'},
+                {title:'Ritu Kala Samskara',culture:'Hindú (India del Sur)',phase:'menstrual',emoji:'🪷',body:'Ceremonia sagrada que celebra la menarquia con rituales purificadores, adornos especiales, dieta vegetariana y bendiciones comunitarias durante nueve días, honrando a la joven como manifestación de la Divina Femenina (Shakti).'},
+                {title:'Shakti y Prakriti',culture:'Filosofía Hindú/Tántrica',phase:'all',emoji:'🔥',body:'En la filosofía hindú, el ciclo menstrual se alinea con ritmos cósmicos y el principio femenino de creación (Prakriti). Las tradiciones tántricas identifican el ciclo con Shakti: la energía femenina cósmica que impulsa el universo.'},
+                {title:'Sekihan: El Arroz Rojo',culture:'Japón',phase:'menstrual',emoji:'🍚',body:'Cuando una joven tiene su primera menstruación, su madre prepara "sekihan" — arroz glutinoso rojo con frijoles azuki — simbolizando felicidad y celebración. La familia adivina la razón del platillo especial, creando un reconocimiento alegre.'},
+                {title:'Tiet: El Amuleto de Isis',culture:'Antiguo Egipto',phase:'menstrual',emoji:'🏺',body:'El amuleto Tiet (Cinturón de Isis), hecho de jaspe rojo, invoca "el poder de la sangre de Isis" para protección y creación. Vincula la sangre menstrual con el poder divino femenino según el Libro de los Muertos.'},
+                {title:'Artemisa y la Luna',culture:'Antigua Grecia y Roma',phase:'moon',emoji:'🏛️',body:'Las jóvenes que entraban en la edad adulta dedicaban sus mejores vestidos a Artemisa/Diana al comenzar la menstruación. Estas diosas gobiernan el ciclo lunar de 29 días, conectando la menstruación con el poder femenino celestial.'},
+                {title:'Ruadh: Rojo y Real',culture:'Celta (Europa)',phase:'menstrual',emoji:'👑',body:'La palabra celta "ruadh" significa tanto rojo como real/regio. La sangre menstrual se veía como sagrada y poderosa. Las mujeres post-menopáusicas eran las más sabias por haber "retenido su sangre de sabiduría".'},
+                {title:'Moko Kauae',culture:'Māori (Nueva Zelanda)',phase:'menstrual',emoji:'🌿',body:'La llegada de la primera menstruación se observaba y valoraba entre familiares femeninas. La joven recibía un nombre adulto y frecuentemente un moko kauae — tatuaje sagrado en el mentón — marcando permanentemente su transición.'},
+                {title:'Carpas Lunares (Moon Lodges)',culture:'Nativo Americano',phase:'moon',emoji:'🏕️',body:'Las mujeres se retiraban durante la menstruación a espacios sagrados para descansar, recibir visiones y honrar su intuición. Se consideraba el tiempo de mayor conexión con la Tierra y la sabiduría ancestral.'},
+                {title:'Movimiento de la Carpa Roja',culture:'Moderno/Global',phase:'moon',emoji:'🔴',body:'Las mujeres se reúnen en luna nueva para reflexionar, crear lazos y honrar la menstruación como tiempo de poder espiritual. Inspirado en tradiciones antiguas, este movimiento moderno reclaim la menstruación como sagrada.'},
+                {title:'La Luna y Tu Ciclo',culture:'Tradición Universal',phase:'moon',emoji:'🌕',body:'Tu ciclo dura ~29 días, igual que la luna. "Menstruación" viene del latín "mensis" (mes/luna). En medicina ayurvédica, la sangre es gobernada por Chandra (la luna). Tu ciclo es celestial, cíclico y conectado con ritmos naturales.'},
+                {title:'Fase Folicular: El Despertar',culture:'Sabiduría del Ciclo',phase:'follicular',emoji:'🌱',body:'Después de la menstruación, tu energía sube como la luna creciente. Es tiempo de nuevos proyectos, conexión social, aprendizaje y expresión creativa. El estrógeno despierta tu claridad mental y optimismo.'},
+                {title:'Ovulación: Tu Superpoder',culture:'Sabiduría del Ciclo',phase:'ovulatory',emoji:'⚡',body:'En la ovulación tu energía llega al pico, como la luna llena. Es tu fase de máxima confianza, magnetismo y poder. Las tradiciones antiguas reconocían este tiempo como el más fértil para manifestar y actuar con audacia.'},
+                {title:'Fase Lútea: La Visionaria',culture:'Sabiduría del Ciclo',phase:'luteal',emoji:'🌘',body:'Como la luna menguante, tu energía se vuelve introspectiva. Es tiempo de trabajo creativo profundo, planificación y escuchar tu intuición. Muchas culturas honraban esta fase como tiempo de visiones y sabiduría interior.'}
+            ],
+            en: [
+                {title:'The Berry Fast',culture:'Ojibwe (North America)',phase:'menstrual',emoji:'🍓',body:'When a young woman begins menstruating, she fasts from eating strawberries for an entire year. At year\'s end, the community holds a feast honoring her transition to womanhood, where she gives and receives gifts recognizing her new status.'},
+                {title:'Sunrise Ceremony',culture:'Mescalero Apache',phase:'menstrual',emoji:'🌅',body:'A sacred four-day celebration marking a young woman\'s transition into womanhood, featuring family feasts, dancing, blessings, and rituals that honor her spiritual and physical transformation.'},
+                {title:'Flower Dance (Ch\'iwa:l)',culture:'Hupa (California)',phase:'menstrual',emoji:'🌺',body:'A 3-10 day ritual celebrating menstruation as spiritually powerful. Young women run ceremonially, and how they run symbolizes how they will live their lives. The ceremony ties the community to the Earth\'s health.'},
+                {title:'Kinaaldá',culture:'Diné (Navajo)',phase:'menstrual',emoji:'🏜️',body:'Families and communities gather to cook, dance, laugh, and share stories when a girl menstruates for the first time, passing down ancestral knowledge and honoring menstruation as a time of spiritual power.'},
+                {title:'Intonjane',culture:'Xhosa (South Africa)',phase:'menstrual',emoji:'💎',body:'Upon first menstruation, the mother places grass jewelry around the girl\'s neck and waist as symbols of her passage into womanhood. A community ritual celebrates her fertility and new status.'},
+                {title:'Walking Altars',culture:'Dagara (West Africa)',phase:'menstrual',emoji:'🕯️',body:'Menstruating women were viewed as "walking altars" with heightened spiritual power. Elder women trained younger menstruators in dreamwork and divination during menstruation, honoring it as a portal to the spirit realm.'},
+                {title:'Ritu Kala Samskara',culture:'Hindu (South India)',phase:'menstrual',emoji:'🪷',body:'A sacred nine-day ceremony celebrating menarche with purifying rituals, special adornments, vegetarian diet, and communal blessings, honoring the girl as a manifestation of the Divine Feminine (Shakti).'},
+                {title:'Shakti & Prakriti',culture:'Hindu/Tantric Philosophy',phase:'all',emoji:'🔥',body:'In Hindu philosophy, the menstrual cycle aligns with cosmic rhythms and the feminine principle of creation (Prakriti). Tantric traditions identify the cycle with Shakti — the cosmic feminine energy that fuels the universe.'},
+                {title:'Sekihan: The Red Rice',culture:'Japan',phase:'menstrual',emoji:'🍚',body:'When a girl gets her first period, her mother prepares "sekihan" — sticky red rice with adzuki beans — symbolizing happiness and celebration. Extended family joyfully guesses the reason for this special dish.'},
+                {title:'Tiet: The Amulet of Isis',culture:'Ancient Egypt',phase:'menstrual',emoji:'🏺',body:'The Tiet (Girdle of Isis) amulet, made from blood-red jasper, invokes "the power of the blood of Isis" for protection and creation, linking menstrual blood to divine feminine power according to the Book of the Dead.'},
+                {title:'Artemis & the Moon',culture:'Ancient Greece & Rome',phase:'moon',emoji:'🏛️',body:'Girls entering womanhood dedicated their finest clothing to Artemis/Diana when menstruation began. These goddesses govern the 29-day lunar cycle, connecting menstruation to celestial feminine power.'},
+                {title:'Ruadh: Red & Royal',culture:'Celtic (Europe)',phase:'menstrual',emoji:'👑',body:'The Celtic word "ruadh" means both red and royal. Menstrual blood was viewed as sacred and powerful. Post-menopausal women were considered wisest because they had "retained their wisdom blood."'},
+                {title:'Moko Kauae',culture:'Māori (New Zealand)',phase:'menstrual',emoji:'🌿',body:'The arrival of first menstruation was cherished between female relatives. The girl received a new adult name and often a moko kauae — a sacred chin tattoo — permanently marking her transition into womanhood.'},
+                {title:'Moon Lodges',culture:'Native American',phase:'moon',emoji:'🏕️',body:'Women retreated during menstruation to sacred spaces to rest, receive visions, and honor their intuition. It was considered the time of greatest connection to the Earth and ancestral wisdom.'},
+                {title:'Red Tent Movement',culture:'Modern/Global',phase:'moon',emoji:'🔴',body:'Women gather on the new moon to reflect, bond, and honor menstruation as a time of spiritual power. Inspired by ancient traditions, this modern movement reclaims menstruation as sacred.'},
+                {title:'The Moon & Your Cycle',culture:'Universal Tradition',phase:'moon',emoji:'🌕',body:'Your cycle lasts ~29 days, just like the moon. "Menstruation" comes from Latin "mensis" (month/moon). In Ayurvedic medicine, blood is governed by Chandra (the moon). Your cycle is celestial, cyclical, and connected to natural rhythms.'},
+                {title:'Follicular Phase: The Awakening',culture:'Cycle Wisdom',phase:'follicular',emoji:'🌱',body:'After menstruation, your energy rises like the waxing moon. It\'s time for new projects, social connection, learning, and creative expression. Estrogen awakens mental clarity and optimism.'},
+                {title:'Ovulation: Your Superpower',culture:'Cycle Wisdom',phase:'ovulatory',emoji:'⚡',body:'At ovulation your energy peaks, like the full moon. This is your phase of maximum confidence, magnetism, and power. Ancient traditions recognized this as the most fertile time for manifestation and bold action.'},
+                {title:'Luteal Phase: The Visionary',culture:'Cycle Wisdom',phase:'luteal',emoji:'🌘',body:'Like the waning moon, your energy turns inward. It\'s time for deep creative work, planning, and listening to your intuition. Many cultures honored this phase as a time of visions and inner wisdom.'}
+            ]
+        };
+
+        // ============ FIRST MOON: GUIDE FOR YOUNG GIRLS ============
+        var FIRSTMOON_DATA = {
+            es: [
+                {title:'Tu Ciclo Mensual',cat:'body',emoji:'🔄',body:'Tu ciclo menstrual es el ritmo mensual de tu cuerpo, típicamente de 21-35 días. El sangrado dura 3-7 días. Cada ciclo prepara tu cuerpo liberando un óvulo y construyendo un revestimiento en el útero. Si no hay embarazo, ese revestimiento se desprende como tu período.',tip:'Es completamente normal que tu ciclo sea irregular al principio. Dale a tu cuerpo tiempo para encontrar su ritmo.'},
+                {title:'Cambios en tu Cuerpo',cat:'body',emoji:'🦋',body:'Tu cuerpo está cambiando de muchas formas hermosas: pechos que crecen, caderas que se ensanchan, más curvas. También puedes notar más sudor, cambios en tu piel (¡hola, acné!) y nuevo vello corporal. Todo esto es tu cuerpo preparándose para tu vida adulta.',tip:'Estos cambios suceden a ritmos diferentes para cada persona. No te compares con tus amigas — tu cuerpo tiene su propio timeline perfecto.'},
+                {title:'¿Cómo se ve tu Período?',cat:'body',emoji:'💧',body:'El flujo varía de ligero a abundante (todo es normal). El color va de rojo brillante a marrón oscuro. Puedes ver coágulos (pequeños grumos de sangre) — es normal. El flujo cambia día a día y suele ser más abundante los primeros 2-3 días.',tip:'No necesitas cierta cantidad de sangre para ser "normal". Tu período es único como tú.'},
+                {title:'Tus Emociones son Válidas',cat:'emotions',emoji:'💜',body:'Antes de tu período puedes sentir cambios de humor, irritabilidad, tristeza o ansiedad. Durante el período algunas se sienten emotivas, otras tranquilas. Después del período muchas se sienten más felices y confiadas. ¡Todo es parte del ciclo!',tip:'Llevar un diario de tus emociones junto con tu ciclo te ayudará a ver patrones y anticipar cómo te sentirás.'},
+                {title:'Date Gracia a Ti Misma',cat:'emotions',emoji:'🤗',body:'Tu cuerpo no está "roto" cuando te sientes diferente. Está pidiendo que bajes el ritmo. Habla con alguien de confianza sobre tus sentimientos. Escribe en un diario. Y recuerda: estos cambios de humor son temporales y ligados a tu ciclo, no un defecto de carácter.',tip:'Si tus emociones se sienten demasiado intensas o interfieren con tu vida diaria, habla con un adulto de confianza o un doctor. Pedir ayuda es de valientes.'},
+                {title:'Tu Kit de Período',cat:'practical',emoji:'🎒',body:'Arma tu kit: toallas sanitarias o tampones, analgésico (ibuprofeno funciona mejor para cólicos), bolsa de agua caliente, ropa interior extra, toallitas húmedas y una bolsita para descartar. Ten uno en tu mochila, casillero y en casa.',tip:'Cambia tu producto cada 4-8 horas. Lávate las manos antes y después. Si usas tampones, cámbialos regularmente.'},
+                {title:'Productos: Tus Opciones',cat:'practical',emoji:'🛍️',body:'Toallas sanitarias (las más fáciles para empezar), tampones (requieren práctica pero dan más libertad), copas menstruales (reutilizables y ecológicas), ropa interior de período (absorbente), y protectores diarios para flujo ligero.',tip:'Prueba varias opciones para encontrar lo que se siente cómodo para TU cuerpo. No hay una sola respuesta correcta.'},
+                {title:'Tu Período en la Escuela',cat:'practical',emoji:'🏫',body:'Ten un neceser pequeño en tu mochila. Puedes ir a la enfermería si necesitas productos o alivio para dolor. Pide permiso para ir al baño sin dar explicaciones. Usa ropa oscura o con patrones si eso te da más confianza.',tip:'Después de unos meses, manejar tu período se vuelve rutina. Millones de mujeres van a la escuela y trabajo cada día con su período — ¡tú también puedes!'},
+                {title:'Tu Período es Poder',cat:'power',emoji:'⚡',body:'A lo largo de la historia y en todo el mundo, la menstruación ha sido reconocida como espiritualmente y físicamente poderosa — no vergonzosa. Tu ciclo te conecta con ritmos naturales: la luna, las estaciones y la Tierra.',tip:'Tu período es evidencia de que tu cuerpo funciona — de que puedes crear vida. Eso es un superpoder.'},
+                {title:'Superpoderes de Cada Fase',cat:'power',emoji:'🌈',body:'Fase menstrual: intuición y sabiduría profunda. Fase folicular: claridad mental, energía social y aprendizaje. Ovulación: confianza máxima, magnetismo y poder. Fase lútea: creatividad profunda, planificación y reflexión.',tip:'Cuando entiendes tus fases, puedes planear tu vida alrededor de tus superpoderes naturales.'},
+                {title:'Unirte a la Hermandad',cat:'power',emoji:'🌍',body:'Al menstruar te unes a una hermandad global de miles de millones de mujeres a través del tiempo y las culturas. En pueblos originarios, en templos antiguos, en ciudades modernas — las mujeres han sangrado, sobrevivido, creado y prosperado.',tip:'No te estás volviendo "rota" o "sucia" — te estás volviendo más tú misma.'},
+                {title:'Celebra Tu Primera Luna',cat:'rituals',emoji:'🎉',body:'Pregunta a tu familia sobre tradiciones de tu cultura. Algunas familias cocinan comidas especiales, dan regalos o crean ceremonias. En Japón se prepara arroz rojo; en India hay nueve días de celebración; los pueblos originarios hacen festines comunitarios.',tip:'Tu primera luna merece ser celebrada, no escondida. Es uno de los momentos más importantes de tu vida.'},
+                {title:'Ideas para Celebrar',cat:'rituals',emoji:'✨',body:'Ten una comida especial con alguien de confianza. Escribe una carta a tu yo más joven y a tu yo futura. Crea arte, poesía o música celebrando tu transición. Planta un árbol o flor para marcar este momento. Pide a mujeres de confianza que compartan sus historias contigo.',tip:'Crea una "caja de primera luna" con cosas que te confortan y empoderan: tu producto favorito, chocolate, un diario, algo significativo para ti.'},
+                {title:'Permiso para Sentir',cat:'rituals',emoji:'🕊️',body:'Si tu período se siente incómodo, es válido — aboga por ti misma con un doctor. Si te sientes poderosa y increíble, ¡celébralo! No hay una forma "correcta" de menstruar; tu experiencia es tuya. Algunas aman su período, otras lo toleran — todo es normal.',tip:'Lo más importante: tu cuerpo es sabio. Escúchalo, hónralo y confía en él.'}
+            ],
+            en: [
+                {title:'Your Monthly Cycle',cat:'body',emoji:'🔄',body:'Your menstrual cycle is your body\'s monthly rhythm, typically lasting 21-35 days. The bleeding itself lasts 3-7 days. Each cycle prepares your body by releasing an egg and building a uterine lining. If pregnancy doesn\'t occur, that lining sheds as your period.',tip:'It\'s completely normal for your cycle to be irregular at first. Give your body time to find its rhythm.'},
+                {title:'Changes in Your Body',cat:'body',emoji:'🦋',body:'Your body is changing in many beautiful ways: growing breasts, wider hips, more curves. You may also notice more sweat, skin changes (hello, acne!) and new body hair. This is all your body preparing for your adult life.',tip:'These changes happen at different rates for everyone. Don\'t compare yourself to your friends — your body has its own perfect timeline.'},
+                {title:'What Your Period Looks Like',cat:'body',emoji:'💧',body:'Flow varies from light to heavy (all normal). Color ranges from bright red to dark brown. You might see clots (small blood clumps) — that\'s normal. Flow changes day to day and is usually heaviest the first 2-3 days.',tip:'You don\'t need a certain amount of blood to be "normal." Your period is unique, just like you.'},
+                {title:'Your Emotions Are Valid',cat:'emotions',emoji:'💜',body:'Before your period you may feel mood swings, irritability, sadness, or anxiety. During your period some feel emotional, others feel calm. After your period, many feel happier and more confident. It\'s all part of the cycle!',tip:'Keeping a mood journal alongside your cycle will help you see patterns and anticipate how you\'ll feel.'},
+                {title:'Give Yourself Grace',cat:'emotions',emoji:'🤗',body:'Your body isn\'t "broken" when you feel different. It\'s asking you to slow down. Talk to someone you trust about your feelings. Journal them out. And remember: these mood changes are temporary and tied to your cycle, not a character flaw.',tip:'If your emotions feel too intense or interfere with daily life, talk to a trusted adult or doctor. Asking for help is brave.'},
+                {title:'Your Period Kit',cat:'practical',emoji:'🎒',body:'Build your kit: pads or tampons, pain relief (ibuprofen works best for cramps), heating pad, extra underwear, wet wipes, and a small bag for disposal. Keep one in your backpack, locker, and at home.',tip:'Change your product every 4-8 hours. Wash your hands before and after. If using tampons, change them regularly.'},
+                {title:'Products: Your Options',cat:'practical',emoji:'🛍️',body:'Pads (easiest for beginners), tampons (require practice but offer more freedom), menstrual cups (reusable and eco-friendly), period underwear (absorbent), and panty liners for light flow.',tip:'Try a few options to find what feels comfortable for YOUR body. There\'s no single right answer.'},
+                {title:'Your Period at School',cat:'practical',emoji:'🏫',body:'Keep a small pouch in your backpack. Go to the nurse for products or pain relief. Ask for bathroom breaks without explanation. Wear dark or patterned clothes if that gives you confidence.',tip:'After a few months, managing your period becomes routine. Millions of women go to school and work every day with their period — you can too!'},
+                {title:'Your Period Is Power',cat:'power',emoji:'⚡',body:'Throughout history and across cultures, menstruation has been recognized as spiritually and physically powerful — not shameful. Your cycle connects you to natural rhythms: the moon, the seasons, and the Earth.',tip:'Your period is evidence that your body works — that you can create life. That\'s a superpower.'},
+                {title:'Each Phase\'s Superpower',cat:'power',emoji:'🌈',body:'Menstrual phase: deep intuition and wisdom. Follicular phase: mental clarity, social energy, and learning. Ovulation: peak confidence, magnetism, and power. Luteal phase: deep creativity, planning, and reflection.',tip:'When you understand your phases, you can plan your life around your natural superpowers.'},
+                {title:'Joining the Sisterhood',cat:'power',emoji:'🌍',body:'By menstruating, you join a global sisterhood of billions of women across time and cultures. In indigenous villages, in ancient temples, in modern cities — women have bled, survived, created, and thrived.',tip:'You\'re not becoming "broken" or "messy" — you\'re becoming more yourself.'},
+                {title:'Celebrate Your First Moon',cat:'rituals',emoji:'🎉',body:'Ask your family about traditions from your culture. Some families cook special meals, give gifts, or create ceremonies. In Japan they prepare red rice; in India there are nine days of celebration; indigenous peoples hold community feasts.',tip:'Your first moon deserves to be celebrated, not hidden. It\'s one of the most important moments of your life.'},
+                {title:'Ideas to Celebrate',cat:'rituals',emoji:'✨',body:'Have a special meal with someone you trust. Write a letter to your younger self and your future self. Create art, poetry, or music celebrating your transition. Plant a tree or flower. Ask trusted women to share their menarche stories.',tip:'Create a "first moon box" with things that comfort and empower you: your favorite product, chocolate, a journal, something meaningful to you.'},
+                {title:'Permission to Feel',cat:'rituals',emoji:'🕊️',body:'If your period feels uncomfortable, that\'s valid — advocate for yourself with a doctor. If you feel powerful and amazing, celebrate that! There\'s no "right way" to menstruate; your experience is your own.',tip:'The most important thing: your body is wise. Listen to it, honor it, and trust it.'}
+            ]
+        };
+
+        var _wisdomFilter = 'all';
+        var _fmFilter = 'all';
+
+        function renderWisdomScreen() {
+            var lang = currentLanguage || 'es';
+            var data = WISDOM_DATA[lang] || WISDOM_DATA.es;
+            var container = document.getElementById('wisdom-cards');
+            if (!container) return;
+            var html = '';
+            data.forEach(function(w) {
+                if (_wisdomFilter !== 'all' && w.phase !== _wisdomFilter && w.phase !== 'all') return;
+                var phaseLabels = {menstrual:'🔴 Menstrual',follicular:'🌱 Folicular',ovulatory:'✨ Ovulación',luteal:'🌘 Lútea',moon:'🌕 Luna',all:'🔄 Todas las fases'};
+                if (lang === 'en') phaseLabels = {menstrual:'🔴 Menstrual',follicular:'🌱 Follicular',ovulatory:'✨ Ovulatory',luteal:'🌘 Luteal',moon:'🌕 Moon',all:'🔄 All phases'};
+                html += '<div class="wisdom-card">';
+                html += '<h3>' + w.emoji + ' ' + w.title + '</h3>';
+                html += '<div class="wc-culture">' + w.culture + '</div>';
+                html += '<div class="wc-body">' + w.body + '</div>';
+                html += '<span class="wc-phase">' + (phaseLabels[w.phase] || w.phase) + '</span>';
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function filterWisdom(cat) {
+            _wisdomFilter = cat;
+            document.querySelectorAll('#wisdom-filters .wisdom-filter').forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-cat') === cat);
+            });
+            renderWisdomScreen();
+        }
+
+        function renderFirstMoonScreen() {
+            var lang = currentLanguage || 'es';
+            var data = FIRSTMOON_DATA[lang] || FIRSTMOON_DATA.es;
+            var container = document.getElementById('fm-cards');
+            if (!container) return;
+            var html = '';
+            data.forEach(function(item) {
+                if (_fmFilter !== 'all' && item.cat !== _fmFilter) return;
+                html += '<div class="fm-card">';
+                html += '<h3>' + item.emoji + ' ' + item.title + '</h3>';
+                html += '<div class="fm-body">' + item.body + '</div>';
+                if (item.tip) html += '<div class="fm-tip">💡 ' + item.tip + '</div>';
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function filterFirstMoon(cat) {
+            _fmFilter = cat;
+            document.querySelectorAll('#fm-filters .wisdom-filter').forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-cat') === cat);
+            });
+            renderFirstMoonScreen();
+        }
+
+        // AI-powered deep dive using Gemini proxy
+        function wisdomAiDeepDive() {
+            var lang = currentLanguage || 'es';
+            var question = prompt(lang === 'es'
+                ? 'Pregúntale a la Luna sobre tradiciones, rituales, filosofía del ciclo femenino...'
+                : 'Ask the Moon about traditions, rituals, philosophy of the feminine cycle...');
+            if (!question || !question.trim()) return;
+            var systemMsg = lang === 'es'
+                ? 'Eres una sabia ancestral que conoce las tradiciones sagradas del ciclo menstrual de todas las culturas del mundo. Responde con profundidad espiritual, datos culturales reales y empoderamiento femenino. Sé poética pero informativa. Responde en español.'
+                : 'You are an ancestral wise woman who knows the sacred traditions of the menstrual cycle from all world cultures. Respond with spiritual depth, real cultural facts, and feminine empowerment. Be poetic yet informative. Respond in English.';
+            _askGemini(systemMsg, question, function(answer) {
+                alert(answer);
+            });
+        }
+
+        function firstMoonAiAsk() {
+            var lang = currentLanguage || 'es';
+            var question = prompt(lang === 'es'
+                ? 'Pregúntale a tu guía sobre tu primera luna, tu cuerpo, emociones, o cualquier duda...'
+                : 'Ask your guide about your first moon, your body, emotions, or any question...');
+            if (!question || !question.trim()) return;
+            var systemMsg = lang === 'es'
+                ? 'Eres una guía cálida y empática para chicas de 12-15 años que están experimentando su primera menstruación. Habla con ternura, normaliza todo, empodera. Usa lenguaje simple pero nunca condescendiente. Nunca uses lenguaje que avergüence. Responde en español.'
+                : 'You are a warm, empathetic guide for 12-15 year old girls experiencing their first period. Speak with warmth, normalize everything, empower. Use simple but never condescending language. Never use shaming language. Respond in English.';
+            _askGemini(systemMsg, question, function(answer) {
+                alert(answer);
+            });
+        }
+
+        // Shared Gemini AI helper (uses proxy or personal key)
+        function _askGemini(systemMsg, userMsg, callback) {
+            var key = getApiKey();
+            var proxyUrl = typeof AI_PROXY_URL !== 'undefined' ? AI_PROXY_URL : '';
+            var url, headers, body;
+            if (key && key !== 'proxy') {
+                url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + key;
+                headers = {'Content-Type':'application/json'};
+            } else if (proxyUrl) {
+                url = proxyUrl;
+                headers = {'Content-Type':'application/json'};
+            } else {
+                callback(currentLanguage === 'es' ? 'No hay conexión con IA. Configura tu clave en Ajustes.' : 'No AI connection. Set your key in Settings.');
+                return;
+            }
+            body = JSON.stringify({contents:[{role:'user',parts:[{text:systemMsg + '\n\nUsuario pregunta: ' + userMsg}]}]});
+            fetch(url, {method:'POST', headers:headers, body:body})
+            .then(function(r){return r.json();})
+            .then(function(data){
+                var text = '';
+                try { text = data.candidates[0].content.parts[0].text; } catch(e) { text = currentLanguage === 'es' ? 'No pude obtener respuesta.' : 'Could not get a response.'; }
+                callback(text);
+            })
+            .catch(function(e){ callback(currentLanguage === 'es' ? 'Error de conexión: ' + e.message : 'Connection error: ' + e.message); });
+        }
+
+        // ============ ICS CALENDAR EXPORT (kept as manual fallback) ============
         function buildIcs() {
             const lang = getPartnerLang();
             const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Khloe\'s Moon//Cycle Calendar//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Khloe\'s Moon','X-WR-TIMEZONE:America/Costa_Rica'];
@@ -4229,7 +4493,7 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            const tabMap = {'home-screen':'tab-home','calendar-screen':'tab-calendar','log-screen':'tab-log','insights-screen':'tab-insights','chat-screen':'tab-chat','partner-screen':'tab-partner','settings-screen':'tab-settings'};
+            const tabMap = {'home-screen':'tab-home','calendar-screen':'tab-calendar','log-screen':'tab-log','insights-screen':'tab-insights','wisdom-screen':'tab-wisdom','firstmoon-screen':'tab-firstmoon','chat-screen':'tab-chat','partner-screen':'tab-partner','settings-screen':'tab-settings'};
             const tabId = tabMap[screenId];
             if (tabId) document.getElementById(tabId).classList.add('active');
 
@@ -4238,6 +4502,8 @@
             else if (screenId === 'insights-screen') updateInsights();
             else if (screenId === 'settings-screen') loadSettings();
             else if (screenId === 'chat-screen') initChat();
+            else if (screenId === 'wisdom-screen') renderWisdomScreen();
+            else if (screenId === 'firstmoon-screen') renderFirstMoonScreen();
             else if (screenId === 'partner-screen') renderPartnerScreen();
         }
 
