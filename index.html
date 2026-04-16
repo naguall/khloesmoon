@@ -1503,6 +1503,37 @@
                 </div>
             </div>
 
+            <!-- WISE WOMAN SCREEN: Menopause Guide & Wisdom -->
+            <div id="wisewoman-screen" class="screen">
+                <div style="padding:16px 14px 8px;">
+                    <h2 style="margin:0 0 4px;font-size:1.15rem;color:var(--wine);" id="ww-title">👑 Mujer Sabia</h2>
+                    <p style="font-size:0.78rem;color:var(--secondary);margin:0 0 12px;" id="ww-subtitle">Sabiduría, guía y empoderamiento para la menopausia</p>
+                    <!-- Section toggle -->
+                    <div style="display:flex;gap:6px;margin-bottom:10px;">
+                        <button class="wisdom-filter active" onclick="toggleWWSection('wisdom')" id="ww-sec-wisdom" data-cat="wisdom">🌙 Tradiciones</button>
+                        <button class="wisdom-filter" onclick="toggleWWSection('guide')" id="ww-sec-guide" data-cat="guide">📖 Guía Práctica</button>
+                    </div>
+                    <!-- Phase/topic filters -->
+                    <div id="ww-wisdom-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+                        <button class="wisdom-filter active" onclick="filterWW('all')" data-cat="all">Todas</button>
+                        <button class="wisdom-filter" onclick="filterWW('perimenopause')" data-cat="perimenopause">🔥 Perimenopausia</button>
+                        <button class="wisdom-filter" onclick="filterWW('menopause')" data-cat="menopause">🌕 Menopausia</button>
+                        <button class="wisdom-filter" onclick="filterWW('postmenopause')" data-cat="postmenopause">👑 Post-menopausia</button>
+                    </div>
+                    <div id="ww-guide-filters" style="display:none;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+                        <button class="wisdom-filter active" onclick="filterWWGuide('all')" data-cat="all">Todo</button>
+                        <button class="wisdom-filter" onclick="filterWWGuide('body')" data-cat="body">🦋 Cuerpo</button>
+                        <button class="wisdom-filter" onclick="filterWWGuide('emotions')" data-cat="emotions">💜 Emociones</button>
+                        <button class="wisdom-filter" onclick="filterWWGuide('practical')" data-cat="practical">🌿 Bienestar</button>
+                        <button class="wisdom-filter" onclick="filterWWGuide('celebrate')" data-cat="celebrate">🎉 Celebrar</button>
+                    </div>
+                </div>
+                <div id="ww-cards" style="padding:0 14px 80px;"></div>
+                <div style="padding:0 14px 16px;">
+                    <button class="settings-btn" style="width:100%;background:linear-gradient(135deg,#8E44AD,#C0392B);color:#fff;font-weight:700;padding:12px;border-radius:14px;" onclick="wwAiAsk()" id="ww-ai-btn">👑 Pregúntale a la Sabia (IA)</button>
+                </div>
+            </div>
+
             <!-- CHAT SCREEN -->
             <div id="chat-screen" class="screen">
                 <div class="chat-container">
@@ -1602,6 +1633,10 @@
             <button class="tab-btn" id="tab-firstmoon" onclick="switchScreen('firstmoon-screen')">
                 <span>🌸</span>
                 <span class="tab-label" data-key="firstmoon" style="font-size:0.58rem;">1ra Luna</span>
+            </button>
+            <button class="tab-btn" id="tab-wisewoman" onclick="switchScreen('wisewoman-screen')">
+                <span>👑</span>
+                <span class="tab-label" data-key="wisewoman" style="font-size:0.58rem;">Sabia</span>
             </button>
             <button class="tab-btn" id="tab-partner" onclick="switchScreen('partner-screen')">
                 <span>💕</span>
@@ -3694,6 +3729,148 @@
             });
         }
 
+        // ============ WISE WOMAN: MENOPAUSE WISDOM & GUIDE ============
+        var WW_WISDOM_DATA = {
+            es: [
+                {title:'Cabaña de Sudación',culture:'Nativo Americano',phase:'menopause',emoji:'🏕️',body:'Las mujeres menopáusicas participan en ceremonias purificadoras de cabaña de sudación para honrar su transformación espiritual y conectar con ancestras. Este ritual marca la transición a roles respetados de liderazgo y enseñanza.'},
+                {title:'Iniciación Chamánica',culture:'Maya/Mesoamérica',phase:'menopause',emoji:'🌿',body:'La menopausia otorga acceso a poderes curativos y habilidades chamánicas. Las mujeres mayas ven esta transición como liberación y elevación a estatus de líder espiritual dentro de sus comunidades.'},
+                {title:'Custodias del Conocimiento',culture:'Aborigen Australiana',phase:'postmenopause',emoji:'🦘',body:'Las mujeres menopáusicas ganan respeto y autoridad como guardianas del conocimiento sagrado. El "cambio de vida" marca la transición a compartir sabiduría cultural, canciones, historias sagradas y habilidades de resolución de conflictos.'},
+                {title:'Tassinon: Intermediaria Espiritual',culture:'África Occidental',phase:'postmenopause',emoji:'🕯️',body:'Las mujeres post-menopáusicas son honradas como "Tassinon" — intermediarias espirituales que se comunican directamente con ancestros y deidades familiares. Lideran rituales religiosos y consultan oráculos.'},
+                {title:'Vhakegulu: Las Ancianas Sabias',culture:'Culturas Africanas',phase:'postmenopause',emoji:'🌍',body:'Las mujeres post-menopáusicas son elevadas a estatus de ancianas. Mentoran a mujeres jóvenes, son consideradas calificadas para comunicarse con ancestros, y tienen autoridad en decisiones familiares y comunitarias.'},
+                {title:'Konenki: Los Años de Renovación',culture:'Japón',phase:'perimenopause',emoji:'🎌',body:'La menopausia se enmarca como "los años de transición" y "sentido de nuevo propósito y crecimiento". Japón venera la edad como sabiduría; las mujeres menopáusicas asumen roles de ancianas valoradas.'},
+                {title:'Segunda Primavera',culture:'Medicina China Tradicional',phase:'menopause',emoji:'🌸',body:'La menopausia marca un renacimiento y redirección de la energía vital. La sangre que nutrió la reproducción se transforma en "sangre sabia" — creatividad, claridad y sabiduría espiritual dirigidas hacia adentro.'},
+                {title:'Rajonivrutti: Cesación hacia la Claridad',culture:'Ayurveda Hindú',phase:'menopause',emoji:'🪷',body:'La menopausia marca la transición de Pitta (logro) a Vata (claridad e intuición). Es tiempo de compartir la sabiduría acumulada con la sociedad. La aceptación, positividad y compartir sabiduría profundizan esta transición.'},
+                {title:'La Crone: Triple Diosa',culture:'Celta/Pagana Europea',phase:'postmenopause',emoji:'🌙',body:'El arquetipo de la Crone representa sabiduría, magia y liminalidad post-menopáusica. Diosas celtas como la Cailleach encarnan la sabiduría creativa, destructiva y cíclica de las mujeres mayores, valoradas por su consejo y poder espiritual.'},
+                {title:'Sacerdotisas de Sabiduría',culture:'Antigua Grecia',phase:'postmenopause',emoji:'🏛️',body:'Las mujeres post-menopáusicas eran nombradas para sacerdocios específicos enfatizando liderazgo espiritual, custodia de sabiduría y autoridad religiosa. La menopausia marcaba una nueva fase de poder espiritual respetado.'},
+                {title:'Ceremonia de Coronación (Croning)',culture:'Espiritual Contemporánea',phase:'menopause',emoji:'👑',body:'Ceremonias modernas que celebran la transición de las mujeres a la fase de Mujer Sabia. Incluyen coronación simbólica, unción, bendición y reconocimiento comunitario de su claridad, sabiduría sanadora y autoridad espiritual.'},
+                {title:'Despertar de Consciencia',culture:'Feminista/Espiritual Moderna',phase:'menopause',emoji:'✨',body:'La menopausia como puerta a la transformación psicoespiritual. Las mujeres reportan intuición elevada, autoconciencia profunda, despertar espiritual y alineación con su poder auténtico.'},
+                {title:'La Mujer Sabia: Sanadora y Oráculo',culture:'Transcultural Histórica',phase:'postmenopause',emoji:'🌿',body:'A través de culturas, las mujeres sabias fueron sanadoras, parteras, herbalistas y oráculos — guardianas de la medicina vegetal y el conocimiento de vida. La menopausia marca la entrada a este arquetipo de poder intuitivo.'},
+                {title:'Manifiesto de la Menopausia',culture:'Feminismo Contemporáneo',phase:'perimenopause',emoji:'✊',body:'El feminismo moderno reenmarca la menopausia de deficiencia médica a transición natural de vida. Prioriza la agencia de las mujeres, conocimiento basado en evidencia, y celebra la menopausia como fase de poder, no de pérdida.'}
+            ],
+            en: [
+                {title:'Sweat Lodge Ceremony',culture:'Native American',phase:'menopause',emoji:'🏕️',body:'Menopausal women participate in purifying sweat lodge ceremonies to honor their spiritual transformation and connect with ancestors. This ritual marks their transition to respected leadership and teaching roles.'},
+                {title:'Shamanic Initiation',culture:'Mayan/Mesoamerican',phase:'menopause',emoji:'🌿',body:'Menopause grants access to healing powers and shamanic abilities. Mayan women view this transition as liberation and elevation to spiritual leader status within their communities.'},
+                {title:'Custodians of Knowledge',culture:'Aboriginal Australian',phase:'postmenopause',emoji:'🦘',body:'Menopausal women gain increased respect and authority as knowledge keepers. The "change of life" marks a transition to sharing cultural wisdom, sacred songs, stories, and conflict resolution skills.'},
+                {title:'Tassinon: Spiritual Intermediary',culture:'West African',phase:'postmenopause',emoji:'🕯️',body:'Post-menopausal women are honored as "Tassinon" — spiritual intermediaries who communicate directly with ancestors and family deities. They lead religious rituals and consult oracles.'},
+                {title:'Vhakegulu: The Wise Elders',culture:'African Cultures',phase:'postmenopause',emoji:'🌍',body:'Post-menopausal women are elevated to elder status. They mentor younger women, are considered qualified to communicate with ancestors, and hold authority in family and community decisions.'},
+                {title:'Konenki: The Renewal Years',culture:'Japan',phase:'perimenopause',emoji:'🎌',body:'Menopause is framed as "the years of transition" and "sense of new purpose and growth." Japan reveres age as wisdom; menopausal women move into valued elder roles.'},
+                {title:'Second Spring',culture:'Chinese Traditional Medicine',phase:'menopause',emoji:'🌸',body:'Menopause marks rebirth and redirection of life energy. The blood that nourished reproduction becomes "wise blood" — creativity, clarity, and spiritual wisdom directed inward.'},
+                {title:'Rajonivrutti: Cessation into Clarity',culture:'Hindu Ayurveda',phase:'menopause',emoji:'🪷',body:'Menopause marks the transition from Pitta (achievement) to Vata (clarity and insight). It is a time to share accumulated wisdom with society. Acceptance and wisdom-sharing deepen this transition.'},
+                {title:'The Crone: Triple Goddess',culture:'Celtic/European Pagan',phase:'postmenopause',emoji:'🌙',body:'The Crone archetype represents post-menopausal wisdom, magic, and liminality. Celtic goddesses like the Cailleach embody the creative, destructive, and cyclical wisdom of older women.'},
+                {title:'Priestesses of Wisdom',culture:'Ancient Greece',phase:'postmenopause',emoji:'🏛️',body:'Post-menopausal women were appointed to specific priesthoods emphasizing spiritual leadership, wisdom-keeping, and religious authority. Menopause marked a new phase of respected spiritual power.'},
+                {title:'Croning Ceremony',culture:'Contemporary Spiritual',phase:'menopause',emoji:'👑',body:'Modern ceremonies that celebrate women\'s transition into the Wise Woman phase. Rituals include symbolic crowning, anointing, blessing, and communal recognition of healing wisdom and spiritual authority.'},
+                {title:'Consciousness Awakening',culture:'Modern Feminist/Spiritual',phase:'menopause',emoji:'✨',body:'Menopause as a gateway to psychospiritual transformation. Women report heightened intuition, deeper self-awareness, spiritual awakening, and alignment with authentic power.'},
+                {title:'The Wise Woman: Healer & Oracle',culture:'Cross-Cultural Historical',phase:'postmenopause',emoji:'🌿',body:'Across cultures, wise women were healers, midwives, herbalists, and oracles — keepers of plant medicine and life knowledge. Menopause marks entry into this archetype of intuitive power.'},
+                {title:'The Menopause Manifesto',culture:'Contemporary Feminism',phase:'perimenopause',emoji:'✊',body:'Modern feminism reframes menopause from medical deficiency to natural life transition. It prioritizes women\'s agency, evidence-based knowledge, and celebrates menopause as a phase of power, not loss.'}
+            ]
+        };
+
+        var WW_GUIDE_DATA = {
+            es: [
+                {title:'Perimenopausia: La Transición',cat:'body',emoji:'🔥',body:'La perimenopausia dura 3-10 años, típicamente desde los 40s. Períodos irregulares, meses saltados y flujo cambiante son normales. Las fluctuaciones hormonales comienzan a cambiar los ritmos de tu cuerpo antes de la menopausia oficial (12 meses sin período).',tip:'No tienes que sufrir en silencio. Habla con tu médica sobre lo que estás experimentando — hay muchas opciones de apoyo.'},
+                {title:'Sofocos y Sudores Nocturnos',cat:'body',emoji:'🌡️',body:'Los sofocos son oleadas repentinas de calor intenso que pueden causar enrojecimiento, sudoración y escalofríos, durando 1-5 minutos. Los sudores nocturnos pueden interrumpir el sueño. Ocurren en 60-80% de las mujeres — son completamente normales.',tip:'Viste en capas, mantén agua fría cerca, y usa ropa de cama transpirable. Los sofocos eventualmente disminuyen.'},
+                {title:'Cambios Hormonales y Metabolismo',cat:'body',emoji:'⚖️',body:'El estrógeno y la progesterona fluctúan impredeciblemente durante la perimenopausia antes de disminuir. Estos cambios hormonales afectan humor, metabolismo, sueño y temperatura. Cambios en composición corporal y peso son esperados y manejables.',tip:'El ejercicio de resistencia y una dieta rica en proteínas ayudan a mantener tu metabolismo activo y tu masa muscular.'},
+                {title:'Sueño y Descanso',cat:'body',emoji:'😴',body:'Cerca del 40% de las mujeres menopáusicas experimentan problemas de sueño por sudores nocturnos, cambios de humor o cambios hormonales. La calidad del sueño afecta directamente el humor, la cognición y la energía.',tip:'Mantén un horario de sueño consistente, duerme en un ambiente fresco, y practica relajación antes de dormir.'},
+                {title:'Niebla Mental y Memoria',cat:'body',emoji:'🧠',body:'Muchas mujeres experimentan cambios cognitivos temporales, lapsos de memoria o dificultad para concentrarse. Esto es un efecto hormonal normal, NO un deterioro cognitivo permanente. Listas, recordatorios y rutinas ayudan a manejar la niebla mental.',tip:'Tu cerebro está reorganizándose, no deteriorándose. Muchas mujeres reportan mayor claridad mental después de la transición.'},
+                {title:'Cambios en Piel y Tejidos',cat:'body',emoji:'💧',body:'El estrógeno que disminuye causa sequedad vaginal, irritación, y cambios en elasticidad de la piel. El cabello y las uñas pueden volverse más secos. Estos cambios son manejables con lubricantes, hidratantes y cuidado consistente.',tip:'No hay vergüenza en usar lubricantes o hablar con tu médica sobre estos cambios. Son naturales y tienen solución.'},
+                {title:'Emociones en Montaña Rusa',cat:'emotions',emoji:'💜',body:'Las fluctuaciones hormonales afectan los neurotransmisores que regulan el humor, causando irritabilidad, ansiedad, depresión o cambios de humor. Estos son cambios neurobiológicos, no defectos de carácter.',tip:'Si tus emociones interfieren con tu vida diaria, busca apoyo profesional. La terapia y los grupos de mujeres son muy efectivos.'},
+                {title:'Resiliencia Emocional',cat:'emotions',emoji:'🦋',body:'La menopausia es un tiempo ideal para introspección, escritura y procesamiento emocional. Muchas mujeres descubren claridad y sabiduría aumentadas cuando honran sus emociones en lugar de suprimirlas.',tip:'Considera un diario de menopausia. Registrar tus experiencias te ayuda a ver patrones y celebrar tu evolución.'},
+                {title:'Movimiento, Nutrición y Rutinas',cat:'practical',emoji:'🏃‍♀️',body:'Ejercicio regular (yoga, caminar, fuerza) mejora humor, metabolismo y sueño. Una dieta rica en plantas, soja, verduras y omega-3 apoya el balance hormonal. Un horario de sueño consistente mejora dramáticamente tu funcionamiento diario.',tip:'No necesitas correr maratones. 30 minutos de caminata diaria ya hacen una diferencia medible en tus síntomas.'},
+                {title:'Manejo del Estrés y Respiración',cat:'practical',emoji:'🧘',body:'Respiración profunda (inhalar 4, exhalar 4), meditación, yoga y tai chi bajan las hormonas de estrés que empeoran los síntomas. El manejo regular del estrés reduce sofocos, mejora la regulación emocional y apoya mejor sueño.',tip:'Incluso 5-10 minutos diarios de respiración consciente hacen una diferencia medible. Empieza hoy.'},
+                {title:'Cuándo Buscar Ayuda Profesional',cat:'practical',emoji:'⚕️',body:'Consulta si los síntomas interfieren con tu vida diaria, los períodos se vuelven muy abundantes o irregulares, experimentas sangrado anormal, o los cambios emocionales son inmanejables. Las opciones van desde cambios de estilo de vida hasta terapia hormonal.',tip:'Mereces atención médica que te escuche. Si tu médica minimiza tus síntomas, busca una segunda opinión.'},
+                {title:'Celebra Tu Transformación',cat:'celebrate',emoji:'👑',body:'Marca esta transición con rituales personales: reflexiones en diario sobre la sabiduría ganada, reuniones con hermanas para ceremonia, crea una "corona de sabia", o planta algo simbólico. Muchas tradiciones celebran la menopausia como entrada a una fase de claridad y libertad.',tip:'Organiza tu propia "ceremonia de coronación" con mujeres que amas. Honra todo lo que has vivido, aprendido y superado.'}
+            ],
+            en: [
+                {title:'Perimenopause: The Transition',cat:'body',emoji:'🔥',body:'Perimenopause lasts 3-10 years, typically starting in the mid-40s. Irregular periods, skipped months, and changing flow are normal. Hormonal fluctuations begin shifting your body\'s rhythms before official menopause (12 months without a period).',tip:'You don\'t have to suffer in silence. Talk to your doctor about what you\'re experiencing — there are many support options.'},
+                {title:'Hot Flashes & Night Sweats',cat:'body',emoji:'🌡️',body:'Hot flashes are sudden intense waves of heat that may cause flushing, sweating, and chills, lasting 1-5 minutes. Night sweats can disrupt sleep. These occur in 60-80% of women — they\'re completely normal.',tip:'Dress in layers, keep cold water nearby, and use breathable bedding. Hot flashes eventually diminish.'},
+                {title:'Hormonal Changes & Metabolism',cat:'body',emoji:'⚖️',body:'Estrogen and progesterone fluctuate unpredictably during perimenopause before declining. These hormonal changes affect mood, metabolism, sleep, and temperature. Changes in body composition and weight are expected and manageable.',tip:'Resistance exercise and a protein-rich diet help maintain your metabolism and muscle mass.'},
+                {title:'Sleep & Rest',cat:'body',emoji:'😴',body:'About 40% of menopausal women experience sleep problems from night sweats, mood changes, or hormonal shifts. Sleep quality directly affects mood, cognition, and energy.',tip:'Maintain a consistent sleep schedule, sleep in a cool environment, and practice relaxation before bed.'},
+                {title:'Brain Fog & Memory',cat:'body',emoji:'🧠',body:'Many women experience temporary cognitive changes, memory lapses, or difficulty concentrating. This is a normal hormonal effect, NOT permanent cognitive decline. Lists, reminders, and routines help manage brain fog.',tip:'Your brain is reorganizing, not deteriorating. Many women report greater mental clarity after the transition.'},
+                {title:'Skin & Tissue Changes',cat:'body',emoji:'💧',body:'Declining estrogen causes vaginal dryness, irritation, and changes to skin elasticity. Hair and nails may become drier. These changes are manageable with lubricants, moisturizers, and consistent care.',tip:'There\'s no shame in using lubricants or talking to your doctor about these changes. They\'re natural and treatable.'},
+                {title:'Emotional Rollercoaster',cat:'emotions',emoji:'💜',body:'Hormonal fluctuations affect neurotransmitters regulating mood, causing irritability, anxiety, depression, or mood swings. These are neurobiological changes, not character flaws.',tip:'If emotions interfere with daily life, seek professional support. Therapy and women\'s groups are very effective.'},
+                {title:'Emotional Resilience',cat:'emotions',emoji:'🦋',body:'Menopause is an ideal time for introspection, journaling, and emotional processing. Many women discover increased clarity and wisdom when they honor their emotions rather than suppress them.',tip:'Consider a menopause journal. Recording your experiences helps you see patterns and celebrate your evolution.'},
+                {title:'Movement, Nutrition & Routines',cat:'practical',emoji:'🏃‍♀️',body:'Regular exercise (yoga, walking, strength training) improves mood, metabolism, and sleep. A plant-forward diet rich in soy, greens, and omega-3s supports hormonal balance. A consistent sleep schedule dramatically improves daily functioning.',tip:'You don\'t need to run marathons. 30 minutes of daily walking already makes a measurable difference in symptoms.'},
+                {title:'Stress Management & Breathwork',cat:'practical',emoji:'🧘',body:'Deep breathing (in for 4, out for 4), meditation, yoga, and tai chi lower stress hormones that worsen symptoms. Regular stress management reduces hot flashes, improves emotional regulation, and supports better sleep.',tip:'Even 5-10 minutes daily of conscious breathing makes a measurable difference. Start today.'},
+                {title:'When to Seek Professional Help',cat:'practical',emoji:'⚕️',body:'See a healthcare provider if symptoms interfere with daily life, periods become very heavy or irregular, you experience abnormal bleeding, or emotional changes feel unmanageable. Options range from lifestyle changes to hormone therapy.',tip:'You deserve medical care that listens. If your doctor minimizes your symptoms, seek a second opinion.'},
+                {title:'Celebrate Your Transformation',cat:'celebrate',emoji:'👑',body:'Mark this transition with personal rituals: journal reflections on wisdom gained, gather with sisters for ceremony, create a "wise woman crown," or plant something symbolic. Many traditions celebrate menopause as entry into a phase of clarity and freedom.',tip:'Organize your own "croning ceremony" with women you love. Honor everything you\'ve lived, learned, and overcome.'}
+            ]
+        };
+
+        var _wwSection = 'wisdom';
+        var _wwFilter = 'all';
+        var _wwGuideFilter = 'all';
+
+        function toggleWWSection(section) {
+            _wwSection = section;
+            document.getElementById('ww-sec-wisdom').classList.toggle('active', section === 'wisdom');
+            document.getElementById('ww-sec-guide').classList.toggle('active', section === 'guide');
+            document.getElementById('ww-wisdom-filters').style.display = section === 'wisdom' ? 'flex' : 'none';
+            document.getElementById('ww-guide-filters').style.display = section === 'guide' ? 'flex' : 'none';
+            renderWiseWomanScreen();
+        }
+
+        function filterWW(cat) {
+            _wwFilter = cat;
+            document.querySelectorAll('#ww-wisdom-filters .wisdom-filter').forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-cat') === cat);
+            });
+            renderWiseWomanScreen();
+        }
+
+        function filterWWGuide(cat) {
+            _wwGuideFilter = cat;
+            document.querySelectorAll('#ww-guide-filters .wisdom-filter').forEach(function(b) {
+                b.classList.toggle('active', b.getAttribute('data-cat') === cat);
+            });
+            renderWiseWomanScreen();
+        }
+
+        function renderWiseWomanScreen() {
+            var lang = currentLanguage || 'es';
+            var container = document.getElementById('ww-cards');
+            if (!container) return;
+            var html = '';
+
+            if (_wwSection === 'wisdom') {
+                var data = WW_WISDOM_DATA[lang] || WW_WISDOM_DATA.es;
+                var phaseLabels = lang === 'es'
+                    ? {perimenopause:'🔥 Perimenopausia',menopause:'🌕 Menopausia',postmenopause:'👑 Post-menopausia'}
+                    : {perimenopause:'🔥 Perimenopause',menopause:'🌕 Menopause',postmenopause:'👑 Post-menopause'};
+                data.forEach(function(w) {
+                    if (_wwFilter !== 'all' && w.phase !== _wwFilter) return;
+                    html += '<div class="wisdom-card">';
+                    html += '<h3>' + w.emoji + ' ' + w.title + '</h3>';
+                    html += '<div class="wc-culture">' + w.culture + '</div>';
+                    html += '<div class="wc-body">' + w.body + '</div>';
+                    html += '<span class="wc-phase">' + (phaseLabels[w.phase] || w.phase) + '</span>';
+                    html += '</div>';
+                });
+            } else {
+                var data = WW_GUIDE_DATA[lang] || WW_GUIDE_DATA.es;
+                data.forEach(function(item) {
+                    if (_wwGuideFilter !== 'all' && item.cat !== _wwGuideFilter) return;
+                    html += '<div class="fm-card">';
+                    html += '<h3>' + item.emoji + ' ' + item.title + '</h3>';
+                    html += '<div class="fm-body">' + item.body + '</div>';
+                    if (item.tip) html += '<div class="fm-tip">💡 ' + item.tip + '</div>';
+                    html += '</div>';
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function wwAiAsk() {
+            var lang = currentLanguage || 'es';
+            var question = prompt(lang === 'es'
+                ? 'Pregúntale a la Mujer Sabia sobre menopausia, transición, bienestar, tradiciones...'
+                : 'Ask the Wise Woman about menopause, transition, wellness, traditions...');
+            if (!question || !question.trim()) return;
+            var systemMsg = lang === 'es'
+                ? 'Eres una mujer sabia y empática que guía a mujeres en la transición de la menopausia. Combinas conocimiento médico moderno con sabiduría ancestral de múltiples culturas. Empoderas, normalizas y celebras esta fase. Nunca uses lenguaje que patologice la menopausia. Responde en español.'
+                : 'You are a wise, empathetic woman guiding women through menopause transition. You combine modern medical knowledge with ancestral wisdom from multiple cultures. You empower, normalize, and celebrate this phase. Never use language that pathologizes menopause. Respond in English.';
+            _askGemini(systemMsg, question, function(answer) { alert(answer); });
+        }
+
         // Shared Gemini AI helper (uses proxy or personal key)
         function _askGemini(systemMsg, userMsg, callback) {
             var key = getApiKey();
@@ -4493,7 +4670,7 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            const tabMap = {'home-screen':'tab-home','calendar-screen':'tab-calendar','log-screen':'tab-log','insights-screen':'tab-insights','wisdom-screen':'tab-wisdom','firstmoon-screen':'tab-firstmoon','chat-screen':'tab-chat','partner-screen':'tab-partner','settings-screen':'tab-settings'};
+            const tabMap = {'home-screen':'tab-home','calendar-screen':'tab-calendar','log-screen':'tab-log','insights-screen':'tab-insights','wisdom-screen':'tab-wisdom','firstmoon-screen':'tab-firstmoon','wisewoman-screen':'tab-wisewoman','chat-screen':'tab-chat','partner-screen':'tab-partner','settings-screen':'tab-settings'};
             const tabId = tabMap[screenId];
             if (tabId) document.getElementById(tabId).classList.add('active');
 
@@ -4504,6 +4681,7 @@
             else if (screenId === 'chat-screen') initChat();
             else if (screenId === 'wisdom-screen') renderWisdomScreen();
             else if (screenId === 'firstmoon-screen') renderFirstMoonScreen();
+            else if (screenId === 'wisewoman-screen') renderWiseWomanScreen();
             else if (screenId === 'partner-screen') renderPartnerScreen();
         }
 
