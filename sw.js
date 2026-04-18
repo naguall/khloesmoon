@@ -1,17 +1,12 @@
-const CACHE_NAME = 'khloesmoon-v29';
+const CACHE_NAME = 'khloesmoon-v30';
 const ASSETS = [
   './',
   './index.html',
-  './partner.html',
   './manifest.json',
-  './partner-manifest.json',
   './icon-192.png',
-  './icon-512.png',
-  './partner-icon-192.png',
-  './partner-icon-512.png'
+  './icon-512.png'
 ];
 
-// Install: cache assets and take over immediately
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
@@ -19,7 +14,6 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Activate: delete ALL old caches and claim clients
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -28,26 +22,22 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch: NETWORK-FIRST strategy (always try fresh content first)
+// Fetch: NETWORK-FIRST — but SKIP /p/ paths (partner app has its own SW)
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  if (url.pathname.includes('/p/')) return;
+
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Got fresh response - cache it and return
         const clone = response.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         return response;
       })
-      .catch(() => {
-        // Network failed - fall back to cache (offline support)
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });
 
-// Listen for skip-waiting message from the app
 self.addEventListener('message', event => {
-  if (event.data === 'skipWaiting') {
-    self.skipWaiting();
-  }
+  if (event.data === 'skipWaiting') self.skipWaiting();
 });
