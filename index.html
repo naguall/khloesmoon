@@ -3410,14 +3410,14 @@
         // Share this guide with partner
         function sharePartnerLink() {
             const lang = getPartnerLang();
-            const baseUrl = (location.origin + location.pathname).replace(/\/$/, '/');
+            const baseUrl = 'https://naguall.github.io/kmpartner/';
             // If user has shareCode, include it so partner sees her live data
             const code = profile.shareCode || '';
             const url = code ? (baseUrl + '?partner=' + encodeURIComponent(code)) : baseUrl;
             const title = 'Khloe\'s Moon — ' + (lang === 'es' ? 'Guía para Pareja' : 'Partner Guide');
             const msg = (lang === 'es'
-                ? 'Hola mi amor 💕 Descargá Khloe\'s Moon y sabé cómo apoyarme según mi fase del ciclo. Abrí este enlace:\n\n'
-                : 'Hi love 💕 Download Khloe\'s Moon and learn how to support me based on my cycle phase. Open this link:\n\n') + url;
+                ? 'Hola mi amor 💕 Instalá esta app para entender mi ciclo y saber cómo apoyarme. Abrí este enlace:\n\n'
+                : 'Hi love 💕 Install this app to understand my cycle and know how to support me. Open this link:\n\n') + url;
             if (navigator.share) {
                 navigator.share({ title: title, text: msg, url: url }).catch(function(){});
             } else if (navigator.clipboard) {
