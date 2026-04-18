@@ -1363,6 +1363,9 @@
                     <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-bottom: 8px;">
                         <span id="partner-settings-explain">Tu pareja puede instalar la app KM Partner y vincularla con tu código.</span>
                     </div>
+                    <div id="partner-auth-warning" class="settings-item" style="display:none;margin-bottom:8px;padding:8px 10px;background:#FFF3CD;border:1px solid #FFEAA7;border-radius:8px;font-size:11px;color:#856404;">
+                        ⚠️ <span id="partner-auth-msg">Inicia sesión con Google (abajo) para activar la vinculación.</span>
+                    </div>
                     <div class="settings-item" style="margin-bottom:10px;">
                         <label class="settings-item-label" id="partner-code-label">Tu código de enlace</label>
                         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;">
@@ -3415,6 +3418,17 @@
 
         // Share this guide with partner
         function sharePartnerLink() {
+            // Ensure Firebase is connected and code is published
+            ensureShareCode();
+            if (!_fbUser) {
+                if (confirm(lang === 'es' 
+                    ? 'Para que tu pareja pueda vincular su app, necesitas iniciar sesión con Google primero. ¿Iniciar sesión ahora?' 
+                    : 'To let your partner link their app, you need to sign in with Google first. Sign in now?')) {
+                    signInGoogle();
+                }
+                return;
+            }
+            publishProfileForPartner();
             const lang = getPartnerLang();
             const baseUrl = 'https://naguall.github.io/kmpartner/';
             // If user has shareCode, include it so partner sees her live data
@@ -5630,6 +5644,8 @@
             ensureShareCode();
             var partnerCodeInput = document.getElementById('partner-share-code');
             if (partnerCodeInput) partnerCodeInput.value = profile.shareCode;
+            var partnerAuthWarn = document.getElementById('partner-auth-warning');
+            if (partnerAuthWarn) partnerAuthWarn.style.display = _fbUser ? 'none' : 'block';
             var partnerCodeLabel = document.getElementById('partner-code-label');
             if (partnerCodeLabel) partnerCodeLabel.textContent = lang === 'es' ? 'Tu código de enlace' : 'Your link code';
 
@@ -5724,6 +5740,14 @@
         }
 
         function copyPartnerCode() {
+            if (!_fbUser) {
+                if (confirm(lang === 'es'
+                    ? 'Inicia sesión con Google para activar tu código de pareja. ¿Iniciar sesión?'
+                    : 'Sign in with Google to activate your partner code. Sign in?')) {
+                    signInGoogle();
+                }
+                return;
+            }
       ensureShareCode();
       const code = profile.shareCode;
       if (navigator.clipboard) {
