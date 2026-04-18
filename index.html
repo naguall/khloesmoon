@@ -1361,11 +1361,17 @@
                 <div class="settings-group">
                     <div class="settings-group-title" id="partner-label">💕 Modo Pareja</div>
                     <div class="settings-item" style="font-size: 11px; color: var(--secondary); margin-bottom: 8px;">
-                        <span id="partner-settings-explain">Abre la Guía para Pareja o envíale el enlace para que vea tu fase en tiempo real.</span>
+                        <span id="partner-settings-explain">Tu pareja puede instalar la app KM Partner y vincularla con tu código.</span>
+                    </div>
+                    <div class="settings-item" style="margin-bottom:10px;">
+                        <label class="settings-item-label" id="partner-code-label">Tu código de enlace</label>
+                        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+                            <input type="text" id="partner-share-code" readonly style="flex:1;min-width:140px;font-family:monospace;font-weight:700;letter-spacing:2px;font-size:18px;text-align:center;padding:10px 14px;background:#F4E8DD;border:2px solid #D4A0A0;border-radius:10px;color:#6B3A5D;">
+                            <button class="settings-btn" style="padding:10px 14px;margin:0;font-size:14px;" onclick="copyPartnerCode()" id="copy-partner-code-btn">📋 Copiar</button>
+                        </div>
                     </div>
                     <div class="settings-item" style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="settings-btn" style="flex:1;min-width:130px;margin:0;" onclick="switchScreen('partner-screen')" id="open-partner-btn">Abrir guía</button>
-                        <button class="settings-btn" style="flex:1;min-width:130px;margin:0;" onclick="sharePartnerLink()" id="share-partner-btn">📤 Enviar enlace</button>
+                        <button class="settings-btn" style="flex:1;min-width:130px;margin:0;background:linear-gradient(135deg,#D47F93,#C06080);color:#fff;font-weight:700;padding:12px;" onclick="sharePartnerLink()" id="share-partner-btn">📤 Enviar enlace a mi pareja</button>
                     </div>
                 </div>
 
@@ -1745,9 +1751,9 @@
                 add_friend: 'Añadir amiga',
                 friend_name_placeholder: 'Nombre',
                 partner_mode: '💕 Modo Pareja',
-                partner_desc: 'Abre la Guía para Pareja o envíale el enlace para que vea tu fase en tiempo real.',
+                partner_desc: 'Tu pareja puede instalar la app KM Partner y vincularla con tu código.',
                 partner_open: 'Abrir guía',
-                partner_send: '📤 Enviar enlace',
+                partner_send: '📤 Enviar enlace a mi pareja',
                 gcal_connected: 'Conectado',
                 gcal_push: '🔄 Enviar ciclo',
                 gcal_sync: '🔄 Sync',
@@ -5613,14 +5619,19 @@
             renderFriendsList();
 
             // Partner section labels
+            // Partner section labels
             var partnerLabel = document.getElementById('partner-label');
             if (partnerLabel) partnerLabel.textContent = _('partner_mode');
             var partnerExplain = document.getElementById('partner-settings-explain');
             if (partnerExplain) partnerExplain.textContent = _('partner_desc');
-            var openPartnerBtn = document.getElementById('open-partner-btn');
-            if (openPartnerBtn) openPartnerBtn.textContent = _('partner_open');
             var sharePartnerBtn = document.getElementById('share-partner-btn');
             if (sharePartnerBtn) sharePartnerBtn.textContent = _('partner_send');
+            // Show partner share code
+            ensureShareCode();
+            var partnerCodeInput = document.getElementById('partner-share-code');
+            if (partnerCodeInput) partnerCodeInput.value = profile.shareCode;
+            var partnerCodeLabel = document.getElementById('partner-code-label');
+            if (partnerCodeLabel) partnerCodeLabel.textContent = lang === 'es' ? 'Tu código de enlace' : 'Your link code';
 
             // Firebase auth labels
             var acctSpans = document.querySelectorAll('#settings-screen .settings-item span');
@@ -5712,7 +5723,23 @@
             }
         }
 
-        function addFriend() {
+        function copyPartnerCode() {
+      ensureShareCode();
+      const code = profile.shareCode;
+      if (navigator.clipboard) {
+          navigator.clipboard.writeText(code).then(() => {
+              const btn = document.getElementById('copy-partner-code-btn');
+              if (btn) { btn.textContent = '✅ Copiado!'; setTimeout(() => btn.textContent = '📋 Copiar', 2000); }
+          });
+      } else {
+          const input = document.getElementById('partner-share-code');
+          input.select();
+          document.execCommand('copy');
+          alert('Copiado: ' + code);
+      }
+  }
+
+      function addFriend() {
             const codeInput = document.getElementById('friend-code-input');
             const nameInput = document.getElementById('friend-name-input');
             const code = (codeInput.value || '').toUpperCase().trim();
