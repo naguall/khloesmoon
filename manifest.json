@@ -3,6 +3,8 @@
   "short_name": "Khloe's Moon",
   "description": "Your Cycle, Your Power — Cycle tracking and wellness app",
   "start_url": "./index.html",
+  "id": "khloesmoon-main",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#FAF6F0",
   "theme_color": "#FAF6F0",

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'khloesmoon-v27';
+const CACHE_NAME = 'khloesmoon-v28';
 const ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,9 @@ const ASSETS = [
   './manifest.json',
   './partner-manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './partner-icon-192.png',
+  './partner-icon-512.png'
 ];
 
 // Install: cache assets and take over immediately
