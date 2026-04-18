@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Khloe's Moon · Partner</title>
+<meta name="theme-color" content="#1B3A5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="partner-icon-192.png">
+<link rel="apple-touch-icon" href="partner-icon-192.png">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+--bg:#0D1B2A;--bg2:#132238;--primary:#1B3A5C;--accent:#2EC4B6;
+--text:#E0E0E0;--heading:#FFFFFF;--border:#1B3A5C;
+--menstrual:#E74C3C;--follicular:#F39C12;--ovulation:#27AE60;--luteal:#8E44AD;
+--friction-high-color:#EF5350;--friction-high-bg:#2D1515;
+--friction-med-color:#FF9800;--friction-med-bg:#2D2215;
+--friction-low-color:#4CAF50;--friction-low-bg:#152D18;
+--radius:14px;--tab-height:64px;
+}
+html,body{height:100%;overflow:hidden;}
+body{
+background:var(--bg);color:var(--text);
+font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{color:var(--heading);font-weight:700;}
+
+/* Scrollable area */
+.app-container{
+display:flex;flex-direction:column;height:100vh;height:100dvh;
+}
+.screen{
+flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+padding:16px 16px calc(var(--tab-height) + 24px) 16px;
+display:none;
+}
+.screen.active{display:block;}
+
+/* Tab bar */
+.tab-bar{
+position:fixed;bottom:0;left:0;right:0;
+height:var(--tab-height);
+background:linear-gradient(180deg,#0f2236 0%,#0a1520 100%);
+border-top:1px solid var(--border);
+display:flex;align-items:center;justify-content:space-around;
+z-index:100;
+padding-bottom:env(safe-area-inset-bottom,0);
+}
+.tab-btn{
+background:none;border:none;color:#607d8b;
+font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;
+display:flex;flex-direction:column;align-items:center;gap:2px;
+padding:6px 16px;cursor:pointer;
+transition:color .2s,transform .15s;
+}
+.tab-btn.active{color:var(--accent);}
+.tab-btn .tab-icon{font-size:24px;}
+.tab-btn:active{transform:scale(.92);}
+
+/* Cards */
+.card{
+background:var(--bg2);border:1px solid var(--border);
+border-radius:var(--radius);padding:18px;margin-bottom:14px;
+transition:transform .15s;
+}
+.card:active{transform:scale(.985);}
+
+/* Phase card */
+.phase-card{
+text-align:center;padding:24px 18px;
+position:relative;overflow:hidden;
+}
+.phase-card::before{
+content:'';position:absolute;top:0;left:0;right:0;height:4px;
+border-radius:var(--radius) var(--radius) 0 0;
+}
+.phase-card.menstrual::before{background:var(--menstrual);}
+.phase-card.follicular::before{background:var(--follicular);}
+.phase-card.ovulation::before{background:var(--ovulation);}
+.phase-card.luteal::before{background:var(--luteal);}
+.phase-emoji{font-size:64px;display:block;margin-bottom:8px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.phase-label{font-size:20px;font-weight:700;margin-bottom:4px;}
+.phase-day{font-size:14px;opacity:.7;margin-bottom:8px;}
+.phase-mood{font-size:13px;line-height:1.5;opacity:.85;max-width:340px;margin:0 auto;}
+
+/* Friction card */
+.friction-card{padding:16px 18px;position:relative;overflow:hidden;}
+.friction-card::before{
+content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+}
+.friction-card.high{background:var(--friction-high-bg)!important;border-color:#5a2020!important;}
+.friction-card.high::before{background:var(--friction-high-color);}
+.friction-card.medium{background:var(--friction-med-bg)!important;border-color:#5a4420!important;}
+.friction-card.medium::before{background:var(--friction-med-color);}
+.friction-card.low{background:var(--friction-low-bg)!important;border-color:#205a28!important;}
+.friction-card.low::before{background:var(--friction-low-color);}
+.friction-level{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.friction-reason{font-size:13px;opacity:.8;}
+
+/* Do's / Don'ts */
+.advice-section{margin-top:6px;}
+.advice-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.advice-title.do{color:var(--ovulation);}
+.advice-title.dont{color:var(--menstrual);}
+.advice-list{list-style:none;padding:0;margin:0 0 12px 0;}
+.advice-list li{
+font-size:13px;line-height:1.5;padding:6px 0 6px 22px;position:relative;
+border-bottom:1px solid rgba(255,255,255,.04);
+}
+.advice-list li::before{
+position:absolute;left:0;top:6px;font-size:13px;
+}
+.advice-list.do li::before{content:'✅';}
+.advice-list.dont li::before{content:'🚫';}
+
+/* Tip card */
+.tip-card{
+background:linear-gradient(135deg,#1B3A5C 0%,#132238 100%);
+border:1px solid #2EC4B680;padding:16px 18px;
+}
+.tip-card .tip-icon{font-size:20px;margin-bottom:6px;display:block;}
+.tip-card .tip-text{font-size:13px;line-height:1.6;opacity:.9;}
+
+/* Moon card */
+.moon-card{display:flex;align-items:center;gap:14px;padding:14px 18px;}
+.moon-emoji{font-size:36px;}
+.moon-info{flex:1;}
+.moon-name{font-size:14px;font-weight:600;}
+.moon-detail{font-size:12px;opacity:.6;margin-top:2px;}
+
+/* Period countdown */
+.countdown-card{text-align:center;padding:16px;}
+.countdown-num{font-size:36px;font-weight:800;color:var(--accent);line-height:1;}
+.countdown-label{font-size:13px;opacity:.7;margin-top:4px;}
+
+/* Unlinked state */
+.unlinked-state{
+text-align:center;padding:60px 24px;
+}
+.unlinked-state .big-icon{margin-bottom:20px;display:block;}
+.connect-art{width:120px;height:120px;margin:0 auto;}
+.unlinked-state h2{font-size:22px;margin-bottom:10px;}
+.unlinked-state p{font-size:14px;opacity:.7;margin-bottom:24px;line-height:1.5;}
+
+/* Inputs & buttons */
+input[type=text],input[type=password]{
+width:100%;padding:12px 16px;border-radius:10px;
+background:#0a1520;border:1px solid var(--border);color:var(--text);
+font-size:15px;outline:none;
+transition:border-color .2s;
+}
+input[type=text]:focus,input[type=password]:focus{border-color:var(--accent);}
+.btn{
+display:inline-flex;align-items:center;justify-content:center;gap:8px;
+padding:12px 24px;border-radius:10px;border:none;
+font-size:15px;font-weight:600;cursor:pointer;
+transition:transform .12s,opacity .2s;
+}
+.btn:active{transform:scale(.96);}
+.btn-primary{
+background:linear-gradient(135deg,var(--accent),#1B8A7E);color:#fff;
+}
+.btn-danger{background:#3a1515;color:var(--menstrual);border:1px solid #5a2020;}
+.btn-secondary{background:var(--primary);color:var(--text);}
+.btn-block{width:100%;justify-content:center;}
+
+/* Chat */
+.chat-container{
+display:flex;flex-direction:column;height:calc(100dvh - var(--tab-height));
+}
+.chat-messages{
+flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+padding:16px 12px 12px 12px;
+}
+.chat-msg{
+max-width:82%;margin-bottom:12px;padding:12px 16px;
+border-radius:16px;font-size:14px;line-height:1.55;
+animation:msgIn .25s ease-out;
+}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.chat-msg.user{
+background:linear-gradient(135deg,var(--primary),#1a4a70);
+margin-left:auto;border-bottom-right-radius:4px;
+}
+.chat-msg.assistant{
+background:var(--bg2);border:1px solid var(--border);
+border-bottom-left-radius:4px;
+}
+.chat-msg.assistant .msg-text{white-space:pre-wrap;}
+.chat-msg .msg-text strong{color:var(--accent);}
+.chat-suggestions{
+display:flex;flex-wrap:wrap;gap:8px;padding:8px 12px;
+}
+.suggest-chip{
+background:var(--bg2);border:1px solid var(--border);
+color:var(--accent);font-size:12px;padding:8px 14px;
+border-radius:20px;cursor:pointer;transition:background .15s;
+white-space:nowrap;
+}
+.suggest-chip:active{background:var(--primary);}
+.chat-input-row{
+display:flex;gap:8px;padding:8px 12px;
+background:linear-gradient(180deg,transparent,var(--bg) 30%);
+padding-bottom:calc(var(--tab-height) + env(safe-area-inset-bottom,0) + 12px);
+}
+.chat-input-row input{flex:1;border-radius:24px;padding:10px 18px;font-size:14px;}
+.send-btn{
+width:44px;height:44px;border-radius:50%;border:none;
+background:linear-gradient(135deg,var(--accent),#1B8A7E);
+color:#fff;font-size:20px;cursor:pointer;
+display:flex;align-items:center;justify-content:center;
+transition:transform .1s;flex-shrink:0;
+}
+.send-btn:active{transform:scale(.9);}
+.typing-indicator{display:flex;gap:4px;padding:8px 0;}
+.typing-indicator span{
+width:8px;height:8px;border-radius:50%;background:var(--accent);
+opacity:.4;animation:blink 1.2s ease-in-out infinite;
+}
+.typing-indicator span:nth-child(2){animation-delay:.2s;}
+.typing-indicator span:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:.4}40%{opacity:1}}
+
+/* Settings */
+.settings-section{margin-bottom:24px;}
+.settings-section h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.setting-row{
+display:flex;align-items:center;justify-content:space-between;
+padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);
+}
+.setting-label{font-size:14px;}
+.setting-value{font-size:13px;opacity:.6;}
+.toggle-track{
+width:50px;height:28px;border-radius:14px;
+background:#1a2a3a;position:relative;cursor:pointer;
+transition:background .2s;border:1px solid var(--border);
+}
+.toggle-track.on{background:var(--accent);border-color:var(--accent);}
+.toggle-thumb{
+width:22px;height:22px;border-radius:50%;background:#fff;
+position:absolute;top:2px;left:2px;
+transition:transform .2s;
+}
+.toggle-track.on .toggle-thumb{transform:translateX(22px);}
+.linked-badge{
+display:inline-flex;align-items:center;gap:6px;
+background:var(--friction-low-bg);border:1px solid #205a28;
+padding:8px 14px;border-radius:8px;font-size:13px;color:var(--friction-low-color);
+margin-top:8px;
+}
+.app-info{text-align:center;padding:24px 0;opacity:.5;font-size:12px;line-height:1.6;}
+
+/* Header */
+.screen-header{
+display:flex;align-items:center;justify-content:space-between;
+padding:8px 0 16px 0;
+}
+.screen-header h1{font-size:20px;font-weight:800;}
+.header-subtitle{font-size:12px;opacity:.5;font-weight:400;}
+
+/* Utility */
+.mb-8{margin-bottom:8px;}.mb-12{margin-bottom:12px;}.mb-16{margin-bottom:16px;}
+.mt-8{margin-top:8px;}.mt-12{margin-top:12px;}.mt-16{margin-top:16px;}
+.text-center{text-align:center;}
+.text-sm{font-size:13px;}.text-xs{font-size:12px;}
+.opacity-60{opacity:.6;}.opacity-70{opacity:.7;}
+
+/* Splash */
+.splash{
+position:fixed;inset:0;z-index:999;
+background:var(--bg);
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+transition:opacity .4s;
+}
+.splash.hide{opacity:0;pointer-events:none;}
+.splash-icon{font-size:72px;animation:float 2s ease-in-out infinite;}
+.splash-title{font-size:22px;font-weight:800;color:var(--heading);margin-top:12px;}
+.splash-sub{font-size:13px;color:var(--accent);margin-top:4px;opacity:.8;}
+
+/* Inline link in settings */
+.link-input-row{display:flex;gap:8px;margin-top:8px;}
+.link-input-row input{flex:1;}
+.link-input-row .btn{padding:12px 18px;white-space:nowrap;}
+
+/* Notification status */
+.notif-status{
+display:inline-flex;align-items:center;gap:6px;
+font-size:12px;padding:4px 10px;border-radius:6px;
+}
+.notif-status.granted{background:var(--friction-low-bg);color:var(--friction-low-color);}
+.notif-status.denied{background:var(--friction-high-bg);color:var(--friction-high-color);}
+.notif-status.default{background:var(--friction-med-bg);color:var(--friction-med-color);}
+</style>
+</head>
+<body>
+
+<!-- Splash -->
+<div class="splash" id="splash">
+  <div class="splash-icon">🌙</div>
+  <div class="splash-title">Khloe's Moon</div>
+  <div class="splash-sub">Partner Edition</div>
+</div>
+
+<div class="app-container">
+
+  <!-- Dashboard Screen -->
+  <div class="screen active" id="screen-dashboard">
+    <div class="screen-header">
+      <div>
+        <h1 id="dash-title">Panel</h1>
+        <span class="header-subtitle" id="dash-subtitle"></span>
+      </div>
+      <div id="dash-moon-mini" style="font-size:28px;">🌑</div>
+    </div>
+    <div id="dash-content"></div>
+  </div>
+
+  <!-- Chat Screen -->
+  <div class="screen" id="screen-chat" style="padding:0;">
+    <div class="chat-container">
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-suggestions" id="chat-suggestions"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" autocomplete="off">
+        <button class="send-btn" id="chat-send">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Screen -->
+  <div class="screen" id="screen-settings">
+    <div class="screen-header">
+      <h1 id="settings-title">Ajustes</h1>
+    </div>
+    <div id="settings-content"></div>
+  </div>
+
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="dashboard">
+    <span class="tab-icon">🏠</span>
+    <span class="tab-label" data-i18n="tab_dashboard">Panel</span>
+  </button>
+  <button class="tab-btn" data-tab="chat">
+    <span class="tab-icon">💬</span>
+    <span class="tab-label" data-i18n="tab_chat">Chat</span>
+  </button>
+  <button class="tab-btn" data-tab="settings">
+    <span class="tab-icon">⚙️</span>
+    <span class="tab-label" data-i18n="tab_settings">Ajustes</span>
+  </button>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   I18N
+   ============================================================ */
+const I18N = {
+  es: {
+    tab_dashboard: 'Panel',
+    tab_chat: 'Chat',
+    tab_settings: 'Ajustes',
+    dash_title: 'Panel',
+    settings_title: 'Ajustes',
+    unlinked_title: 'Conecta con tu pareja',
+    unlinked_text: 'Pide a tu pareja su código de enlace desde la app Khloe\'s Moon y pégalo aquí para sincronizar.',
+    link_placeholder: 'Código de enlace',
+    link_btn: 'Vincular',
+    unlink_btn: 'Desvincular',
+    linked_to: 'Vinculado a',
+    link_section: 'Vincular pareja',
+    language_section: 'Idioma',
+    notif_section: 'Notificaciones',
+    notif_request: 'Activar notificaciones',
+    notif_granted: 'Activadas',
+    notif_denied: 'Bloqueadas',
+    notif_default: 'Sin permiso',
+    api_section: 'API Key (opcional)',
+    api_placeholder: 'Tu Gemini API key personal',
+    api_save: 'Guardar',
+    api_saved: 'Guardada',
+    about_section: 'Acerca de',
+    about_text: 'Khloe\'s Moon Partner v1.0',
+    about_desc: 'Una guía para comprender y acompañar a tu pareja durante su ciclo menstrual.',
+    chat_placeholder: 'Escribe tu pregunta...',
+    chat_welcome: '¡Hola! Soy tu guía lunar. Pregúntame lo que quieras sobre cómo apoyar a tu pareja hoy. 🌙',
+    chat_error: 'Error al enviar. Intenta de nuevo.',
+    phase_day: 'Día',
+    of_cycle: 'del ciclo',
+    next_period: 'Próximo período',
+    days_left: 'días',
+    friction_title: 'Predicción de Fricción',
+    dos_title: 'Qué hacer',
+    donts_title: 'Qué NO hacer',
+    tip_title: 'Consejo del día',
+    moon_phase: 'Fase Lunar',
+    moon_illumination: 'iluminación',
+    lunar_day: 'Día lunar',
+    code_not_found: 'Código no encontrado. Verifica e intenta de nuevo.',
+    suggest_1: '¿Qué fase tiene hoy?',
+    suggest_2: '¿Cómo la apoyo hoy?',
+    suggest_3: '¿Qué NO debo hacer ahora?',
+    suggest_4: '¿Cuándo será más sensible?',
+    suggest_5: 'Ideas para animarla',
+    suggest_6: '¿Cuándo es buen momento para hablar?',
+    friction_high: 'Alto',
+    friction_medium: 'Medio',
+    friction_low: 'Bajo',
+    period_day1: 'Primer día de regla — sensibilidad y molestias al máximo.',
+    period_day2: 'Período activo — puede haber calambres, fatiga y cambios de humor.',
+    follicular: 'Fase folicular — energía en aumento, buena disposición.',
+    ovulation_peak: 'Pico de ovulación — alta energía pero también sensibilidad emocional.',
+    pms: 'SPM activo — irritabilidad, ansiedad y retención de líquidos.',
+    luteal_mid: 'Fase lútea media — la energía baja, puede estar más introspectiva.',
+    next_high_pms: 'El próximo pico de fricción será al inicio del SPM.',
+    next_high_period: 'El próximo pico será al inicio de su período.',
+    tactic_space: 'Dale espacio y no tomes nada personal.',
+    tactic_warmth: 'Ofrece calidez física: manta, té, abrazo.',
+    tactic_listen: 'Escucha sin intentar solucionar.',
+    tactic_plan: 'Propón planes — está receptiva.',
+    tactic_romance: 'Momento ideal para romance y conexión.',
+    tactic_patience: 'Paciencia extra. Evita discusiones.',
+    tactic_anticipate: 'Anticipa sus necesidades antes de que las pida.',
+    // Moon phase names
+    new_moon: 'Luna Nueva',
+    waxing_crescent: 'Creciente',
+    first_quarter: 'Cuarto Creciente',
+    waxing_gibbous: 'Gibosa Creciente',
+    full_moon: 'Luna Llena',
+    waning_gibbous: 'Gibosa Menguante',
+    last_quarter: 'Cuarto Menguante',
+    waning_crescent: 'Menguante',
+    // Notifications
+    notif_period_day1_title: '🔴 Hoy empieza su período',
+    notif_period_day1_body: 'Primer día de menstruación. Ofrece calidez y paciencia.',
+    notif_period_day2_title: '🔴 Día 2 de período',
+    notif_period_day2_body: 'Los calambres pueden ser intensos. Un té caliente ayuda.',
+    notif_period_last_title: '🟡 Último día de período',
+    notif_period_last_body: 'Su energía empieza a subir. Propón algo lindo.',
+    notif_ovulation_title: '🟢 Día de ovulación',
+    notif_ovulation_body: 'Pico de energía y confianza. Gran momento para conectar.',
+    notif_fertile_title: '🟢 Ventana fértil',
+    notif_fertile_body: 'Inicia su ventana fértil. Energía y deseo al alza.',
+    notif_pms_start_title: '🟣 Empieza el SPM',
+    notif_pms_start_body: 'La fase lútea avanza. Más paciencia a partir de hoy.',
+    notif_pms_peak_title: '🟣 Pico de SPM',
+    notif_pms_peak_body: 'Máxima sensibilidad. Evita discusiones, ofrece apoyo.',
+    notif_day_before_title: '🔴 Mañana empieza su período',
+    notif_day_before_body: 'Prepárate: mañana es día 1. Ten snacks y paciencia.',
+    notif_follicular_title: '🟡 Fase folicular',
+    notif_follicular_body: 'Su energía sube. Buen momento para planes juntos.',
+  },
+  en: {
+    tab_dashboard: 'Dashboard',
+    tab_chat: 'Chat',
+    tab_settings: 'Settings',
+    dash_title: 'Dashboard',
+    settings_title: 'Settings',
+    unlinked_title: 'Connect with your partner',
+    unlinked_text: 'Ask your partner for her share code from the Khloe\'s Moon app and paste it here to sync.',
+    link_placeholder: 'Share code',
+    link_btn: 'Link',
+    unlink_btn: 'Unlink',
+    linked_to: 'Linked to',
+    link_section: 'Link partner',
+    language_section: 'Language',
+    notif_section: 'Notifications',
+    notif_request: 'Enable notifications',
+    notif_granted: 'Enabled',
+    notif_denied: 'Blocked',
+    notif_default: 'Not set',
+    api_section: 'API Key (optional)',
+    api_placeholder: 'Your personal Gemini API key',
+    api_save: 'Save',
+    api_saved: 'Saved',
+    about_section: 'About',
+    about_text: 'Khloe\'s Moon Partner v1.0',
+    about_desc: 'A guide to understand and support your partner through her menstrual cycle.',
+    chat_placeholder: 'Type your question...',
+    chat_welcome: 'Hey! I\'m your lunar guide. Ask me anything about how to support your partner today. 🌙',
+    chat_error: 'Error sending. Try again.',
+    phase_day: 'Day',
+    of_cycle: 'of cycle',
+    next_period: 'Next period',
+    days_left: 'days',
+    friction_title: 'Friction Prediction',
+    dos_title: 'Do\'s',
+    donts_title: 'Don\'ts',
+    tip_title: 'Tip of the day',
+    moon_phase: 'Moon Phase',
+    moon_illumination: 'illumination',
+    lunar_day: 'Lunar day',
+    code_not_found: 'Code not found. Check and try again.',
+    suggest_1: 'What phase is she in?',
+    suggest_2: 'How do I support her today?',
+    suggest_3: 'What NOT to do right now?',
+    suggest_4: 'When will she be more sensitive?',
+    suggest_5: 'Ideas to cheer her up',
+    suggest_6: 'When\'s a good time to talk?',
+    friction_high: 'High',
+    friction_medium: 'Medium',
+    friction_low: 'Low',
+    period_day1: 'First day of period — sensitivity and discomfort at their peak.',
+    period_day2: 'Active period — there may be cramps, fatigue and mood changes.',
+    follicular: 'Follicular phase — energy rising, good disposition.',
+    ovulation_peak: 'Ovulation peak — high energy but also emotional sensitivity.',
+    pms: 'Active PMS — irritability, anxiety and water retention.',
+    luteal_mid: 'Mid luteal phase — energy drops, she may be more introspective.',
+    next_high_pms: 'The next friction peak will be at PMS onset.',
+    next_high_period: 'The next peak will be at the start of her period.',
+    tactic_space: 'Give her space and don\'t take anything personally.',
+    tactic_warmth: 'Offer physical warmth: blanket, tea, hug.',
+    tactic_listen: 'Listen without trying to fix things.',
+    tactic_plan: 'Suggest plans — she\'s open to it.',
+    tactic_romance: 'Great time for romance and connection.',
+    tactic_patience: 'Extra patience. Avoid arguments.',
+    tactic_anticipate: 'Anticipate her needs before she asks.',
+    new_moon: 'New Moon',
+    waxing_crescent: 'Waxing Crescent',
+    first_quarter: 'First Quarter',
+    waxing_gibbous: 'Waxing Gibbous',
+    full_moon: 'Full Moon',
+    waning_gibbous: 'Waning Gibbous',
+    last_quarter: 'Last Quarter',
+    waning_crescent: 'Waning Crescent',
+    notif_period_day1_title: '🔴 Her period starts today',
+    notif_period_day1_body: 'First day of menstruation. Offer warmth and patience.',
+    notif_period_day2_title: '🔴 Period day 2',
+    notif_period_day2_body: 'Cramps may be intense. A warm tea helps.',
+    notif_period_last_title: '🟡 Last day of period',
+    notif_period_last_body: 'Her energy starts rising. Suggest something nice.',
+    notif_ovulation_title: '🟢 Ovulation day',
+    notif_ovulation_body: 'Peak energy and confidence. Great time to connect.',
+    notif_fertile_title: '🟢 Fertile window',
+    notif_fertile_body: 'Her fertile window begins. Energy and desire rising.',
+    notif_pms_start_title: '🟣 PMS starts',
+    notif_pms_start_body: 'Luteal phase advancing. More patience starting today.',
+    notif_pms_peak_title: '🟣 PMS peak',
+    notif_pms_peak_body: 'Maximum sensitivity. Avoid arguments, offer support.',
+    notif_day_before_title: '🔴 Her period starts tomorrow',
+    notif_day_before_body: 'Get ready: tomorrow is day 1. Have snacks and patience.',
+    notif_follicular_title: '🟡 Follicular phase',
+    notif_follicular_body: 'Her energy is rising. Good time for plans together.',
+  }
+};
+
+/* ============================================================
+   PARTNER ADVICE DATA
+   ============================================================ */
+const PARTNER_ADVICE = {
+  es: {
+    menstrual: {
+      label: 'Fase Menstrual',
+      emoji: '🔴',
+      mood: 'Puede sentirse cansada, sensible o con cólicos. Necesita descanso, calor y comprensión.',
+      dos: [
+        'Ofrece una bolsa de agua caliente o una manta suave',
+        'Prepárale algo cálido: té, caldo, sopa',
+        'Dale espacio para descansar sin hacerla sentir culpable',
+        'Pregúntale cómo está sin juzgar la respuesta',
+        'Ayuda con tareas del hogar sin que tenga que pedirlo'
+      ],
+      donts: [
+        'No digas "estás exagerando" o "es solo tu período"',
+        'No la presiones para salir o hacer planes sociales',
+        'No hagas bromas sobre su estado de ánimo',
+        'No le ofrezcas soluciones rápidas cuando solo quiere ser escuchada'
+      ],
+      tip: 'Los días 1-2 son los más intensos físicamente. Hoy vale más un abrazo y un rato de silencio que intentar "arreglar" nada.'
+    },
+    follicular: {
+      label: 'Fase Folicular',
+      emoji: '🟡',
+      mood: 'Su energía está subiendo. Se siente optimista, curiosa y con ganas de hacer cosas nuevas.',
+      dos: [
+        'Propón planes o salidas: está receptiva a aventuras',
+        'Es buen momento para conversaciones importantes y decisiones',
+        'Apóyala en nuevos proyectos — su creatividad está en alza',
+        'Invítala a hacer ejercicio juntos (caminar, bailar, deporte)',
+        'Disfruten de tiempo de calidad fuera de casa'
+      ],
+      donts: [
+        'No canceles planes de último momento — puede sentirlo mucho',
+        'No asumas que todavía está "delicada" como la semana pasada',
+        'No seas pesimista con sus ideas nuevas'
+      ],
+      tip: 'Esta es la mejor fase para probar algo juntos: un restaurante nuevo, una excursión, un proyecto. Su apertura está en su punto más alto.'
+    },
+    ovulation: {
+      label: 'Fase Ovulación',
+      emoji: '🟢',
+      mood: 'Está en su pico de energía, confianza y deseo. Se siente social, atractiva y conectada.',
+      dos: [
+        'Dale cumplidos genuinos — los recibirá plenamente',
+        'Es un gran momento para la intimidad y el contacto físico',
+        'Propón una cita romántica o algo especial',
+        'Escucha y participa en conversaciones profundas',
+        'Apoya sus ambiciones — se siente capaz de todo'
+      ],
+      donts: [
+        'No minimices sus logros o sus ideas grandes',
+        'No estés distante o distraído con el teléfono',
+        'No ignores señales de conexión física'
+      ],
+      tip: 'Hoy la química está al máximo. Una cena, una mirada, un mensaje bonito a media tarde pueden significar mucho más de lo normal.'
+    },
+    luteal: {
+      label: 'Fase Lútea',
+      emoji: '🟣',
+      mood: 'Su energía va bajando. Puede sentirse irritable, ansiosa o sensible (SPM). Necesita paciencia y cuidado.',
+      dos: [
+        'Anticipa sus necesidades: agua, chocolate oscuro, snacks',
+        'Dale más espacio emocional del habitual',
+        'Valida sus emociones sin intentar solucionarlas',
+        'Ayuda con responsabilidades antes de que se sobrecargue',
+        'Planes tranquilos: peli, baño, masaje en los pies'
+      ],
+      donts: [
+        'No discutas por temas menores — no vale la pena',
+        'No digas "¿estás con la regla?" cuando esté molesta',
+        'No la critiques ni le hagas comentarios sobre el cuerpo',
+        'No planifiques eventos sociales grandes sin consultarle'
+      ],
+      tip: 'La semana antes del período es la más delicada. Un "¿cómo te puedo ayudar?" sincero vale oro. Reduce conflicto, aumenta paciencia.'
+    }
+  },
+  en: {
+    menstrual: {
+      label: 'Menstrual Phase',
+      emoji: '🔴',
+      mood: 'She may feel tired, sensitive, or have cramps. She needs rest, warmth and understanding.',
+      dos: [
+        'Offer a hot water bottle or a soft blanket',
+        'Make something warm: tea, broth, soup',
+        'Give her space to rest without guilt',
+        'Ask how she is without judging the answer',
+        'Help with chores without being asked'
+      ],
+      donts: [
+        'Don\'t say "you\'re exaggerating" or "it\'s just your period"',
+        'Don\'t pressure her to go out or socialize',
+        'Don\'t joke about her mood',
+        'Don\'t offer quick fixes when she just wants to be heard'
+      ],
+      tip: 'Days 1-2 are physically the toughest. Today, a hug and some quiet time mean more than trying to "fix" anything.'
+    },
+    follicular: {
+      label: 'Follicular Phase',
+      emoji: '🟡',
+      mood: 'Her energy is rising. She feels optimistic, curious and ready for new things.',
+      dos: [
+        'Suggest plans or outings: she\'s open to adventure',
+        'Good time for important conversations and decisions',
+        'Support her new projects — creativity is peaking',
+        'Invite her to exercise together',
+        'Enjoy quality time outside the house'
+      ],
+      donts: [
+        'Don\'t cancel plans last minute',
+        'Don\'t assume she\'s still "delicate" like last week',
+        'Don\'t be pessimistic about her new ideas'
+      ],
+      tip: 'This is the best phase to try something new together. Her openness is at its peak.'
+    },
+    ovulation: {
+      label: 'Ovulation Phase',
+      emoji: '🟢',
+      mood: 'She\'s at her peak in energy, confidence and desire. She feels social, attractive and connected.',
+      dos: [
+        'Give genuine compliments — she\'ll receive them fully',
+        'Great time for intimacy and physical connection',
+        'Plan a romantic date or something special',
+        'Engage in deep conversations',
+        'Support her ambitions'
+      ],
+      donts: [
+        'Don\'t minimize her achievements or big ideas',
+        'Don\'t be distant or distracted by your phone',
+        'Don\'t ignore signals for physical connection'
+      ],
+      tip: 'Today chemistry is at its max. A dinner, a glance, a sweet message can mean much more than usual.'
+    },
+    luteal: {
+      label: 'Luteal Phase',
+      emoji: '🟣',
+      mood: 'Her energy is dropping. She may feel irritable, anxious or sensitive (PMS). She needs patience and care.',
+      dos: [
+        'Anticipate her needs: water, dark chocolate, snacks',
+        'Give more emotional space than usual',
+        'Validate her feelings without trying to fix them',
+        'Help with responsibilities before she gets overwhelmed',
+        'Chill plans: movie, bath, foot massage'
+      ],
+      donts: [
+        'Don\'t argue over small things',
+        'Don\'t say "are you on your period?" when she\'s upset',
+        'Don\'t criticize or comment on her body',
+        'Don\'t plan big social events without checking in'
+      ],
+      tip: 'The week before her period is the most delicate. A sincere "how can I help?" is worth gold.'
+    }
+  }
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let currentLang = localStorage.getItem('kmp_lang') || 'es';
+let linkedCode = localStorage.getItem('kmp_linked_code') || '';
+let partnerProfile = null;
+let firestoreUnsubscribe = null;
+let chatHistory = [];
+let currentTab = 'dashboard';
+
+try {
+  const saved = localStorage.getItem('kmp_chat_history');
+  if (saved) chatHistory = JSON.parse(saved);
+} catch(e) { chatHistory = []; }
+
+/* ============================================================
+   FIREBASE INIT
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: 'AIzaSyBNuBOj2CTvPziuQxzvEYKjPj86xiynCW4',
+  authDomain: 'astroconnect-463b3.firebaseapp.com',
+  projectId: 'astroconnect-463b3',
+  storageBucket: 'astroconnect-463b3.firebasestorage.app',
+  messagingSenderId: '76894737615',
+  appId: '1:76894737615:web:c85b551b921715d2c213ba'
+};
+
+const app = firebase.initializeApp(firebaseConfig, 'khloesmoon_partner');
+const auth = app.auth();
+const db = app.firestore();
+
+/* ============================================================
+   CYCLE CALCULATIONS
+   ============================================================ */
+function getCycleDayFor(date, p) {
+  if (!p || !p.lastPeriod) return { day: 1, phase: 'follicular' };
+  const lastPeriodDate = new Date(p.lastPeriod);
+  const diff = Math.floor((date - lastPeriodDate) / 86400000);
+  const cycleLength = p.cycleLength || 28;
+  const dayInCycle = ((diff % cycleLength) + cycleLength) % cycleLength + 1;
+  const periodLen = p.periodLength || 5;
+  let phase = 'follicular';
+  if (dayInCycle <= periodLen) phase = 'menstrual';
+  else if (dayInCycle <= Math.floor(cycleLength / 2)) phase = 'follicular';
+  else if (dayInCycle <= Math.floor(cycleLength / 2) + 2) phase = 'ovulation';
+  else phase = 'luteal';
+  return { day: dayInCycle, phase };
+}
+
+function getMoonPhase(date) {
+  const synodicMonth = 29.53058867;
+  const epochMs = Date.UTC(2026, 3, 17, 18, 0, 0);
+  const localNoon = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0).getTime();
+  const daysDiff = (localNoon - epochMs) / 86400000;
+  let moonAge = daysDiff % synodicMonth;
+  if (moonAge < 0) moonAge += synodicMonth;
+  const illumination = Math.round(100 * (1 - Math.cos(2 * Math.PI * moonAge / synodicMonth)) / 2);
+  const phase = (moonAge / synodicMonth) * 100;
+  let phaseName = 'new_moon';
+  if (phase > 1.8 && phase <= 23.5) phaseName = 'waxing_crescent';
+  else if (phase > 23.5 && phase <= 26.5) phaseName = 'first_quarter';
+  else if (phase > 26.5 && phase <= 48.5) phaseName = 'waxing_gibbous';
+  else if (phase > 48.5 && phase <= 51.5) phaseName = 'full_moon';
+  else if (phase > 51.5 && phase <= 73.5) phaseName = 'waning_gibbous';
+  else if (phase > 73.5 && phase <= 76.5) phaseName = 'last_quarter';
+  else if (phase > 76.5 && phase <= 98.2) phaseName = 'waning_crescent';
+  return { illumination, phase, phaseName, lunarDay: Math.ceil(moonAge) + 1 };
+}
+
+function computeFrictionForDay(dayInCycle, cycleLength, periodLength) {
+  const cl = cycleLength || 28;
+  const pl = periodLength || 5;
+  const halfCycle = Math.floor(cl / 2);
+  const pmsStart = cl - 6;
+  if (dayInCycle === 1 || dayInCycle === 2) return { level: 'high', reasonKey: dayInCycle === 1 ? 'period_day1' : 'period_day2', phase: 'menstrual' };
+  if (dayInCycle <= pl) return { level: 'medium', reasonKey: 'period_day2', phase: 'menstrual' };
+  if (dayInCycle <= halfCycle - 1) return { level: 'low', reasonKey: 'follicular', phase: 'follicular' };
+  if (dayInCycle >= halfCycle && dayInCycle <= halfCycle + 2) return { level: 'medium', reasonKey: 'ovulation_peak', phase: 'ovulation' };
+  if (dayInCycle >= pmsStart) return { level: 'high', reasonKey: 'pms', phase: 'luteal' };
+  return { level: 'medium', reasonKey: 'luteal_mid', phase: 'luteal' };
+}
+
+function getDaysUntilNextPeriod(p) {
+  if (!p || !p.lastPeriod) return null;
+  const today = new Date();
+  const cycle = getCycleDayFor(today, p);
+  const cl = p.cycleLength || 28;
+  return cl - cycle.day;
+}
+
+function getMoonEmoji(phaseName) {
+  const map = {
+    new_moon: '🌑', waxing_crescent: '🌒', first_quarter: '🌓',
+    waxing_gibbous: '🌔', full_moon: '🌕', waning_gibbous: '🌖',
+    last_quarter: '🌗', waning_crescent: '🌘'
+  };
+  return map[phaseName] || '🌑';
+}
+
+function getFrictionTacticKey(friction) {
+  const map = {
+    period_day1: 'tactic_warmth',
+    period_day2: 'tactic_warmth',
+    follicular: 'tactic_plan',
+    ovulation_peak: 'tactic_romance',
+    pms: 'tactic_patience',
+    luteal_mid: 'tactic_anticipate'
+  };
+  return map[friction.reasonKey] || 'tactic_listen';
+}
+
+function getFrictionNextHighKey(friction) {
+  if (friction.phase === 'menstrual' || friction.phase === 'follicular' || friction.phase === 'ovulation') {
+    return 'next_high_pms';
+  }
+  return 'next_high_period';
+}
+
+/* ============================================================
+   HELPER — translate
+   ============================================================ */
+function t(key) {
+  return (I18N[currentLang] && I18N[currentLang][key]) || (I18N.es[key]) || key;
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + tab).classList.add('active');
+  document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'settings') renderSettings();
+  if (tab === 'chat') renderChat();
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+function renderDashboard() {
+  const el = document.getElementById('dash-content');
+  document.getElementById('dash-title').textContent = t('dash_title');
+
+  if (!linkedCode || !partnerProfile) {
+    document.getElementById('dash-subtitle').textContent = '';
+    document.getElementById('dash-moon-mini').textContent = '';
+    el.innerHTML = renderUnlinkedState();
+    setupLinkHandler(el);
+    return;
+  }
+
+  const p = partnerProfile;
+  const today = new Date();
+  const cycle = getCycleDayFor(today, p);
+  const advice = PARTNER_ADVICE[currentLang][cycle.phase];
+  const friction = computeFrictionForDay(cycle.day, p.cycleLength, p.periodLength);
+  const moon = getMoonPhase(today);
+  const daysLeft = getDaysUntilNextPeriod(p);
+  const moonEmoji = getMoonEmoji(moon.phaseName);
+
+  document.getElementById('dash-subtitle').textContent = p.name ? (t('linked_to') + ' ' + p.name) : '';
+  document.getElementById('dash-moon-mini').textContent = moonEmoji;
+
+  let html = '';
+
+  // Phase card
+  html += '<div class="card phase-card ' + cycle.phase + '">';
+  html += '<span class="phase-emoji">' + advice.emoji + '</span>';
+  html += '<div class="phase-label">' + advice.label + '</div>';
+  html += '<div class="phase-day">' + t('phase_day') + ' ' + cycle.day + ' ' + t('of_cycle') + '</div>';
+  html += '<div class="phase-mood">' + advice.mood + '</div>';
+  html += '</div>';
+
+  // Friction card
+  const frictionColorVar = friction.level === 'high' ? 'var(--friction-high-color)' : friction.level === 'medium' ? 'var(--friction-med-color)' : 'var(--friction-low-color)';
+  html += '<div class="card friction-card ' + friction.level + '">';
+  html += '<div class="friction-level" style="color:' + frictionColorVar + '">' + t('friction_title') + ': ' + t('friction_' + friction.level) + '</div>';
+  html += '<div class="friction-reason">' + t(friction.reasonKey) + '</div>';
+  html += '<div class="friction-reason mt-8" style="opacity:.65;font-style:italic;">' + t(getFrictionTacticKey(friction)) + '</div>';
+  html += '<div class="friction-reason mt-8 text-xs opacity-60">' + t(getFrictionNextHighKey(friction)) + '</div>';
+  html += '</div>';
+
+  // Do's
+  html += '<div class="card">';
+  html += '<div class="advice-title do">✅ ' + t('dos_title') + '</div>';
+  html += '<ul class="advice-list do">';
+  advice.dos.forEach(d => { html += '<li>' + d + '</li>'; });
+  html += '</ul>';
+  html += '<div class="advice-title dont">🚫 ' + t('donts_title') + '</div>';
+  html += '<ul class="advice-list dont">';
+  advice.donts.forEach(d => { html += '<li>' + d + '</li>'; });
+  html += '</ul>';
+  html += '</div>';
+
+  // Tip
+  html += '<div class="card tip-card">';
+  html += '<span class="tip-icon">💡</span>';
+  html += '<div class="advice-title" style="color:var(--accent);margin-bottom:6px;">' + t('tip_title') + '</div>';
+  html += '<div class="tip-text">' + advice.tip + '</div>';
+  html += '</div>';
+
+  // Moon phase
+  html += '<div class="card moon-card">';
+  html += '<div class="moon-emoji">' + moonEmoji + '</div>';
+  html += '<div class="moon-info">';
+  html += '<div class="moon-name">' + t('moon_phase') + ': ' + t(moon.phaseName) + '</div>';
+  html += '<div class="moon-detail">' + moon.illumination + '% ' + t('moon_illumination') + ' · ' + t('lunar_day') + ' ' + moon.lunarDay + '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Next period countdown
+  if (daysLeft !== null && daysLeft >= 0) {
+    html += '<div class="card countdown-card">';
+    html += '<div class="countdown-num">' + daysLeft + '</div>';
+    html += '<div class="countdown-label">' + t('next_period') + ' (' + t('days_left') + ')</div>';
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function renderUnlinkedState() {
+  let html = '<div class="unlinked-state">';
+  html += '<div class="big-icon"><svg class="connect-art" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs><linearGradient id="hg" x1="20" y1="30" x2="100" y2="90" gradientUnits="userSpaceOnUse">'
+    + '<stop stop-color="#2EC4B6"/><stop offset="1" stop-color="#1B3A5C"/></linearGradient>'
+    + '<linearGradient id="mg" x1="80" y1="10" x2="100" y2="40" gradientUnits="userSpaceOnUse">'
+    + '<stop stop-color="#F4D35E"/><stop offset="1" stop-color="#D4A028"/></linearGradient></defs>'
+    /* crescent moon top-right */
+    + '<circle cx="88" cy="28" r="16" fill="url(#mg)" opacity=".85"/>'
+    + '<circle cx="95" cy="22" r="13" fill="#0D1B2A"/>'
+    /* two hands reaching toward each other forming a heart shape */
+    /* left hand/arm */
+    + '<path d="M18 85 C18 72, 28 58, 38 52 C42 49, 46 50, 48 54 C50 58, 50 62, 48 66 L44 72" stroke="url(#hg)" stroke-width="3" stroke-linecap="round" fill="none"/>'
+    + '<path d="M44 72 C42 76, 44 80, 48 78 L56 70 C58 68, 60 68, 60 72" stroke="url(#hg)" stroke-width="3" stroke-linecap="round" fill="none"/>'
+    /* right hand/arm */
+    + '<path d="M102 85 C102 72, 92 58, 82 52 C78 49, 74 50, 72 54 C70 58, 70 62, 72 66 L76 72" stroke="url(#hg)" stroke-width="3" stroke-linecap="round" fill="none"/>'
+    + '<path d="M76 72 C78 76, 76 80, 72 78 L64 70 C62 68, 60 68, 60 72" stroke="url(#hg)" stroke-width="3" stroke-linecap="round" fill="none"/>'
+    /* heart formed where hands meet */
+    + '<path d="M60 72 C60 78, 50 90, 42 96 C38 99, 36 100, 36 100 L60 112 L84 100 C84 100, 82 99, 78 96 C70 90, 60 78, 60 72Z" fill="url(#hg)" opacity=".2"/>'
+    + '<path d="M60 72 C60 78, 50 90, 42 96 C38 99, 36 100, 36 100 L60 112 L84 100 C84 100, 82 99, 78 96 C70 90, 60 78, 60 72Z" stroke="url(#hg)" stroke-width="2" fill="none" opacity=".6"/>'
+    /* small sparkles */
+    + '<circle cx="34" cy="44" r="1.5" fill="#2EC4B6" opacity=".6"/>'
+    + '<circle cx="86" cy="44" r="1.5" fill="#2EC4B6" opacity=".6"/>'
+    + '<circle cx="60" cy="38" r="2" fill="#F4D35E" opacity=".5"/>'
+    + '</svg></div>';
+  html += '<h2>' + t('unlinked_title') + '</h2>';
+  html += '<p>' + t('unlinked_text') + '</p>';
+  html += '<div class="link-input-row">';
+  html += '<input type="text" id="link-code-input" placeholder="' + t('link_placeholder') + '">';
+  html += '<button class="btn btn-primary" id="link-btn">' + t('link_btn') + '</button>';
+  html += '</div>';
+  html += '<div id="link-error" style="color:var(--menstrual);font-size:13px;margin-top:10px;display:none;"></div>';
+  html += '</div>';
+  return html;
+}
+
+function setupLinkHandler(container) {
+  const btn = container.querySelector('#link-btn');
+  const input = container.querySelector('#link-code-input');
+  const errEl = container.querySelector('#link-error');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const code = (input.value || '').trim().toUpperCase();
+    if (!code) return;
+    linkPartner(code, errEl);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') btn.click();
+  });
+}
+
+/* ============================================================
+   FIREBASE LINK / UNLINK
+   ============================================================ */
+function linkPartner(code, errEl) {
+  db.collection('khloesmoon_users').where('shareCode', '==', code).get().then(snap => {
+    if (snap.empty) {
+      if (errEl) { errEl.textContent = t('code_not_found'); errEl.style.display = 'block'; }
+      return;
+    }
+    linkedCode = code;
+    localStorage.setItem('kmp_linked_code', code);
+    if (errEl) errEl.style.display = 'none';
+    listenToPartner();
+  }).catch(err => {
+    console.error('Link error:', err);
+    if (errEl) { errEl.textContent = t('code_not_found'); errEl.style.display = 'block'; }
+  });
+}
+
+function unlinkPartner() {
+  linkedCode = '';
+  partnerProfile = null;
+  localStorage.removeItem('kmp_linked_code');
+  if (firestoreUnsubscribe) { firestoreUnsubscribe(); firestoreUnsubscribe = null; }
+  renderDashboard();
+  renderSettings();
+}
+
+function listenToPartner() {
+  if (firestoreUnsubscribe) { firestoreUnsubscribe(); firestoreUnsubscribe = null; }
+  if (!linkedCode) return;
+
+  firestoreUnsubscribe = db.collection('khloesmoon_users')
+    .where('shareCode', '==', linkedCode)
+    .onSnapshot(snap => {
+      if (snap.empty) {
+        partnerProfile = null;
+      } else {
+        const doc = snap.docs[0];
+        const data = doc.data();
+        partnerProfile = data.profile || data;
+        if (data.profile) {
+          partnerProfile = data.profile;
+        }
+        if (!partnerProfile.name && data.name) partnerProfile.name = data.name;
+      }
+      if (currentTab === 'dashboard') renderDashboard();
+      if (currentTab === 'settings') renderSettings();
+    }, err => {
+      console.error('Snapshot error:', err);
+    });
+}
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+function renderSettings() {
+  document.getElementById('settings-title').textContent = t('settings_title');
+  const el = document.getElementById('settings-content');
+  let html = '';
+
+  // Link section
+  html += '<div class="settings-section">';
+  html += '<h3>💞 ' + t('link_section') + '</h3>';
+  if (linkedCode && partnerProfile) {
+    html += '<div class="linked-badge">✅ ' + t('linked_to') + ': ' + (partnerProfile.name || linkedCode) + '</div>';
+    html += '<div class="mt-12"><button class="btn btn-danger btn-block" id="unlink-btn">🗑️ ' + t('unlink_btn') + '</button></div>';
+  } else if (linkedCode && !partnerProfile) {
+    html += '<div class="linked-badge">⏳ ' + t('linked_to') + ': ' + linkedCode + '</div>';
+    html += '<div class="mt-12"><button class="btn btn-danger btn-block" id="unlink-btn">🗑️ ' + t('unlink_btn') + '</button></div>';
+  } else {
+    html += '<div class="link-input-row">';
+    html += '<input type="text" id="settings-link-input" placeholder="' + t('link_placeholder') + '">';
+    html += '<button class="btn btn-primary" id="settings-link-btn">' + t('link_btn') + '</button>';
+    html += '</div>';
+    html += '<div id="settings-link-error" style="color:var(--menstrual);font-size:13px;margin-top:10px;display:none;"></div>';
+  }
+  html += '</div>';
+
+  // Language
+  html += '<div class="settings-section">';
+  html += '<h3>🌐 ' + t('language_section') + '</h3>';
+  html += '<div class="setting-row">';
+  html += '<span class="setting-label">Español / English</span>';
+  html += '<div class="toggle-track' + (currentLang === 'en' ? ' on' : '') + '" id="lang-toggle">';
+  html += '<div class="toggle-thumb"></div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="text-xs opacity-60 mt-8">' + (currentLang === 'es' ? 'Español' : 'English') + '</div>';
+  html += '</div>';
+
+  // Notifications
+  html += '<div class="settings-section">';
+  html += '<h3>🔔 ' + t('notif_section') + '</h3>';
+  const notifPerm = ('Notification' in window) ? Notification.permission : 'default';
+  html += '<div class="setting-row">';
+  html += '<span class="setting-label">' + t('notif_section') + '</span>';
+  html += '<span class="notif-status ' + notifPerm + '">' + t('notif_' + notifPerm) + '</span>';
+  html += '</div>';
+  if (notifPerm === 'default') {
+    html += '<button class="btn btn-secondary btn-block mt-12" id="notif-request-btn">🔔 ' + t('notif_request') + '</button>';
+  }
+  html += '</div>';
+
+  // API Key
+  html += '<div class="settings-section">';
+  html += '<h3>🔑 ' + t('api_section') + '</h3>';
+  const savedKey = localStorage.getItem('kmp_api_key') || '';
+  html += '<div class="link-input-row">';
+  html += '<input type="password" id="api-key-input" placeholder="' + t('api_placeholder') + '" value="' + savedKey + '" style="width:100%;padding:12px 16px;border-radius:10px;background:#0a1520;border:1px solid var(--border);color:var(--text);font-size:14px;outline:none;">';
+  html += '<button class="btn btn-secondary" id="api-save-btn">' + t('api_save') + '</button>';
+  html += '</div>';
+  html += '</div>';
+
+  // About
+  html += '<div class="settings-section">';
+  html += '<h3>ℹ️ ' + t('about_section') + '</h3>';
+  html += '<div class="app-info">';
+  html += '<div style="font-size:36px;margin-bottom:8px;">🌙</div>';
+  html += '<div style="font-size:15px;font-weight:700;color:var(--heading);">' + t('about_text') + '</div>';
+  html += '<div style="margin-top:6px;">' + t('about_desc') + '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  el.innerHTML = html;
+
+  // Event listeners
+  const unlinkBtn = document.getElementById('unlink-btn');
+  if (unlinkBtn) unlinkBtn.addEventListener('click', unlinkPartner);
+
+  const settingsLinkBtn = document.getElementById('settings-link-btn');
+  if (settingsLinkBtn) {
+    const settingsInput = document.getElementById('settings-link-input');
+    const settingsErr = document.getElementById('settings-link-error');
+    settingsLinkBtn.addEventListener('click', () => {
+      const code = (settingsInput.value || '').trim().toUpperCase();
+      if (!code) return;
+      linkPartner(code, settingsErr);
+    });
+    settingsInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') settingsLinkBtn.click(); });
+  }
+
+  const langToggle = document.getElementById('lang-toggle');
+  if (langToggle) {
+    langToggle.addEventListener('click', () => {
+      currentLang = currentLang === 'es' ? 'en' : 'es';
+      localStorage.setItem('kmp_lang', currentLang);
+      updateTabLabels();
+      renderSettings();
+    });
+  }
+
+  const notifBtn = document.getElementById('notif-request-btn');
+  if (notifBtn) {
+    notifBtn.addEventListener('click', () => {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(() => renderSettings());
+      }
+    });
+  }
+
+  const apiSaveBtn = document.getElementById('api-save-btn');
+  if (apiSaveBtn) {
+    apiSaveBtn.addEventListener('click', () => {
+      const key = document.getElementById('api-key-input').value.trim();
+      if (key) {
+        localStorage.setItem('kmp_api_key', key);
+      } else {
+        localStorage.removeItem('kmp_api_key');
+      }
+      apiSaveBtn.textContent = '✅ ' + t('api_saved');
+      setTimeout(() => { apiSaveBtn.textContent = t('api_save'); }, 2000);
+    });
+  }
+}
+
+function updateTabLabels() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    el.textContent = t(key);
+  });
+}
+
+/* ============================================================
+   CHAT
+   ============================================================ */
+function renderChat() {
+  const messagesEl = document.getElementById('chat-messages');
+  const suggestionsEl = document.getElementById('chat-suggestions');
+  const inputEl = document.getElementById('chat-input');
+
+  inputEl.placeholder = t('chat_placeholder');
+
+  // Render messages
+  let html = '';
+  if (chatHistory.length === 0) {
+    html += '<div class="chat-msg assistant"><div class="msg-text">' + t('chat_welcome') + '</div></div>';
+  }
+  chatHistory.forEach(msg => {
+    html += '<div class="chat-msg ' + msg.role + '"><div class="msg-text">' + escapeHtml(msg.content).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') + '</div></div>';
+  });
+  messagesEl.innerHTML = html;
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  // Suggestions
+  if (chatHistory.length === 0) {
+    const suggestKeys = ['suggest_1','suggest_2','suggest_3','suggest_4','suggest_5','suggest_6'];
+    suggestionsEl.innerHTML = suggestKeys.map(k =>
+      '<div class="suggest-chip" data-prompt="' + escapeAttr(t(k)) + '">' + t(k) + '</div>'
+    ).join('');
+    suggestionsEl.querySelectorAll('.suggest-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        sendChatMessage(chip.dataset.prompt);
+      });
+    });
+  } else {
+    suggestionsEl.innerHTML = '';
+  }
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function escapeAttr(str) {
+  return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function buildSystemPrompt() {
+  let ctx = '';
+  if (partnerProfile) {
+    const today = new Date();
+    const cycle = getCycleDayFor(today, partnerProfile);
+    const friction = computeFrictionForDay(cycle.day, partnerProfile.cycleLength, partnerProfile.periodLength);
+    const moon = getMoonPhase(today);
+    const name = partnerProfile.name || 'her';
+    ctx = '\n\nCurrent context: ' + name + ' is on cycle day ' + cycle.day + ', phase: ' + cycle.phase + '. Friction level: ' + friction.level + ' (' + t(friction.reasonKey) + '). Moon: ' + t(moon.phaseName) + ' (' + moon.illumination + '% illumination, lunar day ' + moon.lunarDay + ').';
+  }
+
+  const lang = currentLang === 'es' ? 'Spanish' : 'English';
+
+  return 'You are Khloe\'s Moon Partner AI — a warm, wise guide for men who want to understand and support their partner through her menstrual cycle. Your tone is man-to-man: direct, practical, no-nonsense but empathetic. You use cycle science to give actionable advice. Keep answers concise, under 200 words. Always respond in ' + lang + '. Use bold (**text**) for key points.' + ctx;
+}
+
+async function sendChatMessage(text) {
+  if (!text || !text.trim()) return;
+
+  const messagesEl = document.getElementById('chat-messages');
+  const suggestionsEl = document.getElementById('chat-suggestions');
+  const inputEl = document.getElementById('chat-input');
+
+  inputEl.value = '';
+  suggestionsEl.innerHTML = '';
+
+  // Add user message
+  chatHistory.push({ role: 'user', content: text.trim() });
+  saveChatHistory();
+
+  // Render user message
+  messagesEl.innerHTML += '<div class="chat-msg user"><div class="msg-text">' + escapeHtml(text.trim()) + '</div></div>';
+
+  // Typing indicator
+  const typingHtml = '<div class="chat-msg assistant" id="typing-msg"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+  messagesEl.innerHTML += typingHtml;
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  try {
+    const apiKey = localStorage.getItem('kmp_api_key') || '';
+    const proxyUrl = 'https://moon-sync-ai.bearman-ux.workers.dev';
+    const model = 'gemini-2.5-flash';
+
+    const messages = chatHistory.map(m => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
+    }));
+
+    const payload = {
+      model: model,
+      system_instruction: { parts: [{ text: buildSystemPrompt() }] },
+      contents: messages,
+      generationConfig: {
+        temperature: 0.8,
+        maxOutputTokens: 512
+      }
+    };
+
+    let url = proxyUrl;
+    const headers = { 'Content-Type': 'application/json' };
+
+    if (apiKey) {
+      url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + apiKey;
+    }
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(payload)
+    });
+
+    const data = await resp.json();
+    let aiText = '';
+
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      aiText = data.candidates[0].content.parts.map(p => p.text).join('');
+    } else if (data.error) {
+      aiText = t('chat_error') + ' (' + (data.error.message || 'Unknown') + ')';
+    } else {
+      aiText = t('chat_error');
+    }
+
+    // Remove typing indicator
+    const typingEl = document.getElementById('typing-msg');
+    if (typingEl) typingEl.remove();
+
+    chatHistory.push({ role: 'assistant', content: aiText });
+    saveChatHistory();
+
+    const formatted = escapeHtml(aiText).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    messagesEl.innerHTML += '<div class="chat-msg assistant"><div class="msg-text">' + formatted + '</div></div>';
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  } catch (err) {
+    console.error('Chat error:', err);
+    const typingEl = document.getElementById('typing-msg');
+    if (typingEl) typingEl.remove();
+    messagesEl.innerHTML += '<div class="chat-msg assistant"><div class="msg-text">' + t('chat_error') + '</div></div>';
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+}
+
+function saveChatHistory() {
+  try {
+    // Keep last 50 messages
+    if (chatHistory.length > 50) chatHistory = chatHistory.slice(-50);
+    localStorage.setItem('kmp_chat_history', JSON.stringify(chatHistory));
+  } catch(e) {}
+}
+
+// Chat event listeners
+document.getElementById('chat-send').addEventListener('click', () => {
+  sendChatMessage(document.getElementById('chat-input').value);
+});
+document.getElementById('chat-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') sendChatMessage(document.getElementById('chat-input').value);
+});
+
+/* ============================================================
+   NOTIFICATIONS
+   ============================================================ */
+function checkPartnerDailyNotification() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!partnerProfile || !partnerProfile.lastPeriod) return;
+
+  const today = new Date();
+  const todayKey = today.toISOString().split('T')[0];
+  const lastNotifDay = localStorage.getItem('kmp_notif_day');
+  if (lastNotifDay === todayKey) return;
+
+  const cycle = getCycleDayFor(today, partnerProfile);
+  const cl = partnerProfile.cycleLength || 28;
+  const pl = partnerProfile.periodLength || 5;
+  const halfCycle = Math.floor(cl / 2);
+  const pmsStart = cl - 6;
+  const pmsPeak = cl - 2;
+
+  let notifTitle = null;
+  let notifBody = null;
+
+  // Day 1 — period start
+  if (cycle.day === 1) {
+    notifTitle = t('notif_period_day1_title');
+    notifBody = t('notif_period_day1_body');
+  }
+  // Day 2 — period day 2
+  else if (cycle.day === 2) {
+    notifTitle = t('notif_period_day2_title');
+    notifBody = t('notif_period_day2_body');
+  }
+  // Last period day
+  else if (cycle.day === pl) {
+    notifTitle = t('notif_period_last_title');
+    notifBody = t('notif_period_last_body');
+  }
+  // Ovulation day
+  else if (cycle.day === halfCycle + 1) {
+    notifTitle = t('notif_ovulation_title');
+    notifBody = t('notif_ovulation_body');
+  }
+  // Fertile window start (2 days before ovulation)
+  else if (cycle.day === halfCycle - 1) {
+    notifTitle = t('notif_fertile_title');
+    notifBody = t('notif_fertile_body');
+  }
+  // PMS start
+  else if (cycle.day === pmsStart) {
+    notifTitle = t('notif_pms_start_title');
+    notifBody = t('notif_pms_start_body');
+  }
+  // PMS peak
+  else if (cycle.day === pmsPeak) {
+    notifTitle = t('notif_pms_peak_title');
+    notifBody = t('notif_pms_peak_body');
+  }
+  // Day before period
+  else if (cycle.day === cl) {
+    notifTitle = t('notif_day_before_title');
+    notifBody = t('notif_day_before_body');
+  }
+  // Follicular energy boost (day after period ends)
+  else if (cycle.day === pl + 1) {
+    notifTitle = t('notif_follicular_title');
+    notifBody = t('notif_follicular_body');
+  }
+
+  if (notifTitle && notifBody) {
+    localStorage.setItem('kmp_notif_day', todayKey);
+    try {
+      new Notification(notifTitle, {
+        body: notifBody,
+        icon: 'icon-192.png',
+        badge: 'icon-192.png',
+        tag: 'kmp-daily'
+      });
+    } catch(e) {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification(notifTitle, {
+            body: notifBody,
+            icon: 'icon-192.png',
+            badge: 'icon-192.png',
+            tag: 'kmp-daily'
+          });
+        });
+      }
+    }
+  }
+}
+
+/* ============================================================
+   SERVICE WORKER
+   ============================================================ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      if (newWorker) {
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+            console.log('New SW version available');
+          }
+        });
+      }
+    });
+  }).catch(err => console.log('SW registration failed:', err));
+}
+
+/* ============================================================
+   URL PARAM AUTO-LINK
+   ============================================================ */
+function checkUrlParam() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('partner');
+  if (code && !linkedCode) {
+    linkedCode = code.toUpperCase();
+    localStorage.setItem('kmp_linked_code', linkedCode);
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  checkUrlParam();
+  updateTabLabels();
+
+  // Authenticate anonymously then start
+  auth.signInAnonymously().then(() => {
+    console.log('Firebase auth OK');
+    if (linkedCode) {
+      listenToPartner();
+    }
+    renderDashboard();
+
+    // Hide splash
+    setTimeout(() => {
+      const splash = document.getElementById('splash');
+      splash.classList.add('hide');
+      setTimeout(() => splash.remove(), 500);
+    }, 800);
+
+    // Notifications: check after 3 seconds, then every 4 hours
+    setTimeout(checkPartnerDailyNotification, 3000);
+    setInterval(checkPartnerDailyNotification, 4 * 60 * 60 * 1000);
+
+  }).catch(err => {
+    console.error('Auth error:', err);
+    // Still render even if auth fails
+    renderDashboard();
+    setTimeout(() => {
+      const splash = document.getElementById('splash');
+      splash.classList.add('hide');
+      setTimeout(() => splash.remove(), 500);
+    }, 800);
+  });
+}
+
+init();
+
+})();
+</script>
+</body>
+</html>

@@ -1738,6 +1738,24 @@
                 no_events: 'Sin eventos',
                 force_update: 'Forzar actualización',
                 version: 'Versión',
+                account_label: 'Cuenta:',
+                not_connected: 'No conectada',
+                sign_in_google: 'Entrar con Google',
+                sign_out: 'Salir',
+                add_friend: 'Añadir amiga',
+                friend_name_placeholder: 'Nombre',
+                partner_mode: '💕 Modo Pareja',
+                partner_desc: 'Abre la Guía para Pareja o envíale el enlace para que vea tu fase en tiempo real.',
+                partner_open: 'Abrir guía',
+                partner_send: '📤 Enviar enlace',
+                gcal_connected: 'Conectado',
+                gcal_push: '🔄 Enviar ciclo',
+                gcal_sync: '🔄 Sync',
+                gcal_disconnect: 'Desconectar',
+                gcal_delete: '🗑 Borrar eventos de KM en GCal',
+                gcal_explain: 'Conecta tu Google Calendar para sincronizar automáticamente tu ciclo, período, ovulación y ventana fértil.',
+                gcal_connect: '🔗 Conectar Google Calendar',
+                gcal_export: '📥 Exportar .ics (alternativa manual)',
                 mark_period: 'Marcar período',
                 period_marked: 'Período marcado',
                 symptom_frequency: 'Frecuencia de síntomas',
@@ -1908,6 +1926,24 @@
                 no_events: 'No Events',
                 force_update: 'Force Update',
                 version: 'Version',
+                account_label: 'Account:',
+                not_connected: 'Not connected',
+                sign_in_google: 'Sign in with Google',
+                sign_out: 'Sign out',
+                add_friend: 'Add friend',
+                friend_name_placeholder: 'Name',
+                partner_mode: '💕 Partner Mode',
+                partner_desc: 'Open the Partner Guide or send the link so they can see your phase in real time.',
+                partner_open: 'Open guide',
+                partner_send: '📤 Send link',
+                gcal_connected: 'Connected',
+                gcal_push: '🔄 Push cycle',
+                gcal_sync: '🔄 Sync',
+                gcal_disconnect: 'Disconnect',
+                gcal_delete: '🗑 Delete KM events from GCal',
+                gcal_explain: 'Connect your Google Calendar to automatically sync your cycle, period, ovulation and fertile window.',
+                gcal_connect: '🔗 Connect Google Calendar',
+                gcal_export: '📥 Export .ics (manual alternative)',
                 mark_period: 'Mark Period',
                 period_marked: 'Period Marked',
                 symptom_frequency: 'Symptom Frequency',
@@ -5576,6 +5612,49 @@
             document.getElementById('my-share-code').value = profile.shareCode;
             renderFriendsList();
 
+            // Partner section labels
+            var partnerLabel = document.getElementById('partner-label');
+            if (partnerLabel) partnerLabel.textContent = _('partner_mode');
+            var partnerExplain = document.getElementById('partner-settings-explain');
+            if (partnerExplain) partnerExplain.textContent = _('partner_desc');
+            var openPartnerBtn = document.getElementById('open-partner-btn');
+            if (openPartnerBtn) openPartnerBtn.textContent = _('partner_open');
+            var sharePartnerBtn = document.getElementById('share-partner-btn');
+            if (sharePartnerBtn) sharePartnerBtn.textContent = _('partner_send');
+
+            // Firebase auth labels
+            var acctSpans = document.querySelectorAll('#settings-screen .settings-item span');
+            var fbSigninBtn = document.getElementById('fb-signin-btn');
+            if (fbSigninBtn) fbSigninBtn.textContent = _('sign_in_google');
+            var fbSignoutBtn = document.getElementById('fb-signout-btn');
+            if (fbSignoutBtn) fbSignoutBtn.textContent = _('sign_out');
+
+            // Add friend label
+            var addFriendLabel = document.getElementById('add-friend-label');
+            if (addFriendLabel) addFriendLabel.textContent = _('add_friend');
+            var friendNameInput = document.getElementById('friend-name-input');
+            if (friendNameInput) friendNameInput.placeholder = _('friend_name_placeholder');
+
+            // Google Calendar labels
+            var calLabel = document.getElementById('calendar-label');
+            if (calLabel) calLabel.textContent = '📅 Google Calendar';
+            var gcalStatusText = document.getElementById('gcal-status-text');
+            if (gcalStatusText) gcalStatusText.textContent = _('gcal_connected');
+            var gcalPushBtn = document.getElementById('gcal-push-btn');
+            if (gcalPushBtn) gcalPushBtn.textContent = _('gcal_push');
+            var gcalSyncBtn = document.getElementById('gcal-sync-btn');
+            if (gcalSyncBtn) gcalSyncBtn.textContent = _('gcal_sync');
+            var gcalDisconnBtn = document.getElementById('gcal-disconnect-btn');
+            if (gcalDisconnBtn) gcalDisconnBtn.textContent = _('gcal_disconnect');
+            var gcalDeleteBtn = document.getElementById('gcal-delete-btn');
+            if (gcalDeleteBtn) gcalDeleteBtn.textContent = _('gcal_delete');
+            var gcalExplainText = document.getElementById('gcal-explain-text');
+            if (gcalExplainText) gcalExplainText.textContent = _('gcal_explain');
+            var gcalConnectBtn = document.getElementById('gcal-connect-btn');
+            if (gcalConnectBtn) gcalConnectBtn.textContent = _('gcal_connect');
+            var exportCalBtn = document.getElementById('export-calendar-btn');
+            if (exportCalBtn) exportCalBtn.textContent = _('gcal_export');
+
             // Google Calendar connected/disconnected UI toggle
             var gcalConnUI = document.getElementById('gcal-connected-ui');
             var gcalDiscUI = document.getElementById('gcal-disconnected-ui');
@@ -5586,7 +5665,7 @@
                     var lastSync = localStorage.getItem('khloesmoon_gcalLastSync');
                     var syncEl = document.getElementById('gcal-last-sync');
                     if (syncEl && lastSync) {
-                        try { syncEl.textContent = 'Última sync: ' + new Date(lastSync).toLocaleString(currentLanguage || 'es'); } catch(e) {}
+                        try { syncEl.textContent = (currentLanguage === 'es' ? 'Última sync: ' : 'Last sync: ') + new Date(lastSync).toLocaleString(currentLanguage || 'es'); } catch(e) {}
                     }
                 } else {
                     gcalConnUI.style.display = 'none';
