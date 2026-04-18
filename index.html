@@ -3473,6 +3473,93 @@
             localStorage.setItem('khloesmoon_partner_last_period_seen', lp);
         }
 
+        // ============ PARTNER DAILY CRITICAL NOTIFICATIONS ============
+        // Fires once per day for partners on crucial cycle days
+        function checkPartnerDailyNotification() {
+            if (profile.role !== 'partner') return;
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+            // Only fire once per calendar day
+            var today = new Date().toISOString().split('T')[0];
+            var lastNotifDay = localStorage.getItem('khloesmoon_partner_notif_day') || '';
+            if (lastNotifDay === today) return;
+
+            // Get partner's cycle info
+            var src = (linkedPartnerData && linkedPartnerData.profile) ? linkedPartnerData.profile : profile;
+            if (!src.lastPeriod) return;
+
+            var cl = src.cycleLength || 28;
+            var pl = src.periodLength || 5;
+            var last = new Date(src.lastPeriod);
+            var now = new Date();
+            var diff = Math.floor((now - last) / 86400000);
+            var day = ((diff % cl) + cl) % cl + 1;
+
+            var lang = currentLanguage || 'es';
+            var L = lang === 'es';
+            var name = (linkedPartnerData && linkedPartnerData.profile && linkedPartnerData.profile.name) || (L ? 'Tu pareja' : 'Your partner');
+            var title = '';
+            var body = '';
+            var tag = 'partner-daily-' + today;
+
+            // Day 1: Period started
+            if (day === 1) {
+                title = L ? '🔴 Hoy empieza su período' : '🔴 Her period starts today';
+                body = L ? name + ' puede sentir dolor y cansancio. Sé paciente, ofrece algo caliente y dale su espacio. Hoy es día de cuidar.' : name + ' may feel pain and fatigue. Be patient, offer something warm, and give her space. Today is a care day.';
+            }
+            // Day 2: Heaviest day
+            else if (day === 2) {
+                title = L ? '🔴 Día más intenso del período' : '🔴 Heaviest period day';
+                body = L ? 'Hoy su flujo es más fuerte. Puede estar más cansada y sensible. Un detalle pequeño (chocolate, té, abrazos) vale mucho.' : 'Her flow is heaviest today. She may be more tired and sensitive. A small gesture (chocolate, tea, hugs) means a lot.';
+            }
+            // Last day of period
+            else if (day === pl) {
+                title = L ? '🌱 Su período está terminando' : '🌱 Her period is ending';
+                body = L ? 'Su energía va a empezar a subir. Buen momento para planear algo juntos.' : 'Her energy will start rising. Good time to plan something together.';
+            }
+            // Ovulation window (mid-cycle)
+            else if (day === Math.floor(cl / 2)) {
+                title = L ? '✨ Día de ovulación' : '✨ Ovulation day';
+                body = L ? name + ' está en su fase más energética y magnética. Disfruta su buena vibra.' : name + ' is in her most energetic and magnetic phase. Enjoy her good vibes.';
+            }
+            // Fertile window start
+            else if (day === Math.floor(cl / 2) - 3) {
+                title = L ? '🌸 Empieza su ventana fértil' : '🌸 Fertile window begins';
+                body = L ? 'Los próximos días son los más fértiles de su ciclo. Tenlo en cuenta.' : 'The next few days are the most fertile in her cycle. Keep that in mind.';
+            }
+            // PMS starts (6 days before period)
+            else if (day === cl - 6) {
+                title = L ? '⚠️ Empieza fase premenstrual' : '⚠️ PMS phase begins';
+                body = L ? 'Los próximos días puede estar más irritable o sensible. No es personal — son las hormonas. Paciencia y cariño.' : 'She may be more irritable or sensitive the next few days. It\'s not personal — it\'s hormones. Patience and love.';
+            }
+            // PMS peak (3 days before period)
+            else if (day === cl - 3) {
+                title = L ? '🔥 Pico premenstrual' : '🔥 PMS peak';
+                body = L ? 'Hoy puede ser un día difícil emocionalmente. Evita discusiones, no critiques, ofrece apoyo sin preguntar demasiado.' : 'Today may be emotionally difficult. Avoid arguments, don\'t criticize, offer support without asking too much.';
+            }
+            // Day before period
+            else if (day === cl) {
+                title = L ? '🌙 Mañana empieza su período' : '🌙 Her period starts tomorrow';
+                body = L ? 'Prepárate: mañana empieza su período. Ten analgésicos, su snack favorito y paciencia lista.' : 'Get ready: her period starts tomorrow. Have pain relief, her favorite snack, and patience ready.';
+            }
+            // Follicular energy boost
+            else if (day === pl + 3) {
+                title = L ? '🌱 Subiendo energía' : '🌱 Energy rising';
+                body = L ? name + ' está en fase folicular — su energía, ánimo y claridad mental están subiendo. Buen momento para conectar.' : name + ' is in follicular phase — her energy, mood, and mental clarity are rising. Good time to connect.';
+            }
+
+            if (title) {
+                localStorage.setItem('khloesmoon_partner_notif_day', today);
+                try {
+                    new Notification(title, { body: body, icon: './icon-192.png', tag: tag });
+                } catch(e) { console.warn('notification error', e); }
+            }
+        }
+
+        // Run check on load and every 4 hours
+        setTimeout(function() { try { checkPartnerDailyNotification(); } catch(e){} }, 3000);
+        setInterval(function() { try { checkPartnerDailyNotification(); } catch(e){} }, 4 * 60 * 60 * 1000);
+
         // ============ ROLE SELECTION ============
         function showRoleOverlayIfNeeded() {
             if (profile.role === 'woman' || profile.role === 'partner') {
