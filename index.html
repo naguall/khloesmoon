@@ -83,6 +83,10 @@
         .fm-card h3 { margin:0 0 6px;font-size:0.92rem;color:var(--wine); }
         .fm-card .fm-body { font-size:0.82rem;color:var(--text);line-height:1.55; }
         .fm-card .fm-tip { margin-top:8px;padding:8px 10px;border-radius:10px;background:linear-gradient(135deg,rgba(244,182,194,0.15),rgba(212,127,147,0.1));font-size:0.78rem;color:var(--wine);line-height:1.4; }
+        .story-body-collapsed { max-height:3.6em;overflow:hidden;position:relative; }
+        .story-body-collapsed::after { content:'';position:absolute;bottom:0;left:0;right:0;height:1.5em;background:linear-gradient(transparent,var(--white)); }
+        .story-expand-btn { display:inline-block;margin-top:6px;padding:3px 12px;font-size:0.75rem;color:var(--wine);background:rgba(142,68,173,0.08);border:1px solid rgba(142,68,173,0.2);border-radius:12px;cursor:pointer;font-weight:600; }
+        .story-expand-btn:hover { background:rgba(142,68,173,0.15); }
         .tab-bar {
             position: fixed;
             bottom: 0;
@@ -1775,6 +1779,9 @@
                 calendar: 'Calendario',
                 log: 'Registro',
                 insights: 'Estadísticas',
+                sacred: 'Sagrado',
+                read_more: 'Ver más ▼',
+                read_less: 'Ver menos ▲',
                 chat: 'Chat',
                 chat_title: 'Asistente AI',
                 chat_placeholder: 'Pregúntame algo...',
@@ -1963,6 +1970,9 @@
                 calendar: 'Calendar',
                 log: 'Log',
                 insights: 'Insights',
+                sacred: 'Sacred',
+                read_more: 'Read more ▼',
+                read_less: 'Read less ▲',
                 chat: 'Chat',
                 chat_title: 'AI Assistant',
                 chat_placeholder: 'Ask me anything...',
@@ -2110,6 +2120,7 @@
                 calendar: 'Calendrier',
                 log: 'Journal',
                 insights: 'Statistiques',
+                sacred: 'Sacré',
                 today_events: 'Événements',
                 days: 'jours',
                 months: 'mois',
@@ -2239,6 +2250,7 @@
                 calendar: 'Calendário',
                 log: 'Registro',
                 insights: 'Insights',
+                sacred: 'Sagrado',
                 today_events: 'Eventos hoje',
                 days: 'dias',
                 months: 'meses',
@@ -2368,6 +2380,7 @@
                 calendar: 'Kalender',
                 log: 'Protokoll',
                 insights: 'Erkenntnisse',
+                sacred: 'Heilig',
                 today_events: 'Heutige Ereignisse',
                 days: 'Tage',
                 months: 'Monate',
@@ -2497,6 +2510,7 @@
                 calendar: 'Calendario',
                 log: 'Registro',
                 insights: 'Approfondimenti',
+                sacred: 'Sacro',
                 today_events: 'Eventi oggi',
                 days: 'giorni',
                 months: 'mesi',
@@ -2626,6 +2640,7 @@
                 calendar: '日历',
                 log: '日志',
                 insights: '洞察',
+                sacred: '神圣',
                 today_events: '今天的事件',
                 days: '天',
                 months: '个月',
@@ -2755,6 +2770,7 @@
                 calendar: 'カレンダー',
                 log: 'ログ',
                 insights: 'インサイト',
+                sacred: '神聖',
                 today_events: '今日のイベント',
                 days: '日',
                 months: '月',
@@ -2884,6 +2900,7 @@
                 calendar: '달력',
                 log: '로그',
                 insights: '통찰력',
+                sacred: '신성한',
                 today_events: '오늘의 이벤트',
                 days: '일',
                 months: '개월',
@@ -3825,6 +3842,24 @@
             renderSacredScreen();
         }
 
+        function toggleStoryExpand(btn) {
+            var card = btn.parentElement;
+            var body = btn.previousElementSibling;
+            if (!body) return;
+            var isCollapsed = body.classList.contains('story-body-collapsed');
+            if (isCollapsed) {
+                body.classList.remove('story-body-collapsed');
+                btn.textContent = _('read_less');
+                var tip = card.querySelector('.fm-tip');
+                if (tip) tip.style.display = '';
+            } else {
+                body.classList.add('story-body-collapsed');
+                btn.textContent = _('read_more');
+                var tip = card.querySelector('.fm-tip');
+                if (tip) tip.style.display = 'none';
+            }
+        }
+
         function renderSacredScreen() {
             if (_sacredSection === 'wisdom') renderWisdomScreen();
             else if (_sacredSection === 'firstmoon') renderFirstMoonScreen();
@@ -3844,7 +3879,8 @@
                 html += '<div class="wisdom-card">';
                 html += '<h3>' + w.emoji + ' ' + w.title + '</h3>';
                 html += '<div class="wc-culture">' + w.culture + '</div>';
-                html += '<div class="wc-body">' + w.body + '</div>';
+                html += '<div class="wc-body story-body-collapsed">' + w.body + '</div>';
+                html += '<span class="story-expand-btn" onclick="toggleStoryExpand(this)">' + _('read_more') + '</span>';
                 html += '<span class="wc-phase">' + (phaseLabels[w.phase] || w.phase) + '</span>';
                 html += '</div>';
             });
@@ -3869,8 +3905,9 @@
                 if (_fmFilter !== 'all' && item.cat !== _fmFilter) return;
                 html += '<div class="fm-card">';
                 html += '<h3>' + item.emoji + ' ' + item.title + '</h3>';
-                html += '<div class="fm-body">' + item.body + '</div>';
-                if (item.tip) html += '<div class="fm-tip">💡 ' + item.tip + '</div>';
+                html += '<div class="fm-body story-body-collapsed">' + item.body + '</div>';
+                html += '<span class="story-expand-btn" onclick="toggleStoryExpand(this)">' + _('read_more') + '</span>';
+                if (item.tip) html += '<div class="fm-tip" style="display:none;">💡 ' + item.tip + '</div>';
                 html += '</div>';
             });
             container.innerHTML = html;
@@ -4025,7 +4062,8 @@
                     html += '<div class="wisdom-card">';
                     html += '<h3>' + w.emoji + ' ' + w.title + '</h3>';
                     html += '<div class="wc-culture">' + w.culture + '</div>';
-                    html += '<div class="wc-body">' + w.body + '</div>';
+                    html += '<div class="wc-body story-body-collapsed">' + w.body + '</div>';
+                    html += '<span class="story-expand-btn" onclick="toggleStoryExpand(this)">' + _('read_more') + '</span>';
                     html += '<span class="wc-phase">' + (phaseLabels[w.phase] || w.phase) + '</span>';
                     html += '</div>';
                 });
@@ -4035,8 +4073,9 @@
                     if (_wwGuideFilter !== 'all' && item.cat !== _wwGuideFilter) return;
                     html += '<div class="fm-card">';
                     html += '<h3>' + item.emoji + ' ' + item.title + '</h3>';
-                    html += '<div class="fm-body">' + item.body + '</div>';
-                    if (item.tip) html += '<div class="fm-tip">💡 ' + item.tip + '</div>';
+                    html += '<div class="fm-body story-body-collapsed">' + item.body + '</div>';
+                    html += '<span class="story-expand-btn" onclick="toggleStoryExpand(this)">' + _('read_more') + '</span>';
+                    if (item.tip) html += '<div class="fm-tip" style="display:none;">💡 ' + item.tip + '</div>';
                     html += '</div>';
                 });
             }
@@ -4717,6 +4756,14 @@
                 const key = el.dataset.key;
                 if (key) el.textContent = _(key);
             });
+            // Translate symptom buttons
+            var symList = _('symptoms_list');
+            if (symList && typeof symList === 'object') {
+                Object.keys(symList).forEach(function(key) {
+                    var btn = document.getElementById('symptom-' + key);
+                    if (btn) btn.textContent = symList[key];
+                });
+            }
 
             document.getElementById('period-flow-label').textContent = _('period_flow');
             document.getElementById('mood-label').textContent = _('mood');
