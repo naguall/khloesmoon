@@ -4495,14 +4495,37 @@
                 _auth.onAuthStateChanged(function(user) {
                     _fbUser = user;
                     if (user) {
-                        // Ensure user has a Khloe's Moon profile doc with shareCode
-                        ensureShareCode();
-                        _db.collection('khloesmoon_users').doc(user.uid).set({
-                            shareCode: profile.shareCode,
-                            name: profile.name || user.displayName || 'Amiga',
-                            email: user.email || null,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        }, { merge: true }).catch(function(e) { console.warn('profile save:', e); });
+                        // Sync shareCode: prefer Firestore code, fall back to local
+                        _db.collection('khloesmoon_users').doc(user.uid).get().then(function(doc) {
+                            var remoteCode = doc.exists && doc.data().shareCode ? doc.data().shareCode : '';
+                            ensureShareCode();
+                            if (remoteCode) {
+                                // Use the Firestore code as the authoritative one
+                                profile.shareCode = remoteCode;
+                                saveProfile();
+                            }
+                            // Now push profile (uses the synced code)
+                            _db.collection('khloesmoon_users').doc(user.uid).set({
+                                shareCode: profile.shareCode,
+                                name: profile.name || user.displayName || 'Amiga',
+                                email: user.email || null,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }, { merge: true }).catch(function(e) { console.warn('profile save:', e); });
+                            // Update UI with synced code
+                            var codeInput = document.getElementById('partner-share-code');
+                            if (codeInput) codeInput.value = profile.shareCode;
+                            var authWarn = document.getElementById('partner-auth-warning');
+                            if (authWarn) authWarn.style.display = 'none';
+                        }).catch(function(e) {
+                            console.warn('shareCode sync:', e);
+                            ensureShareCode();
+                            _db.collection('khloesmoon_users').doc(user.uid).set({
+                                shareCode: profile.shareCode,
+                                name: profile.name || user.displayName || 'Amiga',
+                                email: user.email || null,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }, { merge: true }).catch(function(e2) { console.warn('profile save:', e2); });
+                        });
                         // Backfill friends' uids from their share codes
                         backfillFriendUids().then(subscribeToAllFriendChats);
                     } else {
